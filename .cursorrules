@@ -1,0 +1,249 @@
+# =====================================================
+# CONTEXTO GENERAL DEL PROYECTO
+# =====================================================
+
+Este proyecto es una API backend en Node.js.
+Usa Express.js como framework y Sequelize con MySQL como ORM.
+El proyecto está escrito exclusivamente en JavaScript (CommonJS).
+NO usar TypeScript bajo ninguna circunstancia.
+
+La arquitectura es modular, escalable y estricta.
+Todas las decisiones deben respetar estas reglas sin excepción.
+
+Este archivo define reglas OBLIGATORIAS y persistentes.
+No son sugerencias.
+
+# =====================================================
+# STACK TECNOLÓGICO OBLIGATORIO
+# =====================================================
+
+- Framework: Express.js
+- ORM: Sequelize con MySQL
+- Validación: express-validator (usando helpers propios)
+- Autenticación: JWT (jsonwebtoken)
+- Seguridad: helmet, bcryptjs
+- Manejo de archivos: Multer (o equivalente)
+- Logging: sistema de logging a archivos locales
+- Internacionalización: sistema de traducciones con archivos JSON
+
+Restricciones:
+- NO incluir tests
+- NO introducir librerías nuevas sin justificación explícita
+- NO cambiar el stack tecnológico
+
+# =====================================================
+# ESTRUCTURA DE DIRECTORIOS (ESTRICTA)
+# =====================================================
+
+La estructura del proyecto es obligatoria y no debe modificarse:
+
+- app/ → controladores (handlers de endpoints)
+  - app/[modulo]/[accion]/route.js
+
+- models/ → modelos Sequelize organizados por dominio
+  - models/[dominio]/[modelo].js
+  - models/database.js
+  - models/index.js
+
+- routes/ → definición de rutas Express
+  - routes/index.js
+  - routes/[modulo].js
+
+- middleware/ → middlewares reutilizables
+  - middleware/body-validator.js
+  - middleware/validation.js
+  - middleware/auth.js
+  - middleware/[modulo]/[nombre].js
+
+- helpers/ → utilidades reutilizables
+  - helpers/response.js
+  - helpers/validator.js
+  - helpers/controller-wrapper.js
+  - helpers/logger.js
+
+- logs/ → archivos de log locales
+- config/ → configuración del proyecto
+  - config/environment.js
+  - config/constants.js
+- assets/translations/ → archivos JSON de traducciones
+- server.js → clase Server
+- index.js → punto de entrada principal
+- package.json → dependencias (CommonJS)
+
+NO mover archivos de estas ubicaciones.
+NO mezclar responsabilidades entre carpetas.
+
+# =====================================================
+# RUTAS
+# =====================================================
+
+- Cada módulo tiene su router en routes/[modulo].js
+- Los routers registran controladores usando helpers/controller-wrapper
+- El router principal (routes/index.js) agrupa todos los módulos
+- Todas las rutas están bajo el prefijo /api/v1
+- NO definir lógica de negocio en routers
+
+# =====================================================
+# CONTROLADORES
+# =====================================================
+
+Cada controlador DEBE:
+- Vivir en app/[modulo]/[accion]/route.js
+- Exportar un objeto con:
+  - validators (array)
+  - default (función async handler)
+
+Reglas del handler:
+- NO usar try-catch
+- NO manejar errores manualmente
+- NO usar res.status().json()
+- Usar SIEMPRE helpers/response para responder
+- Importar modelos únicamente desde models/database
+- Lanzar errores usando throw
+
+Ejemplo de exportación obligatoria:
+- module.exports = { validators, default: handler }
+
+El wrapper de controladores captura TODOS los errores automáticamente.
+
+# =====================================================
+# VALIDACIÓN
+# =====================================================
+
+- Usar express-validator exclusivamente mediante helpers propios
+- Validar SIEMPRE campos usando rutas del tipo 'data.campo'
+- Los mensajes de validación son SIEMPRE claves de traducción
+- El middleware de validación aborta la request si hay errores
+- Las validaciones se ejecutan antes del handler
+
+Ejemplo de mensaje válido:
+- validators.email.invalid
+
+# =====================================================
+# REQUEST / RESPONSE
+# =====================================================
+
+Request:
+- El body SIEMPRE tiene la forma:
+  { data: { ... } }
+
+Response exitosa:
+- Usar helpers/response
+- Formato estandarizado
+- Mensajes traducidos automáticamente
+
+Response de error:
+- statusCode
+- message traducido
+- errorCode (clave de traducción)
+- errors por campo si aplica
+
+NO devolver respuestas manuales.
+
+# =====================================================
+# MANEJO DE ERRORES (CENTRALIZADO)
+# =====================================================
+
+- NO usar try-catch en controladores
+- Los errores se lanzan con throw
+- Los errores pueden tener:
+  - status
+  - code (clave de traducción)
+
+Comportamiento:
+- Errores con status y code → respuesta controlada
+- Errores sin status/code → error interno (500)
+
+El manejo de errores está centralizado en helpers/controller-wrapper.
+
+# =====================================================
+# MODELOS SEQUELIZE
+# =====================================================
+
+- Modelos en models/[dominio]/[modelo].js
+- Nombre del archivo en singular
+- Definir:
+  - campos
+  - métodos de instancia
+  - métodos estáticos
+  - relaciones en associate(models)
+
+Buenas prácticas:
+- Usar paranoid: true cuando aplique
+- Usar transacciones en operaciones complejas
+- NO acceder directamente a sequelize fuera de models/
+
+# =====================================================
+# MIDDLEWARES
+# =====================================================
+
+Middlewares globales (server.js):
+- helmet
+- bodyParser
+- i18n
+- body-validator
+
+Middlewares específicos:
+- auth → verifica JWT y carga req.user
+- validation → valida express-validator
+- permissions → verifica permisos
+- middleware/[modulo]/ para lógica específica
+
+Los middlewares pueden lanzar errores con throw.
+
+# =====================================================
+# CONFIGURACIÓN Y VARIABLES DE ENTORNO
+# =====================================================
+
+- Variables cargadas desde config/environment.js
+- Validar variables críticas al iniciar la app
+- Si faltan variables → finalizar el proceso
+- Exportar solo variables necesarias
+
+# =====================================================
+# SERVER
+# =====================================================
+
+La clase Server:
+- Configura Express
+- Registra middlewares globales
+- Registra rutas bajo /api/v1
+- Maneja errores globales
+- Configura timeout del servidor
+
+NO incluir lógica de negocio en server.js.
+
+# =====================================================
+# INTERNACIONALIZACIÓN
+# =====================================================
+
+- Archivos JSON en assets/translations/
+- Middleware i18n añade req.translate()
+- Todos los mensajes visibles usan traducciones
+- Los códigos de error son claves de traducción
+- Soporte multi-idioma con idioma por defecto y header
+
+# =====================================================
+# LOGGING
+# =====================================================
+
+- Logging a archivos locales en /logs
+- Usar helpers/logger
+- Niveles: error, warn, info, debug
+- Rotación de logs por fecha o tamaño
+- NO usar console.log excepto casos críticos
+
+# =====================================================
+# CONVENCIONES GENERALES
+# =====================================================
+
+- Rutas: app/[modulo]/[accion]/route.js
+- Modelos: models/[dominio]/[modelo].js
+- Routers: routes/[modulo].js
+- Middlewares: middleware/[nombre].js o middleware/[modulo]/[nombre].js
+
+- Mantener módulos independientes
+- No duplicar lógica
+- No modificar archivos no relacionados
+- Priorizar claridad sobre complejidad
+- Respetar TODAS estas reglas sin excepción
