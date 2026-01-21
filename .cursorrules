@@ -242,6 +242,84 @@ NO incluir lógica de negocio en server.js.
 - NO usar console.log excepto casos críticos
 
 # =====================================================
+# IDIOMA DEL CÓDIGO (OBLIGATORIO)
+# =====================================================
+
+TODO el código fuente DEBE estar escrito en INGLÉS:
+
+- Nombres de variables, funciones, clases, constantes → inglés
+- Nombres de archivos y carpetas → inglés
+- Comentarios en el código → inglés
+- Mensajes de log → inglés
+- Nombres de modelos Sequelize → inglés
+- Nombres de tablas y columnas en BD → inglés
+- Nombres de endpoints y rutas → inglés
+
+EXCEPCIONES (pueden estar en español):
+- Comentarios de documentación en archivos .md
+- Mensajes de traducción en assets/translations/
+- Comentarios explicativos de lógica de negocio compleja (opcional, preferir inglés)
+
+Ejemplos CORRECTOS:
+- const user = await User.findByEmail(email);
+- export default async function handler(req, res, next)
+- const isValidPassword = await usuario.verifyPassword(password);
+
+Ejemplos INCORRECTOS:
+- const usuario = await Usuario.findByEmail(email);
+- export default async function manejador(req, res, next)
+- const esValidaContrasena = await usuario.verificarContrasena(password);
+
+# =====================================================
+# COMENTARIOS EN EL CÓDIGO
+# =====================================================
+
+Reglas para comentarios:
+
+1. COMENTARIOS EN INGLÉS:
+   - Todos los comentarios en el código deben estar en inglés
+   - Usar comentarios claros y concisos
+   - Explicar el "por qué" cuando sea necesario, no el "qué" (el código ya lo muestra)
+
+2. ESTILO DE COMENTARIOS:
+   - Usar comentarios de línea única: // Comment here
+   - Usar comentarios de bloque para secciones: /* Section description */
+   - NO usar comentarios obvios que repitan lo que hace el código
+   - Usar comentarios para explicar lógica compleja o decisiones de negocio
+
+3. DOCUMENTACIÓN DE FUNCIONES:
+   - Para funciones complejas, usar comentarios JSDoc-style (opcional pero recomendado)
+   - Documentar parámetros y valores de retorno cuando no sean obvios
+
+4. COMENTARIOS TEMPORALES:
+   - NO dejar comentarios de código comentado (TODO, FIXME, etc. están permitidos)
+   - Si hay código comentado, debe tener una razón clara y fecha de eliminación
+
+5. SECCIONES DEL CÓDIGO:
+   - Usar comentarios para separar secciones lógicas dentro de archivos largos
+   - Mantener comentarios actualizados con el código
+
+Ejemplos CORRECTOS:
+```javascript
+// Validate user credentials before generating token
+const isValidPassword = await usuario.verifyPassword(data.password);
+
+// Hook to hash password before saving to database
+Usuario.beforeSave(async (usuario) => {
+  // Implementation
+});
+```
+
+Ejemplos INCORRECTOS:
+```javascript
+// Buscar usuario por email
+const usuario = await Usuario.findByEmail(email);
+
+// Verificar password
+const isValidPassword = await usuario.verifyPassword(password);
+```
+
+# =====================================================
 # CONVENCIONES GENERALES
 # =====================================================
 
