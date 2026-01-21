@@ -3,6 +3,10 @@
 ## Contexto
 Necesito que generes la estructura base de un proyecto backend siguiendo esta arquitectura específica. El proyecto debe estar organizado de manera modular y escalable.
 
+**Importante:**
+- Todo el código del API debe estar en **inglés** (nombres de variables, funciones, archivos, carpetas, mensajes de error, etc.)
+- Los comentarios deben ser **mínimos** - solo cuando sea absolutamente necesario para clarificar lógica compleja o no obvia
+
 ## Stack Tecnológico Base
 - **Framework**: Express.js
 - **ORM**: Sequelize con MySQL
@@ -25,7 +29,7 @@ proyecto/
 │   │   │   └── route.js   # Handler principal de la ruta
 │   │   └── ...
 ├── models/                # Modelos de Sequelize organizados por dominio
-│   ├── [dominio]/         # Ej: usuarios/, entidades/, operaciones/
+│   ├── [dominio]/         # Ej: users/, entities/, operations/
 │   │   └── [modelo].js    # Definición del modelo Sequelize
 │   ├── database.js        # Conexión a base de datos (exporta instancia de Models)
 │   └── index.js           # Clase principal Models que instancia todos los modelos
@@ -50,8 +54,8 @@ proyecto/
 ├── assets/                # Recursos estáticos
 │   └── translations/      # Archivos de traducción JSON
 ├── server.js              # Clase Server que configura Express
-├── index.js               # Punto de entrada principal (usa require)
-└── package.json           # Dependencias del proyecto (CommonJS)
+├── index.js               # Punto de entrada principal
+└── package.json           # Dependencias del proyecto (con "type": "module" para ES modules)
 ```
 
 ## Patrones de Arquitectura
@@ -59,38 +63,37 @@ proyecto/
 ### 1. Organización de Rutas
 
 **Estructura de rutas en `routes/`:**
-- Cada módulo tiene su archivo router (ej: `routes/usuarios.js`, `routes/entidades.js`)
+- Cada módulo tiene su archivo router (ej: `routes/users.js`, `routes/entities.js`)
 - Los routers importan y registran los controladores usando un helper
 - El router principal (`routes/index.js`) agrupa todos los módulos bajo `/api/v1`
+- Todo en inglés: nombres de archivos, rutas, funciones
 
-**Ejemplo de router de módulo (`routes/usuarios.js`):**
+**Ejemplo de router de módulo (`routes/users.js`):**
 ```javascript
-const { Router } = require('express');
-const { registerRoute } = require('../helpers/controller-wrapper');
+import { Router } from 'express';
+import { registerRoute } from '../helpers/controller-wrapper.js';
 
 const router = Router();
 
-registerRoute(router, '/crear', require('../app/usuarios/crear/route'));
-registerRoute(router, '/actualizar', require('../app/usuarios/actualizar/route'));
-registerRoute(router, '/listar', require('../app/usuarios/listar/route'));
+registerRoute(router, '/create', await import('../app/users/create/route.js'));
+registerRoute(router, '/update', await import('../app/users/update/route.js'));
+registerRoute(router, '/list', await import('../app/users/list/route.js'));
 
-module.exports = router;
+export default router;
 ```
 
 **Ejemplo de router principal (`routes/index.js`):**
 ```javascript
-const { Router } = require('express');
-const Usuarios = require('./usuarios');
-const Entidades = require('./entidades');
-// ... otros módulos
+import { Router } from 'express';
+import Users from './users.js';
+import Entities from './entities.js';
 
 const mainRouter = Router();
 
-mainRouter.use('/usuarios', Usuarios);
-mainRouter.use('/entidades', Entidades);
-// ... otros módulos
+mainRouter.use('/users', Users);
+mainRouter.use('/entities', Entities);
 
-module.exports = mainRouter;
+export default mainRouter;
 ```
 
 ### 2. Estructura de Controladores (`app/[modulo]/[accion]/route.js`)
@@ -98,52 +101,41 @@ module.exports = mainRouter;
 Cada controlador sigue este patrón:
 
 ```javascript
-const { validateField } = require('../../helpers/validator');
-const apiResponse = require('../../helpers/response');
-const validateRequest = require('../../middleware/validation');
-const authenticate = require('../../middleware/auth');
-// ... otros middlewares específicos
-const db = require('../../models/database');
+import { validateField } from '../../helpers/validator.js';
+import apiResponse from '../../helpers/response.js';
+import validateRequest from '../../middleware/validation.js';
+import authenticate from '../../middleware/auth.js';
+import db from '../../models/database.js';
 
-const { Usuario, Entidad } = db;
+const { User, Entity } = db;
 
-// Array de validadores y middlewares
-const validators = [
-  validateField('data.nombre').isLength({ min: 2 }).withMessage('validators.nombre.minLength'),
+export const validators = [
+  validateField('data.name').isLength({ min: 2 }).withMessage('validators.name.minLength'),
   validateField('data.email').isEmail().withMessage('validators.email.invalid'),
   validateRequest,
   authenticate,
-  // ... otros middlewares específicos
 ];
 
-// Handler principal
-async function handler(req, res, next) {
+export default async function handler(req, res, next) {
   const { data } = req.body;
-  
-  // Lógica del controlador
-  const result = await Usuario.create(data);
-  
+  const result = await User.create(data);
   return apiResponse(res, req, next)(result);
 }
-
-module.exports = {
-  validators,
-  default: handler
-};
 ```
 
 **Características importantes:**
-- Exporta un objeto con `validators` (array) y `default` (función handler)
+- Exporta `validators` (array) y `default` (función handler) por separado
 - Usa el helper de respuestas para respuestas estandarizadas
-- Los modelos se importan desde `models/database`
+- Los modelos se importan desde `models/database.js`
 - **NO usa try-catch** - El wrapper de controladores captura todos los errores automáticamente
 - Los errores se lanzan con `throw` y el wrapper los maneja centralizadamente
+- Usa ES modules (`import/export`) - el proyecto debe tener `"type": "module"` en `package.json`
 
 ### 3. Sistema de Validación
 
 **Validación con express-validator:**
 - Se usa un helper wrapper de express-validator (ej: `validateField()`)
-- Los mensajes de error son códigos de traducción (ej: `'validators.nombre.minLength'`)
+- Los mensajes de error son códigos de traducción en inglés (ej: `'validators.name.minLength'`)
 - El middleware de validación valida los resultados y aborta si hay errores
 - Las validaciones se ejecutan antes del handler principal
 
@@ -193,20 +185,18 @@ return apiResponse(res, req, next)(null, { status: 404, code: 'recurso.noEncontr
 
 **Ejemplo de lanzamiento de error (sin try-catch):**
 ```javascript
-// En el controlador - NO usar try-catch
-async function handler(req, res, next) {
-  const usuario = await Usuario.findOne({ where: { id: req.params.id } });
+export default async function handler(req, res, next) {
+  const user = await User.findOne({ where: { id: req.params.id } });
   
-  if (!usuario) {
-    const error = new Error('Recurso no encontrado');
+  if (!user) {
+    const error = new Error('Resource not found');
     error.status = 404;
-    error.code = 'recurso.noEncontrado';
-    throw error; // El wrapper captura esto automáticamente
+    error.code = 'resource.notFound';
+    throw error;
   }
   
-  // Más lógica sin try-catch...
-  await usuario.update(req.body.data);
-  return apiResponse(res, req, next)(usuario);
+  await user.update(req.body.data);
+  return apiResponse(res, req, next)(user);
 }
 ```
 
@@ -219,54 +209,59 @@ async function handler(req, res, next) {
 
 **Ejemplo del wrapper (conceptual):**
 ```javascript
-// helpers/controller-wrapper.js (simplificado)
-function registerRoute(router, path, routeModule) {
+export async function registerRoute(router, path, routeModulePromise) {
+  const routeModule = await routeModulePromise;
+  
   router.post(path, async (req, res, next) => {
     try {
-      // Ejecuta validators y handler
       await executeValidators(routeModule.validators, req, res);
       await routeModule.default(req, res, next);
     } catch (error) {
-      // Manejo centralizado de errores aquí
       return handleError(error, req, res);
     }
   });
 }
 ```
 
+**Nota importante sobre ES modules:**
+- El proyecto debe tener `"type": "module"` en `package.json`
+- Las importaciones deben incluir la extensión `.js` explícitamente
+- Los imports dinámicos usan `await import()` en lugar de `require()`
+
+**Convenciones de código:**
+- **Todo en inglés**: nombres de archivos, carpetas, variables, funciones, mensajes de error, nombres de tablas
+- **Comentarios mínimos**: solo cuando sea necesario para clarificar lógica compleja o no obvia
+- El código debe ser autoexplicativo a través de nombres descriptivos en inglés
+
 ### 6. Modelos Sequelize
 
 **Estructura de modelos (`models/[dominio]/[modelo].js`):**
 ```javascript
-module.exports = (sequelize, DataTypes) => {
-  const Modelo = sequelize.define(
-    'Modelo',
+export default (sequelize, DataTypes) => {
+  const Model = sequelize.define(
+    'Model',
     {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-      campo: { type: DataTypes.STRING, allowNull: false },
-      // ... otros campos
+      field: { type: DataTypes.STRING, allowNull: false },
     },
     {
-      paranoid: true, // Soft deletes
-      tableName: 'nombre_tabla',
+      paranoid: true,
+      tableName: 'table_name',
     }
   );
 
-  // Métodos de instancia
-  Modelo.prototype.metodoPersonalizado = function() { ... };
+  Model.prototype.customMethod = function() { ... };
 
-  // Métodos estáticos
-  Modelo.metodoEstatico = async function() { ... };
+  Model.staticMethod = async function() { ... };
 
-  // Relaciones
-  Modelo.associate = function (models) {
-    models.Modelo.belongsTo(models.OtroModelo, {
-      foreignKey: 'otroModeloId',
-      as: 'OtroModelo',
+  Model.associate = function (models) {
+    models.Model.belongsTo(models.OtherModel, {
+      foreignKey: 'otherModelId',
+      as: 'OtherModel',
     });
   };
 
-  return Modelo;
+  return Model;
 };
 ```
 
@@ -278,11 +273,12 @@ module.exports = (sequelize, DataTypes) => {
 
 **Uso de modelos:**
 ```javascript
-const db = require('./database');
-const { Usuario, Entidad } = db;
+import db from './database.js';
 
-const usuario = await Usuario.findOne({ where: { id: 1 } });
-const usuarios = await Usuario.findAll({ where: { activo: true } });
+const { User, Entity } = db;
+
+const user = await User.findOne({ where: { id: 1 } });
+const users = await User.findAll({ where: { active: true } });
 ```
 
 ### 7. Middlewares
@@ -301,12 +297,9 @@ const usuarios = await Usuario.findAll({ where: { activo: true } });
 
 **Patrón de middleware:**
 ```javascript
-module.exports = async function (req, res, next) {
-  // Lógica del middleware
-  // Puede modificar req, res
-  // Llamar next() para continuar o lanzar error para abortar
+export default async function (req, res, next) {
   next();
-};
+}
 ```
 
 ### 8. Configuración de Variables de Entorno
@@ -318,24 +311,21 @@ module.exports = async function (req, res, next) {
 
 **Ejemplo:**
 ```javascript
-require('dotenv').config();
+import 'dotenv/config';
 
 const requiredVars = ['DATABASE_HOST', 'DATABASE_NAME', 'JWT_SECRET'];
 const missingVars = requiredVars.filter(varName => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  console.error('Faltan variables de entorno requeridas:', missingVars.join(', '));
+  console.error('Missing required environment variables:', missingVars.join(', '));
   process.exit(1);
 }
 
-module.exports = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: parseInt(process.env.PORT) || 3000,
-  DATABASE_HOST: process.env.DATABASE_HOST,
-  DATABASE_NAME: process.env.DATABASE_NAME,
-  JWT_SECRET: process.env.JWT_SECRET,
-  // ... otras variables
-};
+export const NODE_ENV = process.env.NODE_ENV || 'development';
+export const PORT = parseInt(process.env.PORT) || 3000;
+export const DATABASE_HOST = process.env.DATABASE_HOST;
+export const DATABASE_NAME = process.env.DATABASE_NAME;
+export const JWT_SECRET = process.env.JWT_SECRET;
 ```
 
 ### 9. Clase Server (`server.js`)
@@ -348,10 +338,13 @@ module.exports = {
 
 **Estructura:**
 ```javascript
-const express = require('express');
-const helmet = require('helmet');
-const bodyParser = require('body-parser');
-const mainRouter = require('./routes');
+import express from 'express';
+import helmet from 'helmet';
+import bodyParser from 'body-parser';
+import mainRouter from './routes/index.js';
+import i18nMiddleware from './middleware/i18n.js';
+import bodyValidator from './middleware/body-validator.js';
+import { PORT } from './config/environment.js';
 
 class Server {
   constructor() {
@@ -360,34 +353,25 @@ class Server {
   }
 
   initializeApp() {
-    // Configuración de seguridad
     this.app.use(helmet());
     this.app.use(bodyParser.json());
-    
-    // Middlewares globales
-    this.app.use(require('./middleware/i18n')());
-    this.app.use(require('./middleware/body-validator'));
-    
-    // Rutas
+    this.app.use(i18nMiddleware());
+    this.app.use(bodyValidator);
     this.app.use('/api/v1', mainRouter);
     
-    // Manejo de errores
     this.app.use((err, req, res, next) => {
-      // Log y respuesta de error
     });
     
     return this.app;
   }
 
   start() {
-    const { PORT } = require('./config/environment');
-    
     this.initializeApp();
     this.serverInstance = this.app.listen(PORT);
   }
 }
 
-module.exports = Server;
+export default Server;
 ```
 
 ### 10. Internacionalización
@@ -403,6 +387,18 @@ module.exports = Server;
 const message = req.translate('validators.email.invalid');
 ```
 
+**Nota sobre package.json:**
+- Debe incluir `"type": "module"` para habilitar ES modules
+- Ejemplo:
+  ```json
+  {
+    "name": "proyecto-backend",
+    "version": "1.0.0",
+    "type": "module",
+    ...
+  }
+  ```
+
 ### 11. Logging
 
 **Sistema de logging (`helpers/logger.js`):**
@@ -415,25 +411,27 @@ const message = req.translate('validators.email.invalid');
 ## Convenciones de Código
 
 ### Nombres de archivos y carpetas
-- **Rutas**: `app/[modulo]/[accion]/route.js`
-- **Modelos**: `models/[dominio]/[modelo].js` (singular)
-- **Routers**: `routes/[modulo].js` (plural)
-- **Middlewares**: `middleware/[nombre].js` o `middleware/[modulo]/[nombre].js`
+- **Todo en inglés**: nombres de archivos, carpetas, variables, funciones
+- **Rutas**: `app/[module]/[action]/route.js` (ej: `app/users/create/route.js`)
+- **Modelos**: `models/[domain]/[model].js` (singular, ej: `models/users/user.js`)
+- **Routers**: `routes/[module].js` (plural, ej: `routes/users.js`)
+- **Middlewares**: `middleware/[name].js` o `middleware/[module]/[name].js`
 
 ### Estructura de Request/Response
 - **Request body**: Siempre envuelto en `{ data: { ... } }`
-- **Validaciones**: Usan el helper de validación con `'data.campo'`
+- **Validaciones**: Usan el helper de validación con `'data.field'` (nombres en inglés)
 - **Respuestas**: Usan el helper de respuestas estandarizado
 
 ### Manejo de errores
 - **NO usar try-catch en controladores** - El wrapper captura todos los errores automáticamente
 - Lanzar errores con `throw` y propiedades `status` y `code`
-- Los códigos de error son claves de traducción
+- Los códigos de error son claves de traducción en inglés (ej: `'resource.notFound'`)
 - El sistema captura y formatea automáticamente en un punto centralizado
 
 ### Base de datos
 - Usar transacciones para operaciones complejas
 - Soft deletes con `paranoid: true` en modelos (opcional)
+- Nombres de tablas y campos en inglés
 
 ## Flujo de una Petición
 
@@ -449,99 +447,90 @@ const message = req.translate('validators.email.invalid');
 ## Consideraciones Importantes
 
 1. **Usar JavaScript puro (Node.js)** - no TypeScript
-2. **No incluir tests** (el usuario no los utilizará)
-3. **Mantener la estructura modular** - cada módulo es independiente
-4. **Usar helpers reutilizables** - helpers de respuesta, validación, wrapper de controladores
-5. **Validación en dos niveles** - express-validator + validaciones de negocio
-6. **Logging a archivos locales** - para debugging y monitoreo, con rotación de archivos
-7. **Manejo centralizado de errores** - NO usar try-catch en controladores, el wrapper captura todo automáticamente
-8. **Internacionalización desde el inicio** - códigos de error traducibles
-9. **Seguridad por capas** - Helmet, validación, autenticación, autorización
-10. **Adaptar nombres** - usar terminología apropiada para el dominio del negocio
+2. **Usar ES modules** - `import/export` con `"type": "module"` en `package.json`
+3. **Todo en inglés** - código, variables, funciones, archivos, carpetas, mensajes de error, nombres de tablas
+4. **Comentarios mínimos** - solo cuando sea absolutamente necesario para lógica compleja o no obvia
+5. **No incluir tests** (el usuario no los utilizará)
+6. **Mantener la estructura modular** - cada módulo es independiente
+7. **Usar helpers reutilizables** - helpers de respuesta, validación, wrapper de controladores
+8. **Validación en dos niveles** - express-validator + validaciones de negocio
+9. **Logging a archivos locales** - para debugging y monitoreo, con rotación de archivos
+10. **Manejo centralizado de errores** - NO usar try-catch en controladores, el wrapper captura todo automáticamente
+11. **Internacionalización desde el inicio** - códigos de error traducibles (en inglés)
+12. **Seguridad por capas** - Helmet, validación, autenticación, autorización
+13. **Adaptar nombres** - usar terminología apropiada para el dominio del negocio (en inglés)
 
 ## Ejemplo de Módulo Completo
 
-Para un módulo de ejemplo (adaptar nombres según dominio del negocio):
+Para un módulo de ejemplo (todo en inglés):
 
-**1. Modelo** (`models/articulos/articulo.js`):
+**1. Modelo** (`models/products/product.js`):
 ```javascript
-module.exports = (sequelize, DataTypes) => {
-  const Articulo = sequelize.define('Articulo', {
+export default (sequelize, DataTypes) => {
+  const Product = sequelize.define('Product', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    nombre: { type: DataTypes.STRING, allowNull: false },
-    precio: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    name: { type: DataTypes.STRING, allowNull: false },
+    price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   }, {
-    tableName: 'articulos',
+    tableName: 'products',
     paranoid: true,
   });
 
-  Articulo.associate = function(models) {
-    // Relaciones con otros modelos
+  Product.associate = function(models) {
   };
 
-  return Articulo;
+  return Product;
 };
 ```
 
-**2. Controlador** (`app/articulos/crear/route.js`):
+**2. Controlador** (`app/products/create/route.js`):
 ```javascript
-const { validateField } = require('../../../helpers/validator');
-const apiResponse = require('../../../helpers/response');
-const validateRequest = require('../../../middleware/validation');
-const authenticate = require('../../../middleware/auth');
-const db = require('../../../models/database');
+import { validateField } from '../../../helpers/validator.js';
+import apiResponse from '../../../helpers/response.js';
+import validateRequest from '../../../middleware/validation.js';
+import authenticate from '../../../middleware/auth.js';
+import db from '../../../models/database.js';
 
-const { Articulo } = db;
+const { Product } = db;
 
-const validators = [
-  validateField('data.nombre').isLength({ min: 3 }).withMessage('validators.articulo.nombre'),
-  validateField('data.precio').isFloat({ min: 0 }).withMessage('validators.articulo.precio'),
+export const validators = [
+  validateField('data.name').isLength({ min: 3 }).withMessage('validators.product.name'),
+  validateField('data.price').isFloat({ min: 0 }).withMessage('validators.product.price'),
   validateRequest,
   authenticate,
 ];
 
-async function handler(req, res, next) {
-  // NO usar try-catch aquí - el wrapper captura errores automáticamente
+export default async function handler(req, res, next) {
   const { data } = req.body;
-  
-  // Si hay error, simplemente lanzarlo con throw
-  const articulo = await Articulo.create(data);
-  
-  return apiResponse(res, req, next)(articulo);
+  const product = await Product.create(data);
+  return apiResponse(res, req, next)(product);
 }
-
-module.exports = {
-  validators,
-  default: handler
-};
 ```
 
-**3. Router** (`routes/articulos.js`):
+**3. Router** (`routes/products.js`):
 ```javascript
-const { Router } = require('express');
-const { registerRoute } = require('../helpers/controller-wrapper');
+import { Router } from 'express';
+import { registerRoute } from '../helpers/controller-wrapper.js';
 
 const router = Router();
 
-registerRoute(router, '/crear', require('../app/articulos/crear/route'));
-registerRoute(router, '/listar', require('../app/articulos/listar/route'));
-registerRoute(router, '/actualizar', require('../app/articulos/actualizar/route'));
+registerRoute(router, '/create', await import('../app/products/create/route.js'));
+registerRoute(router, '/list', await import('../app/products/list/route.js'));
+registerRoute(router, '/update', await import('../app/products/update/route.js'));
 
-module.exports = router;
+export default router;
 ```
 
 **4. Registro en router principal** (`routes/index.js`):
 ```javascript
-const { Router } = require('express');
-const Articulos = require('./articulos');
-// ... otros módulos
+import { Router } from 'express';
+import Products from './products.js';
 
 const mainRouter = Router();
 
-mainRouter.use('/articulos', Articulos);
-// ... otros módulos
+mainRouter.use('/products', Products);
 
-module.exports = mainRouter;
+export default mainRouter;
 ```
 
 ---
