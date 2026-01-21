@@ -4,7 +4,11 @@
 
 Este proyecto es una API backend en Node.js.
 Usa Express.js como framework y Sequelize con MySQL como ORM.
-El proyecto está escrito exclusivamente en JavaScript (CommonJS).
+
+El proyecto está escrito exclusivamente en JavaScript.
+Se utilizan ES Modules (import/export).
+El proyecto debe tener `"type": "module"` en package.json.
+
 NO usar TypeScript bajo ninguna circunstancia.
 
 La arquitectura es modular, escalable y estricta.
@@ -30,6 +34,7 @@ Restricciones:
 - NO incluir tests
 - NO introducir librerías nuevas sin justificación explícita
 - NO cambiar el stack tecnológico
+- NO usar CommonJS (require/module.exports)
 
 # =====================================================
 # ESTRUCTURA DE DIRECTORIOS (ESTRICTA)
@@ -68,7 +73,7 @@ La estructura del proyecto es obligatoria y no debe modificarse:
 - assets/translations/ → archivos JSON de traducciones
 - server.js → clase Server
 - index.js → punto de entrada principal
-- package.json → dependencias (CommonJS)
+- package.json → dependencias (ES Modules)
 
 NO mover archivos de estas ubicaciones.
 NO mezclar responsabilidades entre carpetas.
@@ -82,6 +87,7 @@ NO mezclar responsabilidades entre carpetas.
 - El router principal (routes/index.js) agrupa todos los módulos
 - Todas las rutas están bajo el prefijo /api/v1
 - NO definir lógica de negocio en routers
+- Usar import/export con extensiones .js explícitas
 
 # =====================================================
 # CONTROLADORES
@@ -89,20 +95,21 @@ NO mezclar responsabilidades entre carpetas.
 
 Cada controlador DEBE:
 - Vivir en app/[modulo]/[accion]/route.js
-- Exportar un objeto con:
-  - validators (array)
-  - default (función async handler)
+- Exportar:
+  - export const validators = [...]
+  - export default async function handler()
 
 Reglas del handler:
 - NO usar try-catch
 - NO manejar errores manualmente
 - NO usar res.status().json()
-- Usar SIEMPRE helpers/response para responder
-- Importar modelos únicamente desde models/database
+- Usar SIEMPRE helpers/response
+- Importar modelos únicamente desde models/database.js
 - Lanzar errores usando throw
 
 Ejemplo de exportación obligatoria:
-- module.exports = { validators, default: handler }
+- export const validators = [...]
+- export default handler
 
 El wrapper de controladores captura TODOS los errores automáticamente.
 
@@ -154,7 +161,7 @@ Comportamiento:
 - Errores con status y code → respuesta controlada
 - Errores sin status/code → error interno (500)
 
-El manejo de errores está centralizado en helpers/controller-wrapper.
+El manejo de errores está centralizado en helpers/controller-wrapper.js
 
 # =====================================================
 # MODELOS SEQUELIZE
@@ -162,6 +169,7 @@ El manejo de errores está centralizado en helpers/controller-wrapper.
 
 - Modelos en models/[dominio]/[modelo].js
 - Nombre del archivo en singular
+- Exportar función factory (sequelize, DataTypes)
 - Definir:
   - campos
   - métodos de instancia
