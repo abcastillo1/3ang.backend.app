@@ -41,7 +41,7 @@ async function handler(req, res, next) {
   }
 
   const isValidPassword = await user.verifyPassword(data.password);
-  console.log('isValidPassword', isValidPassword);
+
   if (!isValidPassword) {
     const error = new Error('Invalid credentials');
     error.status = HTTP_STATUS.UNAUTHORIZED;
@@ -76,6 +76,25 @@ async function handler(req, res, next) {
 
   await user.update({ lastLoginAt: new Date() });
 
+  const { AuditLog } = modelsInstance.models;
+  
+  await AuditLog.createLog({
+    organizationId: user.organizationId,
+    userId: user.id,
+    action: 'login',
+    entity: 'auth',
+    entityId: user.id,
+    metadata: {
+      method: 'POST',
+      path: req.path,
+      ip: req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress,
+      userAgent: req.get('user-agent'),
+      success: true
+    }
+  }).catch(err => {
+    console.error('Error creating audit log:', err);
+  });
+
   const response = {
     token,
     user: user.toPublicJSON()
@@ -86,7 +105,9 @@ async function handler(req, res, next) {
 
 const loginRoute = {
   validators,
-  default: handler
+  default: handler,
+  action: 'login',
+  entity: 'auth'
 };
 
 export default loginRoute;
