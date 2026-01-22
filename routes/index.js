@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import authRoutes from './auth.js';
+import usersRoutes from './users.js';
+import systemRoutes from './system.js';
+import auditRoutes from './audit.js';
 
 const mainRouter = Router();
 
 mainRouter.use('/auth', authRoutes);
+mainRouter.use('/users', usersRoutes);
+mainRouter.use('/system', systemRoutes);
+mainRouter.use('/audit', auditRoutes);
 
 export default mainRouter;
