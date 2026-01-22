@@ -48,7 +48,7 @@ async function handler(req, res, next) {
     throwError(HTTP_STATUS.CONFLICT, 'roles.hasUsers');
   }
 
-  await role.destroy();
+  await role.softDelete();
 
   return apiResponse(res, req, next)();
 }
