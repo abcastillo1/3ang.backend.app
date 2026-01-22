@@ -66,7 +66,7 @@ class Server {
 
     this.serverInstance = this.app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);
-      console.log(`🚀 Server started on http://localhost:${PORT}`);
+      console.log(`Server started on http://localhost:${PORT}`);
     });
 
     this.serverInstance.timeout = 30000;
