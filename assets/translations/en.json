@@ -33,6 +33,27 @@
     "username": {
       "invalid": "Username must be a valid string"
     },
+    "name": {
+      "required": "Name is required",
+      "invalid": "Name must be between 2 and 50 characters"
+    },
+    "description": {
+      "invalid": "Description must be a valid string"
+    },
+    "permissionIds": {
+      "required": "Permission IDs are required",
+      "invalid": "Permission IDs must be an array"
+    },
+    "permissionId": {
+      "invalid": "Permission ID must be a valid integer"
+    },
+    "id": {
+      "required": "ID is required",
+      "invalid": "ID must be a valid integer"
+    },
+    "module": {
+      "invalid": "Module must be a valid string"
+    },
     "page": {
       "invalid": "Page number must be an integer greater than 0"
     },
@@ -55,13 +76,30 @@
   "auth": {
     "invalidCredentials": "Invalid credentials",
     "unauthorized": "Unauthorized",
-    "userInactive": "User inactive"
+    "userInactive": "User inactive",
+    "tokenRequired": "Authentication token required",
+    "invalidOrExpiredToken": "Invalid or expired token",
+    "invalidOrInactiveUser": "Invalid or inactive user",
+    "invalidSession": "Invalid or expired session"
   },
   "users": {
     "emailExists": "Email already registered",
     "documentExists": "Document already registered",
     "usernameExists": "Username already exists",
     "invalidRole": "Invalid role specified"
+  },
+  "roles": {
+    "nameExists": "Role name already exists",
+    "notFound": "Role not found",
+    "cannotModifySystem": "Cannot modify system role",
+    "cannotDeleteSystem": "Cannot delete system role",
+    "hasUsers": "Cannot delete role with assigned users",
+    "invalidPermissions": "Some permissions not found"
+  },
+  "permissions": {
+    "userNotAuthenticated": "User not authenticated",
+    "userNotFound": "User not found",
+    "insufficientPermissions": "Insufficient permissions"
   },
   "validation": {
     "error": "Validation error",

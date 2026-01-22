@@ -33,6 +33,27 @@
     "username": {
       "invalid": "El nombre de usuario debe ser una cadena de texto válida"
     },
+    "name": {
+      "required": "El nombre es requerido",
+      "invalid": "El nombre debe tener entre 2 y 50 caracteres"
+    },
+    "description": {
+      "invalid": "La descripción debe ser una cadena de texto válida"
+    },
+    "permissionIds": {
+      "required": "Los IDs de permisos son requeridos",
+      "invalid": "Los IDs de permisos deben ser un array"
+    },
+    "permissionId": {
+      "invalid": "El ID de permiso debe ser un entero válido"
+    },
+    "id": {
+      "required": "El ID es requerido",
+      "invalid": "El ID debe ser un entero válido"
+    },
+    "module": {
+      "invalid": "El módulo debe ser una cadena de texto válida"
+    },
     "page": {
       "invalid": "El número de página debe ser un entero mayor a 0"
     },
@@ -55,13 +76,30 @@
   "auth": {
     "invalidCredentials": "Credenciales inválidas",
     "unauthorized": "No autorizado",
-    "userInactive": "Usuario inactivo"
+    "userInactive": "Usuario inactivo",
+    "tokenRequired": "Token de autenticación requerido",
+    "invalidOrExpiredToken": "Token inválido o expirado",
+    "invalidOrInactiveUser": "Usuario inválido o inactivo",
+    "invalidSession": "Sesión inválida o expirada"
   },
   "users": {
     "emailExists": "El email ya está registrado",
     "documentExists": "El documento ya está registrado",
     "usernameExists": "El nombre de usuario ya está registrado",
     "invalidRole": "El rol especificado no es válido"
+  },
+  "roles": {
+    "nameExists": "El nombre del rol ya existe",
+    "notFound": "Rol no encontrado",
+    "cannotModifySystem": "No se puede modificar un rol del sistema",
+    "cannotDeleteSystem": "No se puede eliminar un rol del sistema",
+    "hasUsers": "No se puede eliminar un rol con usuarios asignados",
+    "invalidPermissions": "Algunos permisos no fueron encontrados"
+  },
+  "permissions": {
+    "userNotAuthenticated": "Usuario no autenticado",
+    "userNotFound": "Usuario no encontrado",
+    "insufficientPermissions": "Permisos insuficientes"
   },
   "validation": {
     "error": "Error de validación",
