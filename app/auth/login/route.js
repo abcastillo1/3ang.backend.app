@@ -4,6 +4,7 @@ import validateRequest from '../../../middleware/validation.js';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../../../config/environment.js';
 import { HTTP_STATUS, ERROR_CODES } from '../../../config/constants.js';
+import { throwError } from '../../../helpers/errors.js';
 import modelsInstance from '../../../models/index.js';
 
 const validators = [
@@ -27,26 +28,17 @@ async function handler(req, res, next) {
   const user = await User.findByEmail(data.email);
 
   if (!user) {
-    const error = new Error('Invalid credentials');
-    error.status = HTTP_STATUS.UNAUTHORIZED;
-    error.code = 'auth.invalidCredentials';
-    throw error;
+    throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidCredentials');
   }
 
   if (!user.isActive) {
-    const error = new Error('User inactive');
-    error.status = HTTP_STATUS.FORBIDDEN;
-    error.code = 'auth.userInactive';
-    throw error;
+    throwError(HTTP_STATUS.FORBIDDEN, 'auth.userInactive');
   }
 
   const isValidPassword = await user.verifyPassword(data.password);
 
   if (!isValidPassword) {
-    const error = new Error('Invalid credentials');
-    error.status = HTTP_STATUS.UNAUTHORIZED;
-    error.code = 'auth.invalidCredentials';
-    throw error;
+    throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidCredentials');
   }
 
   const tokenPayload = {

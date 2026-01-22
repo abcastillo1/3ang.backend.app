@@ -3,6 +3,7 @@ import authenticate from '../../../middleware/auth.js';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../../../config/environment.js';
 import { HTTP_STATUS, ERROR_CODES } from '../../../config/constants.js';
+import { throwError } from '../../../helpers/errors.js';
 import modelsInstance from '../../../models/index.js';
 
 const validators = [
@@ -27,10 +28,7 @@ async function handler(req, res, next) {
     });
 
     if (!session || session.isExpired()) {
-      const error = new Error('Invalid or expired session');
-      error.status = HTTP_STATUS.UNAUTHORIZED;
-      error.code = ERROR_CODES.UNAUTHORIZED;
-      throw error;
+      throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidSession');
     }
   }
 
