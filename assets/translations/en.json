@@ -1,0 +1,36 @@
+{
+  "response": {
+    "success": "Operation successful"
+  },
+  "validators": {
+    "email": {
+      "invalid": "Email is not valid",
+      "required": "Email is required"
+    },
+    "password": {
+      "required": "Password is required",
+      "minLength": "Password must be at least 6 characters"
+    }
+  },
+  "auth": {
+    "invalidCredentials": "Invalid credentials",
+    "unauthorized": "Unauthorized",
+    "userInactive": "User inactive"
+  },
+  "validation": {
+    "error": "Validation error",
+    "body": {
+      "invalid": "Invalid body",
+      "dataRequired": "Body must contain a 'data' object"
+    }
+  },
+  "route": {
+    "notFound": "Route not found"
+  },
+  "resource": {
+    "notFound": "Resource not found"
+  },
+  "server": {
+    "internalError": "Internal server error"
+  }
+}
