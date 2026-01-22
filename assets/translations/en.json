@@ -12,10 +12,26 @@
       "minLength": "Password must be at least 6 characters"
     },
     "fullName": {
+      "required": "Full name is required",
       "invalid": "Full name must be between 2 and 255 characters"
     },
     "phone": {
       "invalid": "Phone must be a valid string"
+    },
+    "roleId": {
+      "required": "Role is required",
+      "invalid": "Role ID must be a valid integer"
+    },
+    "documentType": {
+      "required": "Document type is required",
+      "invalid": "Document type must be: cedula, ruc or pasaporte"
+    },
+    "documentNumber": {
+      "required": "Document number is required",
+      "invalid": "Document number must be a valid string"
+    },
+    "username": {
+      "invalid": "Username must be a valid string"
     },
     "page": {
       "invalid": "Page number must be an integer greater than 0"
@@ -40,6 +56,12 @@
     "invalidCredentials": "Invalid credentials",
     "unauthorized": "Unauthorized",
     "userInactive": "User inactive"
+  },
+  "users": {
+    "emailExists": "Email already registered",
+    "documentExists": "Document already registered",
+    "usernameExists": "Username already exists",
+    "invalidRole": "Invalid role specified"
   },
   "validation": {
     "error": "Validation error",

@@ -12,10 +12,26 @@
       "minLength": "La contraseña debe tener al menos 6 caracteres"
     },
     "fullName": {
+      "required": "El nombre completo es requerido",
       "invalid": "El nombre completo debe tener entre 2 y 255 caracteres"
     },
     "phone": {
       "invalid": "El teléfono debe ser una cadena de texto válida"
+    },
+    "roleId": {
+      "required": "El rol es requerido",
+      "invalid": "El ID de rol debe ser un entero válido"
+    },
+    "documentType": {
+      "required": "El tipo de documento es requerido",
+      "invalid": "El tipo de documento debe ser: cedula, ruc o pasaporte"
+    },
+    "documentNumber": {
+      "required": "El número de documento es requerido",
+      "invalid": "El número de documento debe ser una cadena de texto válida"
+    },
+    "username": {
+      "invalid": "El nombre de usuario debe ser una cadena de texto válida"
     },
     "page": {
       "invalid": "El número de página debe ser un entero mayor a 0"
@@ -40,6 +56,12 @@
     "invalidCredentials": "Credenciales inválidas",
     "unauthorized": "No autorizado",
     "userInactive": "Usuario inactivo"
+  },
+  "users": {
+    "emailExists": "El email ya está registrado",
+    "documentExists": "El documento ya está registrado",
+    "usernameExists": "El nombre de usuario ya está registrado",
+    "invalidRole": "El rol especificado no es válido"
   },
   "validation": {
     "error": "Error de validación",
