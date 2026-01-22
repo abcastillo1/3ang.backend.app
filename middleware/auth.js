@@ -1,16 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/environment.js';
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
+import { throwError } from '../helpers/errors.js';
 import modelsInstance from '../models/index.js';
 
 export default async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    const error = new Error('Authentication token required');
-    error.status = HTTP_STATUS.UNAUTHORIZED;
-    error.code = ERROR_CODES.UNAUTHORIZED;
-    throw error;
+    throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.tokenRequired');
   }
   
   const token = authHeader.substring(7);
@@ -38,16 +36,10 @@ export default async function authenticate(req, res, next) {
       });
       
       if (!userModel || !userModel.isActive) {
-        const error = new Error('Invalid or inactive user');
-        error.status = HTTP_STATUS.UNAUTHORIZED;
-        error.code = ERROR_CODES.UNAUTHORIZED;
-        throw error;
+        throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidOrInactiveUser');
       }
     } catch (err) {
-      const error = new Error('Invalid or expired token');
-      error.status = HTTP_STATUS.UNAUTHORIZED;
-      error.code = ERROR_CODES.UNAUTHORIZED;
-      throw error;
+      throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidOrExpiredToken');
     }
   }
   

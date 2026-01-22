@@ -66,6 +66,10 @@ export default function (sequelize, DataTypes) {
     }
   );
 
+  Organization.prototype.softDelete = async function () {
+    return await this.update({ deletedAt: new Date() });
+  };
+
   Organization.associate = function (models) {
     Organization.belongsTo(models.User, {
       foreignKey: 'owner_user_id',

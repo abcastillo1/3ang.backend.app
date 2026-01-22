@@ -1,4 +1,5 @@
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
+import { throwError } from '../helpers/errors.js';
 
 export default function bodyValidator(req, res, next) {
   if (req.method === 'GET' || req.method === 'DELETE') {
@@ -6,17 +7,11 @@ export default function bodyValidator(req, res, next) {
   }
 
   if (!req.body || typeof req.body !== 'object') {
-    const error = new Error('Invalid body');
-    error.status = HTTP_STATUS.BAD_REQUEST;
-    error.code = 'validation.body.invalid';
-    throw error;
+    throwError(HTTP_STATUS.BAD_REQUEST, 'validation.body.invalid');
   }
 
   if (!req.body.data || typeof req.body.data !== 'object') {
-    const error = new Error('Body must contain a "data" object');
-    error.status = HTTP_STATUS.BAD_REQUEST;
-    error.code = 'validation.body.dataRequired';
-    throw error;
+    throwError(HTTP_STATUS.BAD_REQUEST, 'validation.body.dataRequired');
   }
 
   next();

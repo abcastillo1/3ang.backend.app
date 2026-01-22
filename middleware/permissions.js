@@ -1,13 +1,11 @@
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
+import { throwError } from '../helpers/errors.js';
 import modelsInstance from '../models/index.js';
 
 export function requirePermission(permissionCode) {
   return async function (req, res, next) {
     if (!req.user || !req.user.id) {
-      const error = new Error('User not authenticated');
-      error.status = HTTP_STATUS.UNAUTHORIZED;
-      error.code = ERROR_CODES.UNAUTHORIZED;
-      throw error;
+      throwError(HTTP_STATUS.UNAUTHORIZED, 'permissions.userNotAuthenticated');
     }
 
     const { User } = modelsInstance.models;
@@ -23,19 +21,13 @@ export function requirePermission(permissionCode) {
     });
 
     if (!user) {
-      const error = new Error('User not found');
-      error.status = HTTP_STATUS.UNAUTHORIZED;
-      error.code = ERROR_CODES.UNAUTHORIZED;
-      throw error;
+      throwError(HTTP_STATUS.UNAUTHORIZED, 'permissions.userNotFound');
     }
 
     const hasPermission = await user.hasPermission(permissionCode);
 
     if (!hasPermission) {
-      const error = new Error('Insufficient permissions');
-      error.status = HTTP_STATUS.FORBIDDEN;
-      error.code = ERROR_CODES.FORBIDDEN;
-      throw error;
+      throwError(HTTP_STATUS.FORBIDDEN, 'permissions.insufficientPermissions');
     }
 
     req.userModel = user;

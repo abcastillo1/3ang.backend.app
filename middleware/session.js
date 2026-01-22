@@ -1,14 +1,12 @@
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
+import { throwError } from '../helpers/errors.js';
 import modelsInstance from '../models/index.js';
 
 export default async function validateSession(req, res, next) {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    const error = new Error('Authentication token required');
-    error.status = HTTP_STATUS.UNAUTHORIZED;
-    error.code = ERROR_CODES.UNAUTHORIZED;
-    throw error;
+    throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.tokenRequired');
   }
   
   const token = authHeader.substring(7);
@@ -17,10 +15,7 @@ export default async function validateSession(req, res, next) {
   const session = await UserSession.findActiveByToken(token);
   
   if (!session) {
-    const error = new Error('Invalid or expired session');
-    error.status = HTTP_STATUS.UNAUTHORIZED;
-    error.code = ERROR_CODES.UNAUTHORIZED;
-    throw error;
+    throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidSession');
   }
 
   req.user = {

@@ -1,4 +1,5 @@
 import { HTTP_STATUS } from '../../config/constants.js';
+import { throwError } from '../../helpers/errors.js';
 import modelsInstance from '../../models/index.js';
 
 export default async function validateUserCreation(req, res, next) {
@@ -8,19 +9,13 @@ export default async function validateUserCreation(req, res, next) {
   const existingUser = await User.findByEmail(data.email);
   
   if (existingUser) {
-    const error = new Error('User already exists');
-    error.status = HTTP_STATUS.CONFLICT;
-    error.code = 'users.emailExists';
-    throw error;
+    throwError(HTTP_STATUS.CONFLICT, 'users.emailExists');
   }
 
   const role = await Role.findByPk(data.roleId);
   
   if (!role || role.organizationId !== req.user.organizationId) {
-    const error = new Error('Invalid role');
-    error.status = HTTP_STATUS.BAD_REQUEST;
-    error.code = 'users.invalidRole';
-    throw error;
+    throwError(HTTP_STATUS.BAD_REQUEST, 'users.invalidRole');
   }
 
   const existingDocument = await User.findOne({
@@ -32,10 +27,7 @@ export default async function validateUserCreation(req, res, next) {
   });
 
   if (existingDocument) {
-    const error = new Error('Document already exists');
-    error.status = HTTP_STATUS.CONFLICT;
-    error.code = 'users.documentExists';
-    throw error;
+    throwError(HTTP_STATUS.CONFLICT, 'users.documentExists');
   }
 
   if (data.username) {
@@ -47,10 +39,7 @@ export default async function validateUserCreation(req, res, next) {
     });
 
     if (existingUsername) {
-      const error = new Error('Username already exists');
-      error.status = HTTP_STATUS.CONFLICT;
-      error.code = 'users.usernameExists';
-      throw error;
+      throwError(HTTP_STATUS.CONFLICT, 'users.usernameExists');
     }
   }
 
