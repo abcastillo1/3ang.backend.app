@@ -3,8 +3,8 @@ import apiResponse from '../../../helpers/response.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
+import validateUserCreation from '../../../middleware/users/validateUserCreation.js';
 import modelsInstance from '../../../models/index.js';
-import { HTTP_STATUS } from '../../../config/constants.js';
 
 const validators = [
   validateField('data.fullName')
@@ -47,61 +47,13 @@ const validators = [
     .withMessage('validators.username.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('users.create')
+  requirePermission('users.create'),
+  validateUserCreation
 ];
 
 async function handler(req, res, next) {
   const { data } = req.body;
-  const { User, Role } = modelsInstance.models;
-
-  const existingUser = await User.findByEmail(data.email);
-  
-  if (existingUser) {
-    const error = new Error('User already exists');
-    error.status = HTTP_STATUS.CONFLICT;
-    error.code = 'users.emailExists';
-    throw error;
-  }
-
-  const role = await Role.findByPk(data.roleId);
-  
-  if (!role || role.organizationId !== req.user.organizationId) {
-    const error = new Error('Invalid role');
-    error.status = HTTP_STATUS.BAD_REQUEST;
-    error.code = 'users.invalidRole';
-    throw error;
-  }
-
-  const existingDocument = await User.findOne({
-    where: {
-      organizationId: req.user.organizationId,
-      documentType: data.documentType,
-      documentNumber: data.documentNumber
-    }
-  });
-
-  if (existingDocument) {
-    const error = new Error('Document already exists');
-    error.status = HTTP_STATUS.CONFLICT;
-    error.code = 'users.documentExists';
-    throw error;
-  }
-
-  if (data.username) {
-    const existingUsername = await User.findOne({
-      where: {
-        organizationId: req.user.organizationId,
-        username: data.username
-      }
-    });
-
-    if (existingUsername) {
-      const error = new Error('Username already exists');
-      error.status = HTTP_STATUS.CONFLICT;
-      error.code = 'users.usernameExists';
-      throw error;
-    }
-  }
+  const { User } = modelsInstance.models;
 
   const userData = {
     organizationId: req.user.organizationId,
