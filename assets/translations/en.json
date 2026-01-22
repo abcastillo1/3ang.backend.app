@@ -10,6 +10,30 @@
     "password": {
       "required": "Password is required",
       "minLength": "Password must be at least 6 characters"
+    },
+    "fullName": {
+      "invalid": "Full name must be between 2 and 255 characters"
+    },
+    "phone": {
+      "invalid": "Phone must be a valid string"
+    },
+    "page": {
+      "invalid": "Page number must be an integer greater than 0"
+    },
+    "limit": {
+      "invalid": "Limit must be an integer between 1 and 100"
+    },
+    "userId": {
+      "invalid": "User ID must be a valid integer"
+    },
+    "action": {
+      "invalid": "Action must be a valid string"
+    },
+    "entity": {
+      "invalid": "Entity must be a valid string"
+    },
+    "date": {
+      "invalid": "Date must be in valid ISO8601 format"
     }
   },
   "auth": {

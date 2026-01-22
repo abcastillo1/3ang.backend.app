@@ -10,6 +10,30 @@
     "password": {
       "required": "La contraseña es requerida",
       "minLength": "La contraseña debe tener al menos 6 caracteres"
+    },
+    "fullName": {
+      "invalid": "El nombre completo debe tener entre 2 y 255 caracteres"
+    },
+    "phone": {
+      "invalid": "El teléfono debe ser una cadena de texto válida"
+    },
+    "page": {
+      "invalid": "El número de página debe ser un entero mayor a 0"
+    },
+    "limit": {
+      "invalid": "El límite debe ser un entero entre 1 y 100"
+    },
+    "userId": {
+      "invalid": "El ID de usuario debe ser un entero válido"
+    },
+    "action": {
+      "invalid": "La acción debe ser una cadena de texto válida"
+    },
+    "entity": {
+      "invalid": "La entidad debe ser una cadena de texto válida"
+    },
+    "date": {
+      "invalid": "La fecha debe estar en formato ISO8601 válido"
     }
   },
   "auth": {
