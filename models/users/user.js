@@ -127,6 +127,10 @@ export default function (sequelize, DataTypes) {
     return await this.findOne({ where: { email } });
   };
 
+  User.prototype.softDelete = async function () {
+    return await this.update({ deletedAt: new Date() });
+  };
+
   User.associate = function (models) {
     User.belongsTo(models.Organization, {
       foreignKey: 'organization_id',

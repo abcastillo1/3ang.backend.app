@@ -27,10 +27,19 @@ export default function (sequelize, DataTypes) {
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at'
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        field: 'updated_at'
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        field: 'deleted_at'
       }
     },
     {
       tableName: 'roles',
+      paranoid: true,
       timestamps: true,
       underscored: true,
       indexes: [
@@ -64,6 +73,10 @@ export default function (sequelize, DataTypes) {
       where: { code: permissionCode }
     });
     return rolePermissions.length > 0;
+  };
+
+  Role.prototype.softDelete = async function () {
+    return await this.update({ deletedAt: new Date() });
   };
 
   return Role;
