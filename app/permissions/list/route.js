@@ -29,29 +29,13 @@ async function handler(req, res, next) {
     order: [['module', 'ASC'], ['code', 'ASC']]
   });
 
-  const permissionsByModule = {};
-  
-  permissions.forEach(permission => {
-    const module = permission.module || 'other';
-    if (!permissionsByModule[module]) {
-      permissionsByModule[module] = [];
-    }
-    permissionsByModule[module].push({
-      id: permission.id,
-      code: permission.code,
-      description: permission.description,
-      module: permission.module
-    });
-  });
-
   const response = {
     permissions: permissions.map(p => ({
       id: p.id,
       code: p.code,
       description: p.description,
       module: p.module
-    })),
-    permissionsByModule
+    }))
   };
 
   return apiResponse(res, req, next)(response);
