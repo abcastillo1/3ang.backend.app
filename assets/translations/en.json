@@ -94,7 +94,8 @@
     "cannotModifySystem": "Cannot modify system role",
     "cannotDeleteSystem": "Cannot delete system role",
     "hasUsers": "Cannot delete role with assigned users",
-    "invalidPermissions": "Some permissions not found"
+    "invalidPermissions": "Some permissions not found",
+    "cannotRemovePermissionsFromSystem": "Cannot remove permissions from system role"
   },
   "permissions": {
     "userNotAuthenticated": "User not authenticated",

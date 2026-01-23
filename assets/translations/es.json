@@ -94,7 +94,8 @@
     "cannotModifySystem": "No se puede modificar un rol del sistema",
     "cannotDeleteSystem": "No se puede eliminar un rol del sistema",
     "hasUsers": "No se puede eliminar un rol con usuarios asignados",
-    "invalidPermissions": "Algunos permisos no fueron encontrados"
+    "invalidPermissions": "Algunos permisos no fueron encontrados",
+    "cannotRemovePermissionsFromSystem": "No se pueden eliminar permisos de un rol del sistema"
   },
   "permissions": {
     "userNotAuthenticated": "Usuario no autenticado",
