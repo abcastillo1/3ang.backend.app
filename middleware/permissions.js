@@ -24,6 +24,12 @@ export function requirePermission(permissionCode) {
       throwError(HTTP_STATUS.UNAUTHORIZED, 'permissions.userNotFound');
     }
 
+    //ADMIN
+    if (req.organization && req.organization.ownerUserId === user.id) {
+      req.userModel = user;
+      return next();
+    }
+
     const hasPermission = await user.hasPermission(permissionCode);
 
     if (!hasPermission) {
