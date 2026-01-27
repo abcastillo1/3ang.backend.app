@@ -113,7 +113,38 @@ Content-Type: application/json
 }
 ```
 
-### 3. Listar Usuarios (requiere token)
+### 3. Logout (requiere token válido)
+```bash
+POST http://localhost:3000/api/v1/auth/logout
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {}
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "message": "Logged out successfully"
+  }
+}
+```
+
+**Errores posibles:**
+- `401` - Token inválido o expirado
+- `400` - Token no proporcionado
+
+**Notas:**
+- El logout invalida la sesión actual del usuario
+- Después del logout, el token ya no será válido para autenticación
+- Se registra un audit log de la acción de logout
+
+### 4. Listar Usuarios (requiere token)
 ```bash
 POST http://localhost:3000/api/v1/users/list
 Authorization: Bearer <token>
