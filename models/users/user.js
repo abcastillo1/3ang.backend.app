@@ -127,6 +127,10 @@ export default function (sequelize, DataTypes) {
     return await this.findOne({ where: { email } });
   };
 
+  User.findByUsername = async function (username) {
+    return await this.findOne({ where: { username } });
+  };
+
   User.findWithProfile = async function (userId) {
     const { Organization, Role, Permission } = this.sequelize.models;
     

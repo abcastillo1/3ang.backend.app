@@ -31,12 +31,7 @@ export default async function validateUserCreation(req, res, next) {
   }
 
   if (data.username) {
-    const existingUsername = await User.findOne({
-      where: {
-        organizationId: req.user.organizationId,
-        username: data.username
-      }
-    });
+    const existingUsername = await User.findByUsername(data.username);
 
     if (existingUsername) {
       throwError(HTTP_STATUS.CONFLICT, 'users.usernameExists');

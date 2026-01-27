@@ -92,6 +92,7 @@
     "invalidRole": "El rol especificado no es válido",
     "userNotFound": "Usuario no encontrado",
     "cannotUpdateOtherOrganization": "No se puede actualizar un usuario de otra organización",
+    "cannotDeactivateOwner": "Solo el propietario puede desactivar su propia cuenta",
     "update": {
       "restrictedFields": "No se pueden actualizar los siguientes campos: {{fields}}"
     },

@@ -92,6 +92,7 @@
     "invalidRole": "Invalid role specified",
     "userNotFound": "User not found",
     "cannotUpdateOtherOrganization": "Cannot update user from another organization",
+    "cannotDeactivateOwner": "Only the owner can deactivate their own account",
     "update": {
       "restrictedFields": "The following fields cannot be updated: {{fields}}"
     },

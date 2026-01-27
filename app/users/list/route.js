@@ -27,7 +27,8 @@ async function handler(req, res, next) {
   const { page = 1, limit = 10, search } = req.body.data || {};
 
   const where = {
-    organizationId: req.user.organizationId
+    organizationId: req.user.organizationId,
+    id: { [Op.ne]: req.user.id }
   };
   
   if (search) {
