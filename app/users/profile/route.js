@@ -10,14 +10,17 @@ const validators = [
 async function handler(req, res, next) {
   const user = req.userModel;
   
-  // Get complete user profile using the reusable method
   const profile = await user.getProfile();
 
   if (!profile) {
     throwError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'users.profileNotFound');
   }
 
-  return apiResponse(res, req, next)(profile);
+  const response = {
+    ...profile
+  };
+
+  return apiResponse(res, req, next)(response);
 }
 
 const profileRoute = {
