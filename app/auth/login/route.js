@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../../../config/environment.js';
 import { HTTP_STATUS, ERROR_CODES } from '../../../config/constants.js';
 import { throwError } from '../../../helpers/errors.js';
+import { logger } from '../../../helpers/logger.js';
 import modelsInstance from '../../../models/index.js';
 
 const validators = [
@@ -39,6 +40,12 @@ async function handler(req, res, next) {
 
   if (!isValidPassword) {
     throwError(HTTP_STATUS.UNAUTHORIZED, 'auth.invalidCredentials');
+  }
+
+  const profile = await user.getProfile();
+
+  if (!profile) {
+    throwError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'auth.userNotFound');
   }
 
   const tokenPayload = {
@@ -84,12 +91,12 @@ async function handler(req, res, next) {
       success: true
     }
   }).catch(err => {
-    console.error('Error creating audit log:', err);
+    logger.error('Error creating audit log for login', { error: err.message, userId: user.id });
   });
 
   const response = {
     token,
-    user: user.toPublicJSON()
+    ...profile
   };
 
   return apiResponse(res, req, next)(response);

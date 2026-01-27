@@ -1,5 +1,7 @@
 import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
+import { HTTP_STATUS } from '../../../config/constants.js';
+import { throwError } from '../../../helpers/errors.js';
 
 const validators = [
   authenticate
@@ -8,23 +10,14 @@ const validators = [
 async function handler(req, res, next) {
   const user = req.userModel;
   
-  const response = {
-    user: user.toPublicJSON(),
-    organization: {
-      id: req.organization.id,
-      name: req.organization.name,
-      legalName: req.organization.legalName,
-      taxId: req.organization.taxId,
-      email: req.organization.email,
-      phone: req.organization.phone,
-      address: req.organization.address,
-      country: req.organization.country,
-      city: req.organization.city,
-      isActive: req.organization.isActive
-    }
-  };
+  // Get complete user profile using the reusable method
+  const profile = await user.getProfile();
 
-  return apiResponse(res, req, next)(response);
+  if (!profile) {
+    throwError(HTTP_STATUS.INTERNAL_SERVER_ERROR, 'users.profileNotFound');
+  }
+
+  return apiResponse(res, req, next)(profile);
 }
 
 const profileRoute = {
