@@ -60,7 +60,8 @@ export function registerRoute(router, path, routeModule, method = 'post') {
       if (error.status && error.code) {
         const statusCode = error.status;
         const errorCode = error.code;
-        const message = req.translate ? req.translate(errorCode) : errorCode;
+        const translationOptions = error.translationOptions || {};
+        const message = req.translate ? req.translate(errorCode, translationOptions) : errorCode;
         
         const response = {
           statusCode,

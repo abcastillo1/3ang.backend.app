@@ -18,6 +18,9 @@
     "phone": {
       "invalid": "Phone must be a valid string"
     },
+    "isActive": {
+      "invalid": "Active status must be a boolean value (true or false)"
+    },
     "roleId": {
       "required": "Role is required",
       "invalid": "Role ID must be a valid integer"
@@ -86,7 +89,13 @@
     "emailExists": "Email already registered",
     "documentExists": "Document already registered",
     "usernameExists": "Username already exists",
-    "invalidRole": "Invalid role specified"
+    "invalidRole": "Invalid role specified",
+    "userNotFound": "User not found",
+    "cannotUpdateOtherOrganization": "Cannot update user from another organization",
+    "update": {
+      "restrictedFields": "The following fields cannot be updated: {{fields}}"
+    },
+    "profileNotFound": "User profile not found"
   },
   "roles": {
     "nameExists": "Role name already exists",
