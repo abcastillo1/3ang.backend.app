@@ -1,5 +1,6 @@
 import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
+import { requirePermission } from '../../../middleware/permissions.js';
 import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import { Op } from 'sequelize';
@@ -19,7 +20,8 @@ const validators = [
     .isString()
     .withMessage('validators.search.invalid'),
   validateRequest,
-  authenticate
+  authenticate,
+  requirePermission('users.view')
 ];
 
 async function handler(req, res, next) {

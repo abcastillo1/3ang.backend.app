@@ -4,6 +4,7 @@ import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import validateUserUpdate from '../../../middleware/users/validateUserUpdate.js';
+import validateUserUpdatePermissions from '../../../middleware/users/validateUserUpdatePermissions.js';
 
 const validators = [
   validateField('data.id')
@@ -51,8 +52,8 @@ const validators = [
     .withMessage('validators.roleId.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('users.update'),
-  validateUserUpdate
+  validateUserUpdate,
+  validateUserUpdatePermissions
 ];
 
 async function handler(req, res, next) {
