@@ -5,7 +5,7 @@ import { Op } from 'sequelize';
 
 export default async function validateUserUpdate(req, res, next) {
   const { data } = req.body;
-  const { User } = modelsInstance.models;
+  const { User, Role } = modelsInstance.models;
   const authenticatedUser = req.userModel;
   
   Object.keys(data).forEach(key => {
@@ -73,6 +73,18 @@ export default async function validateUserUpdate(req, res, next) {
       }
     }
   }
+
+  if (data.roleId !== undefined && data.roleId !== userToUpdate.roleId) {
+    const role = await Role.findByPk(data.roleId);
+    
+    if (!role) {
+      throwError(HTTP_STATUS.NOT_FOUND, 'roles.notFound');
+    }
+    
+    if (role.organizationId !== authenticatedUser.organizationId) {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'users.invalidRole');
+    }
+  }
   
   const updateData = {};
   const fieldMappings = {
@@ -83,7 +95,8 @@ export default async function validateUserUpdate(req, res, next) {
     documentType: 'documentType',
     documentNumber: 'documentNumber',
     password: 'passwordHash',
-    isActive: 'isActive'
+    isActive: 'isActive',
+    roleId: 'roleId'
   };
   
   Object.keys(fieldMappings).forEach(key => {

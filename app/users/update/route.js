@@ -45,6 +45,10 @@ const validators = [
     .optional()
     .isBoolean()
     .withMessage('validators.isActive.invalid'),
+  validateField('data.roleId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.roleId.invalid'),
   validateRequest,
   authenticate,
   requirePermission('users.update'),
