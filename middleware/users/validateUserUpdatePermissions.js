@@ -64,7 +64,7 @@ export default async function validateUserUpdatePermissions(req, res, next) {
   }
 
   for (const permissionCode of requiredPermissions) {
-    const hasPermission = await user.hasPermission(permissionCode);
+    const hasPermission = await authenticatedUser.hasPermission(permissionCode);
     
     if (!hasPermission) {
       throwError(HTTP_STATUS.FORBIDDEN, 'permissions.insufficientPermissions');
