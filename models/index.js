@@ -73,6 +73,26 @@ class Models {
     const auditLogModule = await import('./audit/auditLog.js');
     const AuditLogFactory = auditLogModule.default;
     this.models.AuditLog = AuditLogFactory(this.sequelize, Sequelize.DataTypes);
+
+    const productCategoryModule = await import('./inventory/productCategory.js');
+    const ProductCategoryFactory = productCategoryModule.default;
+    this.models.ProductCategory = ProductCategoryFactory(this.sequelize, Sequelize.DataTypes);
+
+    const inventoryProductModule = await import('./inventory/inventoryProduct.js');
+    const InventoryProductFactory = inventoryProductModule.default;
+    this.models.InventoryProduct = InventoryProductFactory(this.sequelize, Sequelize.DataTypes);
+
+    const establishmentModule = await import('./inventory/establishment.js');
+    const EstablishmentFactory = establishmentModule.default;
+    this.models.Establishment = EstablishmentFactory(this.sequelize, Sequelize.DataTypes);
+
+    const inventoryStockModule = await import('./inventory/inventoryStock.js');
+    const InventoryStockFactory = inventoryStockModule.default;
+    this.models.InventoryStock = InventoryStockFactory(this.sequelize, Sequelize.DataTypes);
+
+    const inventoryLogModule = await import('./inventory/inventoryLog.js');
+    const InventoryLogFactory = inventoryLogModule.default;
+    this.models.InventoryLog = InventoryLogFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {
