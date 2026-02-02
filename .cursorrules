@@ -301,23 +301,38 @@ Reglas para comentarios:
 
 Ejemplos CORRECTOS:
 ```javascript
-// Validate user credentials before generating token
+
 const isValidPassword = await usuario.verifyPassword(data.password);
 
-// Hook to hash password before saving to database
+
 Usuario.beforeSave(async (usuario) => {
-  // Implementation
+
 });
 ```
 
 Ejemplos INCORRECTOS:
 ```javascript
-// Buscar usuario por email
+
 const usuario = await Usuario.findByEmail(email);
 
-// Verificar password
 const isValidPassword = await usuario.verifyPassword(password);
 ```
+
+# =====================================================
+# LÓGICA DE NEGOCIO
+# =====================================================
+
+La lógica de negocio, reglas de dominio y flujos de trabajo están documentados en:
+- docs/business-logic.md
+
+ANTES de implementar o modificar funcionalidades, consultar este archivo para:
+- Entender las reglas de negocio
+- Verificar validaciones requeridas
+- Conocer las relaciones entre entidades
+- Comprender los flujos de trabajo
+- Respetar las restricciones de integridad de datos
+
+Este archivo es la fuente de verdad para la lógica del dominio.
 
 # =====================================================
 # CONVENCIONES GENERALES

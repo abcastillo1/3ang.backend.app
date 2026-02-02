@@ -82,7 +82,7 @@ class Models {
     const InventoryProductFactory = inventoryProductModule.default;
     this.models.InventoryProduct = InventoryProductFactory(this.sequelize, Sequelize.DataTypes);
 
-    const establishmentModule = await import('./inventory/establishment.js');
+    const establishmentModule = await import('./establishment/establishment.js');
     const EstablishmentFactory = establishmentModule.default;
     this.models.Establishment = EstablishmentFactory(this.sequelize, Sequelize.DataTypes);
 
