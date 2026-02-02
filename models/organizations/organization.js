@@ -91,6 +91,18 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'organization_id',
       as: 'auditLogs'
     });
+    Organization.hasMany(models.ProductCategory, {
+      foreignKey: 'organization_id',
+      as: 'productCategories'
+    });
+    Organization.hasMany(models.InventoryProduct, {
+      foreignKey: 'organization_id',
+      as: 'inventoryProducts'
+    });
+    Organization.hasMany(models.Establishment, {
+      foreignKey: 'organization_id',
+      as: 'establishments'
+    });
   };
 
   return Organization;
