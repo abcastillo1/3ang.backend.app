@@ -12,7 +12,7 @@ export default async function authenticate(req, res, next) {
   }
   
   const token = authHeader.substring(7);
-  const { UserSession, User, Organization } = modelsInstance.models;
+  const { UserSession, User, Organization, Establishment } = modelsInstance.models;
   
   let userModel = null;
   

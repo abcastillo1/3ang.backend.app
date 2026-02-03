@@ -45,6 +45,18 @@ export default function (sequelize, DataTypes) {
     return await this.update({ deletedAt: new Date() });
   };
 
+
+  ProductCategory.VACCINES = 1;
+  ProductCategory.ANTIBIOTICS = 2;
+  ProductCategory.VITAMINS_AND_MINERALS = 3;
+  ProductCategory.BALANCED_FEED = 4;
+  ProductCategory.DISINFECTANTS = 5;
+  ProductCategory.HORMONALS = 6;
+  ProductCategory.DEWORMERS = 7;
+  ProductCategory.BIRTH_SUPPLIES = 8;
+  ProductCategory.IDENTIFICATION = 9;
+  ProductCategory.TOOLS_AND_EQUIPMENT = 10;
+
   ProductCategory.associate = function (models) {
     ProductCategory.belongsTo(models.Organization, {
       foreignKey: 'organization_id',

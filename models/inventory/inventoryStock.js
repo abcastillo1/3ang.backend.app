@@ -49,6 +49,54 @@ export default function (sequelize, DataTypes) {
     }
   );
 
+  InventoryStock.updateStock = async function (stockParams, userId) {
+    const { establishmentId, productId, currentStock, minStockLevel, type, quantity, previousStock, reason, metadata } = stockParams;
+    const { InventoryLog } = sequelize.models;
+
+    return await sequelize.transaction(async (transaction) => {
+      const existingStock = await InventoryStock.findOne({
+        where: {
+          establishmentId: establishmentId,
+          productId: productId
+        },
+        transaction
+      });
+
+      const stockData = {
+        establishmentId: establishmentId,
+        productId: productId,
+        currentStock: currentStock,
+        minStockLevel: minStockLevel,
+        updatedAt: new Date()
+      };
+
+      let stock;
+      if (existingStock) {
+        await existingStock.update(stockData, { transaction });
+        stock = existingStock;
+      } else {
+        stock = await InventoryStock.create(stockData, { transaction });
+      }
+
+      const logData = {
+        establishmentId: establishmentId,
+        productId: productId,
+        userId: userId,
+        type: type,
+        quantity: quantity,
+        previousStock: previousStock,
+        newStock: currentStock,
+        reason: reason || null,
+        metadata: metadata || null,
+        createdAt: new Date()
+      };
+
+      await InventoryLog.create(logData, { transaction });
+
+      return stock;
+    });
+  };
+
   InventoryStock.associate = function (models) {
     InventoryStock.belongsTo(models.Establishment, {
       foreignKey: 'establishment_id',

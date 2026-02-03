@@ -74,6 +74,47 @@
     },
     "date": {
       "invalid": "Date must be in valid ISO8601 format"
+    },
+    "search": {
+      "invalid": "Search must be a valid string"
+    },
+    "quantity": {
+      "required": "Quantity is required",
+      "invalid": "Quantity must be a positive decimal number greater than 0"
+    },
+    "establishmentId": {
+      "required": "Establishment is required",
+      "invalid": "Establishment ID must be a valid integer"
+    },
+    "productId": {
+      "required": "Product is required",
+      "invalid": "Product ID must be a valid integer"
+    },
+    "currentStock": {
+      "required": "Current stock is required",
+      "invalid": "Current stock must be a positive decimal number"
+    },
+    "minStockLevel": {
+      "invalid": "Minimum stock level must be a positive decimal number"
+    },
+    "type": {
+      "invalid": "Type must be: entry, exit, transfer or adjustment"
+    },
+    "reason": {
+      "invalid": "Reason must be a valid string with maximum 255 characters"
+    },
+    "metadata": {
+      "invalid": "Metadata must be a valid JSON object"
+    },
+    "sku": {
+      "invalid": "SKU must be a valid string with maximum 100 characters"
+    },
+    "unitOfMeasure": {
+      "required": "Unit of measure is required",
+      "invalid": "Unit of measure must be between 1 and 50 characters"
+    },
+    "categoryId": {
+      "invalid": "Category ID must be a valid integer"
     }
   },
   "auth": {
@@ -127,5 +168,20 @@
   },
   "server": {
     "internalError": "Internal server error"
+  },
+  "establishments": {
+    "notFound": "Establishment not found"
+  },
+  "inventory": {
+    "stock": {
+      "insufficientStock": "Insufficient stock to perform this operation",
+      "invalidType": "Invalid movement type"
+    },
+    "products": {
+      "notFound": "Product not found"
+    },
+    "categories": {
+      "notFound": "Category not found"
+    }
   }
 }

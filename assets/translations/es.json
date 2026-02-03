@@ -74,6 +74,47 @@
     },
     "date": {
       "invalid": "La fecha debe estar en formato ISO8601 válido"
+    },
+    "search": {
+      "invalid": "La búsqueda debe ser una cadena de texto válida"
+    },
+    "quantity": {
+      "required": "La cantidad es requerida",
+      "invalid": "La cantidad debe ser un número decimal positivo mayor a 0"
+    },
+    "establishmentId": {
+      "required": "El establecimiento es requerido",
+      "invalid": "El ID de establecimiento debe ser un entero válido"
+    },
+    "productId": {
+      "required": "El producto es requerido",
+      "invalid": "El ID de producto debe ser un entero válido"
+    },
+    "currentStock": {
+      "required": "El stock actual es requerido",
+      "invalid": "El stock actual debe ser un número decimal positivo"
+    },
+    "minStockLevel": {
+      "invalid": "El nivel mínimo de stock debe ser un número decimal positivo"
+    },
+    "type": {
+      "invalid": "El tipo debe ser: entry, exit, transfer o adjustment"
+    },
+    "reason": {
+      "invalid": "La razón debe ser una cadena de texto válida con máximo 255 caracteres"
+    },
+    "metadata": {
+      "invalid": "Los metadatos deben ser un objeto JSON válido"
+    },
+    "sku": {
+      "invalid": "El SKU debe ser una cadena de texto válida con máximo 100 caracteres"
+    },
+    "unitOfMeasure": {
+      "required": "La unidad de medida es requerida",
+      "invalid": "La unidad de medida debe tener entre 1 y 50 caracteres"
+    },
+    "categoryId": {
+      "invalid": "El ID de categoría debe ser un entero válido"
     }
   },
   "auth": {
@@ -127,5 +168,20 @@
   },
   "server": {
     "internalError": "Error interno del servidor"
+  },
+  "establishments": {
+    "notFound": "Establecimiento no encontrado"
+  },
+  "inventory": {
+    "stock": {
+      "insufficientStock": "Stock insuficiente para realizar esta operación",
+      "invalidType": "Tipo de movimiento inválido"
+    },
+    "products": {
+      "notFound": "Producto no encontrado"
+    },
+    "categories": {
+      "notFound": "Categoría no encontrada"
+    }
   }
 }
