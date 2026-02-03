@@ -187,7 +187,9 @@
       "notFound": "Producto no encontrado"
     },
     "categories": {
-      "notFound": "Categoría no encontrada"
+      "notFound": "Categoría no encontrada",
+      "nameExists": "El nombre de la categoría ya existe",
+      "hasProducts": "No se puede eliminar una categoría con productos asignados"
     }
   }
 }

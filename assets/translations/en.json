@@ -187,7 +187,9 @@
       "notFound": "Product not found"
     },
     "categories": {
-      "notFound": "Category not found"
+      "notFound": "Category not found",
+      "nameExists": "Category name already exists",
+      "hasProducts": "Cannot delete a category with assigned products"
     }
   }
 }
