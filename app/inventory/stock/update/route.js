@@ -52,6 +52,10 @@ const validators = [
       }
     })
     .withMessage('validators.metadata.invalid'),
+  validateField('data.targetEstablishmentId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.establishmentId.invalid'),
   validateRequest,
   authenticate,
   requirePermission('inventory.stock.update'),
@@ -99,6 +103,35 @@ async function handler(req, res, next) {
       } : null
     }
   };
+
+  if (req.stockData.type === 'transfer' && req.targetEstablishment) {
+    const targetStock = await InventoryStock.findOne({
+      where: {
+        establishmentId: req.stockData.targetEstablishmentId,
+        productId: req.stockData.productId
+      },
+      include: [
+        {
+          model: Establishment,
+          as: 'establishment',
+          attributes: ['id', 'name', 'code']
+        }
+      ]
+    });
+
+    response.targetStock = {
+      establishmentId: targetStock.establishmentId,
+      productId: targetStock.productId,
+      currentStock: parseFloat(targetStock.currentStock),
+      minStockLevel: targetStock.minStockLevel ? parseFloat(targetStock.minStockLevel) : null,
+      updatedAt: targetStock.updatedAt,
+      establishment: targetStock.establishment ? {
+        id: targetStock.establishment.id,
+        name: targetStock.establishment.name,
+        code: targetStock.establishment.code
+      } : null
+    };
+  }
 
   return apiResponse(res, req, next)(response);
 }

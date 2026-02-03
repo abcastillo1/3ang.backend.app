@@ -985,7 +985,7 @@ Content-Type: application/json
 }
 ```
 
-**Ejemplo 3: Transferencia entre establecimientos**
+**Ejemplo 3: Transferencia entre establecimientos (automática)**
 ```bash
 POST http://localhost:3000/api/v1/inventory/stock/update
 Authorization: Bearer <token>
@@ -997,14 +997,20 @@ Content-Type: application/json
     "productId": 3,
     "type": "transfer",
     "quantity": 50,
+    "targetEstablishmentId": 2,
     "reason": "Transferencia a Establecimiento 2 - Finca Norte",
     "metadata": {
-      "targetEstablishment": 2,
       "transferId": "TRF-2026-012"
     }
   }
 }
 ```
+
+**Nota importante:** Las transferencias son operaciones atómicas que automáticamente:
+- Restan stock del establecimiento origen (`establishmentId`)
+- Suman stock al establecimiento destino (`targetEstablishmentId`)
+- Crean logs en ambos establecimientos
+- Todo en una sola transacción (si falla algo, se revierte todo)
 
 **Ejemplo 4: Ajuste de inventario (conteo físico)**
 ```bash
@@ -1094,20 +1100,66 @@ Content-Type: application/json
 }
 ```
 
+**Respuesta exitosa para transferencias:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "stock": {
+      "id": 1,
+      "establishmentId": 1,
+      "productId": 3,
+      "currentStock": 450,
+      "minStockLevel": 50,
+      "updatedAt": "2026-01-22T10:30:00.000Z",
+      "establishment": {
+        "id": 1,
+        "name": "Bodega Central",
+        "code": "BOD-001"
+      },
+      "product": {
+        "id": 3,
+        "name": "Ivermectina 1% Oral",
+        "sku": "DES-IVM-1",
+        "unitOfMeasure": "Litro"
+      }
+    },
+    "targetStock": {
+      "establishmentId": 2,
+      "productId": 3,
+      "currentStock": 50,
+      "minStockLevel": null,
+      "updatedAt": "2026-01-22T10:30:00.000Z",
+      "establishment": {
+        "id": 2,
+        "name": "Finca Norte",
+        "code": "FIN-002"
+      }
+    }
+  }
+}
+```
+
 **Errores posibles:**
 - `403` - Permisos insuficientes (no tienes `inventory.stock.update`)
 - `404` - Establecimiento no encontrado
+- `404` - Establecimiento destino no encontrado (para transferencias)
 - `404` - Producto no encontrado
 - `400` - Stock insuficiente (para salidas o transferencias)
 - `400` - Cantidad requerida para movimientos entry/exit/transfer
+- `400` - Establecimiento destino requerido para transferencias (`targetEstablishmentId`)
+- `400` - No se puede transferir al mismo establecimiento
 - `400` - Stock actual requerido para ajustes
 
 **Notas importantes:**
 - Para `entry`, `exit` y `transfer`: se requiere `quantity` (cantidad a agregar/quitar)
 - Para `adjustment`: se requiere `currentStock` (stock final después del ajuste)
+- Para `transfer`: se requiere `targetEstablishmentId` (establecimiento destino)
 - El sistema calcula automáticamente el nuevo stock basado en el tipo de movimiento
 - Todas las operaciones generan un registro en `inventory_logs` automáticamente
-- Las transferencias (`transfer`) restan stock del establecimiento origen (el especificado en `establishmentId`)
+- **Las transferencias son operaciones atómicas:** automáticamente restan del origen y suman al destino en una sola transacción
+- Si la transferencia falla en cualquier punto, toda la operación se revierte (rollback)
 
 ### Ejemplos de Flujo Completo: Gestión de Inventario Veterinario
 
@@ -1181,7 +1233,7 @@ POST /api/v1/inventory/stock/update
 
 **Escenario: Transferencia entre establecimientos**
 
-1. **Transferir stock del establecimiento origen:**
+**Transferencia completa en una sola llamada:**
 ```bash
 POST /api/v1/inventory/stock/update
 {
@@ -1190,12 +1242,17 @@ POST /api/v1/inventory/stock/update
     "productId": 2,
     "type": "transfer",
     "quantity": 50,
+    "targetEstablishmentId": 2,
     "reason": "Transferencia a Establecimiento Norte",
     "metadata": {
-      "targetEstablishment": 2
+      "transferId": "TRF-2026-012"
     }
   }
 }
 ```
 
-**Nota:** Este endpoint resta stock del establecimiento origen. Para registrar la recepción en el establecimiento destino, debes hacer otra llamada con `type: "entry"` y `establishmentId: 2`.
+**Nota:** Esta operación automáticamente:
+- Resta 50 unidades del establecimiento 1 (origen)
+- Suma 50 unidades al establecimiento 2 (destino)
+- Crea logs en ambos establecimientos
+- Todo en una sola transacción atómica

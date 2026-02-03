@@ -28,6 +28,30 @@ export default async function validateStockUpdate(req, res, next) {
     throwError(HTTP_STATUS.NOT_FOUND, 'inventory.products.notFound');
   }
 
+  const type = data.type || 'adjustment';
+
+  let targetEstablishment = null;
+  if (type === 'transfer') {
+    if (!data.targetEstablishmentId) {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'validators.targetEstablishmentId.required');
+    }
+
+    if (data.establishmentId === data.targetEstablishmentId) {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.sameEstablishment');
+    }
+
+    targetEstablishment = await Establishment.findOne({
+      where: {
+        id: data.targetEstablishmentId,
+        organizationId: req.user.organizationId
+      }
+    });
+
+    if (!targetEstablishment) {
+      throwError(HTTP_STATUS.NOT_FOUND, 'establishments.targetNotFound');
+    }
+  }
+
   const existingStock = await InventoryStock.findOne({
     where: {
       establishmentId: data.establishmentId,
@@ -36,7 +60,6 @@ export default async function validateStockUpdate(req, res, next) {
   });
 
   const previousStock = existingStock ? parseFloat(existingStock.currentStock) : 0;
-  const type = data.type || 'adjustment';
   let newStock;
   let quantity;
 
@@ -76,11 +99,13 @@ export default async function validateStockUpdate(req, res, next) {
     quantity: type === 'adjustment' ? (newStock - previousStock) : parseFloat(data.quantity || 0),
     previousStock: previousStock,
     reason: data.reason || null,
-    metadata: data.metadata || null
+    metadata: data.metadata || null,
+    targetEstablishmentId: type === 'transfer' ? data.targetEstablishmentId : null
   };
 
   req.establishment = establishment;
   req.product = product;
+  req.targetEstablishment = targetEstablishment;
 
   next();
 }

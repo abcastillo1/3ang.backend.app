@@ -86,6 +86,10 @@
       "required": "El establecimiento es requerido",
       "invalid": "El ID de establecimiento debe ser un entero válido"
     },
+    "targetEstablishmentId": {
+      "required": "El establecimiento destino es requerido para transferencias",
+      "invalid": "El ID de establecimiento destino debe ser un entero válido"
+    },
     "productId": {
       "required": "El producto es requerido",
       "invalid": "El ID de producto debe ser un entero válido"
@@ -170,12 +174,14 @@
     "internalError": "Error interno del servidor"
   },
   "establishments": {
-    "notFound": "Establecimiento no encontrado"
+    "notFound": "Establecimiento no encontrado",
+    "targetNotFound": "Establecimiento destino no encontrado"
   },
   "inventory": {
     "stock": {
       "insufficientStock": "Stock insuficiente para realizar esta operación",
-      "invalidType": "Tipo de movimiento inválido"
+      "invalidType": "Tipo de movimiento inválido",
+      "sameEstablishment": "No se puede transferir al mismo establecimiento"
     },
     "products": {
       "notFound": "Producto no encontrado"

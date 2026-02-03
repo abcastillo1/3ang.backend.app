@@ -50,10 +50,11 @@ export default function (sequelize, DataTypes) {
   );
 
   InventoryStock.updateStock = async function (stockParams, userId) {
-    const { establishmentId, productId, currentStock, minStockLevel, type, quantity, previousStock, reason, metadata } = stockParams;
+    const { establishmentId, productId, currentStock, minStockLevel, type, quantity, previousStock, reason, metadata, targetEstablishmentId } = stockParams;
     const { InventoryLog } = sequelize.models;
 
     return await sequelize.transaction(async (transaction) => {
+
       const existingStock = await InventoryStock.findOne({
         where: {
           establishmentId: establishmentId,
@@ -78,6 +79,14 @@ export default function (sequelize, DataTypes) {
         stock = await InventoryStock.create(stockData, { transaction });
       }
 
+      const logMetadata = type === 'transfer' && targetEstablishmentId
+        ? {
+            ...metadata,
+            targetEstablishmentId: targetEstablishmentId,
+            transferType: 'transfer'
+          }
+        : metadata;
+
       const logData = {
         establishmentId: establishmentId,
         productId: productId,
@@ -87,11 +96,58 @@ export default function (sequelize, DataTypes) {
         previousStock: previousStock,
         newStock: currentStock,
         reason: reason || null,
-        metadata: metadata || null,
+        metadata: logMetadata || null,
         createdAt: new Date()
       };
 
       await InventoryLog.create(logData, { transaction });
+
+      //tranferencias de producto  
+      if (type === 'transfer' && targetEstablishmentId) {
+        const targetStock = await InventoryStock.findOne({
+          where: {
+            establishmentId: targetEstablishmentId,
+            productId: productId
+          },
+          transaction
+        });
+
+        const targetPreviousStock = targetStock ? parseFloat(targetStock.currentStock) : 0;
+        const targetNewStock = targetPreviousStock + parseFloat(quantity);
+
+        const targetStockData = {
+          establishmentId: targetEstablishmentId,
+          productId: productId,
+          currentStock: targetNewStock,
+          minStockLevel: targetStock?.minStockLevel || 0,
+          updatedAt: new Date()
+        };
+
+        if (targetStock) {
+          await targetStock.update(targetStockData, { transaction });
+        } else {
+          await InventoryStock.create(targetStockData, { transaction });
+        }
+
+        const targetLogData = {
+          establishmentId: targetEstablishmentId,
+          productId: productId,
+          userId: userId,
+          type: 'entry',
+          quantity: parseFloat(quantity),
+          previousStock: targetPreviousStock,
+          newStock: targetNewStock,
+          reason: reason ? `Recepción: ${reason}` : 'Transferencia recibida',
+          metadata: {
+            ...metadata,
+            sourceEstablishmentId: establishmentId,
+            transferType: 'transfer'
+          },
+          createdAt: new Date()
+        };
+
+        await InventoryLog.create(targetLogData, { transaction });
+      }
 
       return stock;
     });

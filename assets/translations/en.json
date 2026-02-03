@@ -86,6 +86,10 @@
       "required": "Establishment is required",
       "invalid": "Establishment ID must be a valid integer"
     },
+    "targetEstablishmentId": {
+      "required": "Target establishment is required for transfers",
+      "invalid": "Target establishment ID must be a valid integer"
+    },
     "productId": {
       "required": "Product is required",
       "invalid": "Product ID must be a valid integer"
@@ -170,12 +174,14 @@
     "internalError": "Internal server error"
   },
   "establishments": {
-    "notFound": "Establishment not found"
+    "notFound": "Establishment not found",
+    "targetNotFound": "Target establishment not found"
   },
   "inventory": {
     "stock": {
       "insufficientStock": "Insufficient stock to perform this operation",
-      "invalidType": "Invalid movement type"
+      "invalidType": "Invalid movement type",
+      "sameEstablishment": "Cannot transfer to the same establishment"
     },
     "products": {
       "notFound": "Product not found"
