@@ -191,5 +191,30 @@
       "nameExists": "Category name already exists",
       "hasProducts": "Cannot delete a category with assigned products"
     }
+  },
+  "files": {
+    "category": {
+      "required": "File category is required",
+      "invalid": "File category is not valid. Allowed categories: profiles, documents, inventory, establishments"
+    },
+    "file": {
+      "required": "File is required"
+    },
+    "mimeType": {
+      "invalid": "File type is not allowed for this category"
+    },
+    "size": {
+      "exceeded": "File size exceeds the allowed limit"
+    },
+    "upload": {
+      "failed": "Error uploading file to storage"
+    },
+    "path": {
+      "required": "File path is required",
+      "invalid": "File path is not valid or does not belong to your organization"
+    },
+    "url": {
+      "generationFailed": "Error generating file URL"
+    }
   }
 }

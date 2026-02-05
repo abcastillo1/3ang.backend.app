@@ -1,8 +1,17 @@
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
 import { throwError } from '../helpers/errors.js';
 
+const EXCLUDED_ROUTES = [
+  '/api/v1/files/upload'
+];
+
 export default function bodyValidator(req, res, next) {
   if (req.method === 'GET' || req.method === 'DELETE') {
+    return next();
+  }
+
+  const path = req.path || req.url.split('?')[0];
+  if (EXCLUDED_ROUTES.includes(path)) {
     return next();
   }
 

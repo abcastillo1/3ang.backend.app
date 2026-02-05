@@ -1172,6 +1172,243 @@ Content-Type: application/json
 - No se puede eliminar una categoría que tenga productos asignados
 - Para eliminar una categoría con productos, primero debes cambiar o eliminar los productos asociados
 
+## APIs de Carga de Archivos
+
+**Permisos requeridos:**
+- `files.upload` - Subir archivos
+
+**Nota importante:** El propietario de la organización (`ownerUserId`) tiene acceso completo sin necesidad de permisos específicos.
+
+**Configuración de Backblaze B2:**
+Para usar este API necesitas configurar las siguientes variables de entorno:
+- `B2_APPLICATION_KEY_ID` - Key ID de tu "Master Application Key" en Backblaze B2
+- `B2_APPLICATION_KEY` - Key (secreto) de tu "Master Application Key" en Backblaze B2
+- `B2_BUCKET_ID` - ID del bucket (se encuentra en la configuración del bucket)
+- `B2_BUCKET_NAME` - Nombre del bucket que creaste
+- `STORAGE_BUCKET_PRIVATE` - `true` si el bucket es privado, `false` si es público (default: `false`)
+- `STORAGE_SIGNED_URL_EXPIRY` - Tiempo de expiración de URLs firmadas en segundos (default: 3600 = 1 hora)
+
+**Cómo obtener las credenciales:**
+1. Ve a tu cuenta de Backblaze B2
+2. Ve a "App Keys" > "Master Application Key"
+3. Copia el "Key ID" → va en `B2_APPLICATION_KEY_ID`
+4. Copia el "Key" (el secreto) → va en `B2_APPLICATION_KEY`
+5. Ve a tu bucket y copia el "Bucket ID" → va en `B2_BUCKET_ID`
+6. El nombre del bucket → va en `B2_BUCKET_NAME`
+
+**Categorías permitidas:**
+- `profiles` - Imágenes de perfil de usuarios (JPEG, PNG, WebP - máx 5MB)
+- `documents` - Documentos (PDF, JPEG, PNG - máx 10MB)
+- `inventory` - Imágenes de productos de inventario (JPEG, PNG, WebP - máx 5MB)
+- `establishments` - Imágenes de establecimientos (JPEG, PNG, WebP - máx 5MB)
+
+### 21. Subir Archivos (requiere token y permiso 'files.upload')
+
+**Ejemplo 1: Subir un solo archivo**
+```bash
+POST http://localhost:3000/api/v1/files/upload
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+# Form data:
+# files: [archivo]
+# category: profiles
+```
+
+**Ejemplo con cURL:**
+```bash
+curl -X POST http://localhost:3000/api/v1/files/upload \
+  -H "Authorization: Bearer <token>" \
+  -F "files=@/ruta/a/foto.jpg" \
+  -F "category=profiles"
+```
+
+**Ejemplo 2: Subir múltiples archivos (hasta 10)**
+```bash
+POST http://localhost:3000/api/v1/files/upload
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+# Form data:
+# files: [archivo1]
+# files: [archivo2]
+# files: [archivo3]
+# category: inventory
+```
+
+**Ejemplo con JavaScript (un archivo):**
+```javascript
+const formData = new FormData();
+formData.append('files', fileInput.files[0]);
+formData.append('category', 'profiles');
+
+const response = await fetch('http://localhost:3000/api/v1/files/upload', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`
+  },
+  body: formData
+});
+
+const result = await response.json();
+console.log('Archivo subido:', result.data.file.path);
+```
+
+**Ejemplo con JavaScript (múltiples archivos):**
+```javascript
+const formData = new FormData();
+const files = fileInput.files;
+
+// Agregar todos los archivos con el mismo nombre de campo
+for (let i = 0; i < files.length; i++) {
+  formData.append('files', files[i]);
+}
+formData.append('category', 'inventory');
+
+const response = await fetch('http://localhost:3000/api/v1/files/upload', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`
+  },
+  body: formData
+});
+
+const result = await response.json();
+console.log(`Subidos ${result.data.count} archivos`);
+result.data.files.forEach(file => {
+  console.log(`Path: ${file.path}`);
+  // Guardar cada file.path en tu base de datos
+});
+```
+
+**Respuesta exitosa (un archivo):**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "file": {
+      "path": "1/profiles/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+      "category": "profiles",
+      "originalName": "foto.jpg",
+      "fileName": "a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+      "mimeType": "image/jpeg",
+      "size": 123456
+    },
+    "files": [
+      {
+        "path": "1/profiles/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+        "category": "profiles",
+        "originalName": "foto.jpg",
+        "fileName": "a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+        "mimeType": "image/jpeg",
+        "size": 123456
+      }
+    ],
+    "count": 1
+  }
+}
+```
+
+**Respuesta exitosa (múltiples archivos):**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "files": [
+      {
+        "path": "1/inventory/uuid1.jpg",
+        "category": "inventory",
+        "originalName": "producto1.jpg",
+        "fileName": "uuid1.jpg",
+        "mimeType": "image/jpeg",
+        "size": 123456
+      },
+      {
+        "path": "1/inventory/uuid2.jpg",
+        "category": "inventory",
+        "originalName": "producto2.jpg",
+        "fileName": "uuid2.jpg",
+        "mimeType": "image/jpeg",
+        "size": 234567
+      }
+    ],
+    "count": 2
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `files.upload`)
+- `400` - Validación fallida:
+  - Categoría requerida o inválida
+  - Tipo de archivo no permitido para la categoría
+  - Tamaño de archivo excede el límite
+  - Archivo requerido
+
+**Notas importantes:**
+- El campo del formulario debe llamarse `files` (plural), incluso para un solo archivo
+- Todos los archivos en una misma request deben ser de la misma categoría
+- El API retorna solo el `path`, NO la URL
+- Guarda el `path` en tu base de datos (ej: `users.profileImagePath`, `inventory_products.imagePath`)
+- El path tiene formato: `{organizationId}/{category}/{fileName}`
+- Las URLs se generan automáticamente en otros endpoints cuando se retornan datos (ej: `/users/list`, `/inventory/products/list`)
+
+### Flujo completo de uso:
+
+**1. Subir archivo:**
+```javascript
+// Subir imagen de perfil
+const formData = new FormData();
+formData.append('files', profileImageFile);
+formData.append('category', 'profiles');
+
+const uploadResponse = await fetch('/api/v1/files/upload', {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${token}` },
+  body: formData
+});
+
+const uploadResult = await uploadResponse.json();
+const imagePath = uploadResult.data.file.path; // "1/profiles/uuid.jpg"
+```
+
+**2. Guardar path en base de datos:**
+```javascript
+// Actualizar usuario con el path
+await fetch('/api/v1/users/update', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    data: {
+      id: userId,
+      profileImagePath: imagePath // Guardar solo el path
+    }
+  })
+});
+```
+
+**3. Las URLs se generan automáticamente:**
+```javascript
+// Cuando obtengas datos del usuario/producto/etc, las URLs ya vienen generadas
+const userResponse = await fetch('/api/v1/users/list', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ data: {} })
+});
+
+const userResult = await userResponse.json();
+// El usuario ya viene con profileImageUrl generada automáticamente
+const imageUrl = userResult.data.users[0].profileImageUrl;
+```
+
 ### 17. Actualizar Stock de Productos Veterinarios (requiere token y permiso 'inventory.stock.update')
 
 **Tipos de movimiento disponibles:**
