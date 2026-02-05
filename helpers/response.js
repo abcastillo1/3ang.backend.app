@@ -6,7 +6,7 @@ export default function apiResponse(res, req, next) {
       const statusCode = error.status || HTTP_STATUS.INTERNAL_SERVER_ERROR;
       const errorCode = error.code || 'server.internalError';
       const message = req.translate ? req.translate(errorCode) : errorCode;
-      
+
       const response = {
         statusCode,
         message,

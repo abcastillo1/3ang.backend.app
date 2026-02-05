@@ -127,5 +127,10 @@
   },
   "server": {
     "internalError": "Error interno del servidor"
+  },
+  "establishments": {
+    "notFound": "Establecimiento no encontrado",
+    "codeExists": "El código de establecimiento ya existe en esta organización",
+    "cannotDeleteWithTransactions": "No se puede eliminar un establecimiento con transacciones registradas"
   }
 }
