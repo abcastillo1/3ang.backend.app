@@ -20,6 +20,30 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(50),
         allowNull: true
       },
+      establishmentCode: {
+        type: DataTypes.STRING(5),
+        allowNull: true,
+        field: 'establishment_code',
+        comment: 'Código del establecimiento (ej: 001)'
+      },
+      emissionPointCode: {
+        type: DataTypes.STRING(5),
+        allowNull: true,
+        field: 'emission_point_code',
+        comment: 'Punto de emisión (ej: 001)'
+      },
+      currentSequential: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        defaultValue: 0,
+        field: 'current_sequential',
+        comment: 'Secuencial numérico actual'
+      },
+      documentSequences: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        field: 'document_sequences',
+        comment: 'Objeto JSON con secuenciales futuros'
+      },
       address: {
         type: DataTypes.TEXT,
         allowNull: true

@@ -16,6 +16,10 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(255),
         allowNull: false
       },
+      image: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
       legalName: {
         type: DataTypes.STRING(255),
         field: 'legal_name'
@@ -24,6 +28,14 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(50),
         unique: true,
         field: 'tax_id'
+      },
+      ruc: {
+        type: DataTypes.STRING(13),
+        allowNull: true
+      },
+      sriRegimen: {
+        type: DataTypes.STRING(100),
+        field: 'sri_regimen'
       },
       email: {
         type: DataTypes.STRING(255)
@@ -44,6 +56,31 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
         field: 'is_active'
+      },
+      isAccountingRequired: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'is_accounting_required'
+      },
+      environment: {
+        type: DataTypes.ENUM('pruebas', 'produccion'),
+        defaultValue: 'pruebas'
+      },
+      signaturePath: {
+        type: DataTypes.STRING(255),
+        field: 'signature_path'
+      },
+      signaturePassword: {
+        type: DataTypes.STRING(255),
+        field: 'signature_password'
+      },
+      signatureExpiry: {
+        type: DataTypes.DATEONLY,
+        field: 'signature_expiry'
+      },
+      signatureProvider: {
+        type: DataTypes.STRING(100),
+        field: 'signature_provider'
       },
       createdAt: {
         type: DataTypes.DATE,
