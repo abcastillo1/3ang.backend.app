@@ -674,3 +674,825 @@ Esto protege roles críticos del sistema que deben mantenerse intactos.
 ### "No se puede modificar un rol del sistema" (403)
 - Los roles con `isSystem: true` no se pueden modificar
 - Solo se pueden modificar roles normales creados por usuarios
+
+## APIs de Inventario - Productos Veterinarios de Granja
+
+**Permisos requeridos:**
+- `inventory.products.create` - Crear productos
+- `inventory.products.view` - Ver/listar productos
+- `inventory.categories.update` - Gestionar categorías (crear, ver, actualizar, eliminar)
+- `inventory.stock.update` - Actualizar stock (entradas, salidas, transferencias, ajustes)
+
+**Nota importante:** El propietario de la organización (`ownerUserId`) tiene acceso completo sin necesidad de permisos específicos.
+
+### 15. Crear Producto Veterinario (requiere token y permiso 'inventory.products.create')
+
+**Ejemplo 1: Vacuna para ganado bovino**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Vacuna Triple Bovina",
+    "sku": "VAC-TB-001",
+    "description": "Vacuna para prevenir enfermedades virales en ganado bovino (Fiebre Aftosa, Brucelosis, Carbunco)",
+    "unitOfMeasure": "Dosis",
+    "categoryId": 1,
+    "isActive": true
+  }
+}
+```
+
+**Ejemplo 2: Antibiótico inyectable**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Penicilina Procaínica 300.000 UI",
+    "sku": "ANT-PEN-300",
+    "description": "Antibiótico de amplio espectro para tratamiento de infecciones bacterianas en ganado",
+    "unitOfMeasure": "Frasco",
+    "categoryId": 2,
+    "isActive": true
+  }
+}
+```
+
+**Ejemplo 3: Desparasitante oral**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Ivermectina 1% Oral",
+    "sku": "DES-IVM-1",
+    "description": "Desparasitante interno y externo para bovinos, porcinos y ovinos",
+    "unitOfMeasure": "Litro",
+    "categoryId": 3,
+    "isActive": true
+  }
+}
+```
+
+**Ejemplo 4: Suplemento vitamínico**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Complejo Vitamínico B12 + Hierro",
+    "sku": "SUP-VIT-B12",
+    "description": "Suplemento vitamínico para prevenir anemias y mejorar el estado nutricional del ganado",
+    "unitOfMeasure": "Frasco",
+    "categoryId": 4,
+    "isActive": true
+  }
+}
+```
+
+**Ejemplo 5: Producto sin categoría**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Jeringas Desechables 5ml",
+    "sku": "INS-JER-5ML",
+    "description": "Jeringas desechables para aplicación de medicamentos",
+    "unitOfMeasure": "Unidad",
+    "isActive": true
+  }
+}
+```
+
+**Ejemplo mínimo (sin SKU ni descripción):**
+```json
+{
+  "data": {
+    "name": "Aguja Hipodérmica 18G",
+    "unitOfMeasure": "Unidad"
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "product": {
+      "id": 1,
+      "organizationId": 1,
+      "name": "Vacuna Triple Bovina",
+      "sku": "VAC-TB-001",
+      "description": "Vacuna para prevenir enfermedades virales en ganado bovino",
+      "unitOfMeasure": "Dosis",
+      "isActive": true,
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-01-22T10:00:00.000Z",
+      "category": {
+        "id": 1,
+        "name": "Vacunas",
+        "description": "Productos vacunales para ganado"
+      }
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.products.create`)
+- `404` - Categoría no encontrada (si `categoryId` no existe o no pertenece a tu organización)
+- `400` - Validación fallida (campos requeridos faltantes o inválidos)
+
+### 16. Listar Productos Veterinarios (requiere token y permiso 'inventory.products.view')
+
+**Ejemplo básico (primera página):**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+**Ejemplo con búsqueda por nombre:**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20,
+    "search": "vacuna"
+  }
+}
+```
+
+**Ejemplo filtrando por categoría (solo vacunas):**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20,
+    "categoryId": 1
+  }
+}
+```
+
+**Ejemplo combinando búsqueda y filtros:**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20,
+    "search": "antibiótico",
+    "categoryId": 2,
+    "isActive": true
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "products": [
+      {
+        "id": 1,
+        "organizationId": 1,
+        "name": "Vacuna Triple Bovina",
+        "sku": "VAC-TB-001",
+        "description": "Vacuna para prevenir enfermedades virales en ganado bovino",
+        "unitOfMeasure": "Dosis",
+        "isActive": true,
+        "createdAt": "2026-01-22T10:00:00.000Z",
+        "updatedAt": "2026-01-22T10:00:00.000Z",
+        "category": {
+          "id": 1,
+          "name": "Vacunas",
+          "description": "Productos vacunales para ganado"
+        }
+      },
+      {
+        "id": 2,
+        "organizationId": 1,
+        "name": "Penicilina Procaínica 300.000 UI",
+        "sku": "ANT-PEN-300",
+        "description": "Antibiótico de amplio espectro",
+        "unitOfMeasure": "Frasco",
+        "isActive": true,
+        "createdAt": "2026-01-22T10:05:00.000Z",
+        "updatedAt": "2026-01-22T10:05:00.000Z",
+        "category": {
+          "id": 2,
+          "name": "Antibióticos",
+          "description": "Medicamentos antibacterianos"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 15,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.products.view`)
+
+## APIs de Categorías de Productos
+
+**Permisos requeridos:**
+- `inventory.categories.update` - Gestionar categorías (crear, ver, actualizar, eliminar)
+
+**Nota importante:** El propietario de la organización (`ownerUserId`) tiene acceso completo sin necesidad de permisos específicos.
+
+### 17. Crear Categoría de Producto (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo 1: Crear categoría básica**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Vacunas",
+    "description": "Biológicos para la prevención de enfermedades (Parvovirus, Erisipela, Mycoplasma, etc.)"
+  }
+}
+```
+
+**Ejemplo 2: Crear categoría sin descripción**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Antibióticos"
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "category": {
+      "id": 1,
+      "organizationId": 1,
+      "name": "Vacunas",
+      "description": "Biológicos para la prevención de enfermedades",
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-01-22T10:00:00.000Z"
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+- `409` - El nombre de la categoría ya existe en la organización
+- `400` - Validación fallida (nombre requerido o inválido)
+
+### 18. Listar Categorías de Productos (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo básico (primera página):**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+**Ejemplo con búsqueda:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20,
+    "search": "vacuna"
+  }
+}
+```
+
+**Ejemplo mínimo (sin parámetros):**
+```json
+{
+  "data": {}
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "categories": [
+      {
+        "id": 1,
+        "organizationId": 1,
+        "name": "Vacunas",
+        "description": "Biológicos para la prevención de enfermedades",
+        "createdAt": "2026-01-22T10:00:00.000Z",
+        "updatedAt": "2026-01-22T10:00:00.000Z"
+      },
+      {
+        "id": 2,
+        "organizationId": 1,
+        "name": "Antibióticos",
+        "description": "Medicamentos para el tratamiento de infecciones bacterianas",
+        "createdAt": "2026-01-22T10:05:00.000Z",
+        "updatedAt": "2026-01-22T10:05:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 10,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+
+### 19. Actualizar Categoría de Producto (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo actualizando nombre y descripción:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1,
+    "name": "Vacunas Actualizadas",
+    "description": "Nueva descripción para vacunas"
+  }
+}
+```
+
+**Ejemplo solo actualizando nombre:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1,
+    "name": "Vacunas y Biológicos"
+  }
+}
+```
+
+**Ejemplo solo actualizando descripción:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1,
+    "description": "Descripción actualizada"
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "category": {
+      "id": 1,
+      "organizationId": 1,
+      "name": "Vacunas Actualizadas",
+      "description": "Nueva descripción para vacunas",
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-01-22T11:00:00.000Z"
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+- `404` - Categoría no encontrada
+- `409` - El nuevo nombre ya existe en la organización
+- `400` - Validación fallida (ID requerido o campos inválidos)
+
+### 20. Eliminar Categoría de Producto (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/delete
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "message": "Category deleted successfully"
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+- `404` - Categoría no encontrada
+- `409` - No se puede eliminar una categoría con productos asignados
+
+**Notas importantes:**
+- El borrado es lógico (soft delete) - la categoría se marca como eliminada pero se mantiene en la BD
+- No se puede eliminar una categoría que tenga productos asignados
+- Para eliminar una categoría con productos, primero debes cambiar o eliminar los productos asociados
+
+### 17. Actualizar Stock de Productos Veterinarios (requiere token y permiso 'inventory.stock.update')
+
+**Tipos de movimiento disponibles:**
+- `entry` - Entrada de stock (compra, recepción)
+- `exit` - Salida de stock (venta, consumo)
+- `transfer` - Transferencia entre establecimientos
+- `adjustment` - Ajuste de inventario (conteo físico)
+
+**Ejemplo 1: Entrada de stock (compra de vacunas)**
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 1,
+    "type": "entry",
+    "quantity": 500,
+    "minStockLevel": 100,
+    "reason": "Compra de vacunas para campaña de vacunación",
+    "metadata": {
+      "supplier": "Laboratorios Veterinarios S.A.",
+      "invoice": "FAC-2026-001",
+      "batch": "LOT-2026-01"
+    }
+  }
+}
+```
+
+**Ejemplo 2: Salida de stock (venta a cliente)**
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 2,
+    "type": "exit",
+    "quantity": 10,
+    "reason": "Venta a cliente: Finca Los Alamos",
+    "metadata": {
+      "customer": "Finca Los Alamos",
+      "saleId": 1234,
+      "invoice": "VTA-2026-045"
+    }
+  }
+}
+```
+
+**Ejemplo 3: Transferencia entre establecimientos (automática)**
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 3,
+    "type": "transfer",
+    "quantity": 50,
+    "targetEstablishmentId": 2,
+    "reason": "Transferencia a Establecimiento 2 - Finca Norte",
+    "metadata": {
+      "transferId": "TRF-2026-012"
+    }
+  }
+}
+```
+
+**Nota importante:** Las transferencias son operaciones atómicas que automáticamente:
+- Restan stock del establecimiento origen (`establishmentId`)
+- Suman stock al establecimiento destino (`targetEstablishmentId`)
+- Crean logs en ambos establecimientos
+- Todo en una sola transacción (si falla algo, se revierte todo)
+
+**Ejemplo 4: Ajuste de inventario (conteo físico)**
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 4,
+    "type": "adjustment",
+    "currentStock": 75,
+    "minStockLevel": 50,
+    "reason": "Ajuste por conteo físico - Diferencia encontrada",
+    "metadata": {
+      "physicalCount": 75,
+      "systemCount": 80,
+      "difference": -5,
+      "countDate": "2026-01-22"
+    }
+  }
+}
+```
+
+**Ejemplo 5: Entrada simple (sin metadata)**
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 5,
+    "type": "entry",
+    "quantity": 200,
+    "reason": "Recepción de mercancía"
+  }
+}
+```
+
+**Ejemplo 6: Establecer nivel mínimo de stock**
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 1,
+    "type": "adjustment",
+    "currentStock": 500,
+    "minStockLevel": 150,
+    "reason": "Actualización de nivel mínimo de stock"
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "stock": {
+      "id": 1,
+      "establishmentId": 1,
+      "productId": 1,
+      "currentStock": 500,
+      "minStockLevel": 100,
+      "updatedAt": "2026-01-22T10:30:00.000Z",
+      "establishment": {
+        "id": 1,
+        "name": "Bodega Central",
+        "code": "BOD-001"
+      },
+      "product": {
+        "id": 1,
+        "name": "Vacuna Triple Bovina",
+        "sku": "VAC-TB-001",
+        "unitOfMeasure": "Dosis"
+      }
+    }
+  }
+}
+```
+
+**Respuesta exitosa para transferencias:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "stock": {
+      "id": 1,
+      "establishmentId": 1,
+      "productId": 3,
+      "currentStock": 450,
+      "minStockLevel": 50,
+      "updatedAt": "2026-01-22T10:30:00.000Z",
+      "establishment": {
+        "id": 1,
+        "name": "Bodega Central",
+        "code": "BOD-001"
+      },
+      "product": {
+        "id": 3,
+        "name": "Ivermectina 1% Oral",
+        "sku": "DES-IVM-1",
+        "unitOfMeasure": "Litro"
+      }
+    },
+    "targetStock": {
+      "establishmentId": 2,
+      "productId": 3,
+      "currentStock": 50,
+      "minStockLevel": null,
+      "updatedAt": "2026-01-22T10:30:00.000Z",
+      "establishment": {
+        "id": 2,
+        "name": "Finca Norte",
+        "code": "FIN-002"
+      }
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.stock.update`)
+- `404` - Establecimiento no encontrado
+- `404` - Establecimiento destino no encontrado (para transferencias)
+- `404` - Producto no encontrado
+- `400` - Stock insuficiente (para salidas o transferencias)
+- `400` - Cantidad requerida para movimientos entry/exit/transfer
+- `400` - Establecimiento destino requerido para transferencias (`targetEstablishmentId`)
+- `400` - No se puede transferir al mismo establecimiento
+- `400` - Stock actual requerido para ajustes
+
+**Notas importantes:**
+- Para `entry`, `exit` y `transfer`: se requiere `quantity` (cantidad a agregar/quitar)
+- Para `adjustment`: se requiere `currentStock` (stock final después del ajuste)
+- Para `transfer`: se requiere `targetEstablishmentId` (establecimiento destino)
+- El sistema calcula automáticamente el nuevo stock basado en el tipo de movimiento
+- Todas las operaciones generan un registro en `inventory_logs` automáticamente
+- **Las transferencias son operaciones atómicas:** automáticamente restan del origen y suman al destino en una sola transacción
+- Si la transferencia falla en cualquier punto, toda la operación se revierte (rollback)
+
+### Ejemplos de Flujo Completo: Gestión de Inventario Veterinario
+
+**Escenario: Recepción y venta de vacunas**
+
+1. **Crear el producto (si no existe):**
+```bash
+POST /api/v1/inventory/products/create
+{
+  "data": {
+    "name": "Vacuna Fiebre Aftosa",
+    "sku": "VAC-FA-001",
+    "unitOfMeasure": "Dosis",
+    "categoryId": 1
+  }
+}
+```
+
+2. **Registrar entrada de stock (compra):**
+```bash
+POST /api/v1/inventory/stock/update
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 1,
+    "type": "entry",
+    "quantity": 1000,
+    "minStockLevel": 200,
+    "reason": "Compra inicial de vacunas"
+  }
+}
+```
+
+3. **Verificar stock actual:**
+```bash
+POST /api/v1/inventory/products/list
+{
+  "data": {
+    "search": "Vacuna Fiebre Aftosa"
+  }
+}
+```
+
+4. **Registrar salida de stock (venta):**
+```bash
+POST /api/v1/inventory/stock/update
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 1,
+    "type": "exit",
+    "quantity": 150,
+    "reason": "Venta a cliente: Ganadería San José"
+  }
+}
+```
+
+5. **Ajuste de inventario (conteo físico):**
+```bash
+POST /api/v1/inventory/stock/update
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 1,
+    "type": "adjustment",
+    "currentStock": 840,
+    "reason": "Conteo físico mensual"
+  }
+}
+```
+
+**Escenario: Transferencia entre establecimientos**
+
+**Transferencia completa en una sola llamada:**
+```bash
+POST /api/v1/inventory/stock/update
+{
+  "data": {
+    "establishmentId": 1,
+    "productId": 2,
+    "type": "transfer",
+    "quantity": 50,
+    "targetEstablishmentId": 2,
+    "reason": "Transferencia a Establecimiento Norte",
+    "metadata": {
+      "transferId": "TRF-2026-012"
+    }
+  }
+}
+```
+
+**Nota:** Esta operación automáticamente:
+- Resta 50 unidades del establecimiento 1 (origen)
+- Suma 50 unidades al establecimiento 2 (destino)
+- Crea logs en ambos establecimientos
+- Todo en una sola transacción atómica

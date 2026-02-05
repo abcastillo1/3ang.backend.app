@@ -5,6 +5,7 @@ import rolesRoutes from './roles.js';
 import permissionsRoutes from './permissions.js';
 import systemRoutes from './system.js';
 import auditRoutes from './audit.js';
+import inventoryRoutes from './inventory.js';
 import establishmentRoutes from './establishments.js';
 import companyRoutes from './organizations.js';
 
@@ -18,5 +19,6 @@ mainRouter.use('/system', systemRoutes);
 mainRouter.use('/audit', auditRoutes);
 mainRouter.use('/establishments', establishmentRoutes);
 mainRouter.use('/organizations', companyRoutes);
+mainRouter.use('/inventory', inventoryRoutes);
 
 export default mainRouter;
