@@ -119,6 +119,10 @@
     },
     "categoryId": {
       "invalid": "El ID de categoría debe ser un entero válido"
+    },
+    "organizationId": {
+      "required": "La organización es requerida",
+      "invalid": "El ID de organización debe ser un entero válido"
     }
   },
   "auth": {
@@ -193,5 +197,14 @@
     "codeExists": "El código de establecimiento ya existe en esta organización",
     "cannotDeleteWithTransactions": "No se puede eliminar un establecimiento con transacciones registradas",
     "targetNotFound": "Establecimiento destino no encontrado"
+  },
+  "organizations": {
+    "notFound": "Organización no encontrada",
+    "nameExists": "El nombre de la organización ya existe",
+    "taxIdExists": "El tax ID de la organización ya existe",
+    "rucExists": "El RUC de la organización ya existe",
+    "emailExists": "El email de la organización ya existe",
+    "cannotDeleteWithEstablishments": "No se puede eliminar una organización con establecimientos asignados",
+    "cannotDeleteWithUsers": "No se puede eliminar una organización con usuarios asignados"
   }
 }
