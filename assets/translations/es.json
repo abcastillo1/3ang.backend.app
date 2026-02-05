@@ -191,10 +191,5 @@
       "nameExists": "El nombre de la categoría ya existe",
       "hasProducts": "No se puede eliminar una categoría con productos asignados"
     }
-  },
-  "establishments": {
-    "notFound": "Establecimiento no encontrado",
-    "codeExists": "El código de establecimiento ya existe en esta organización",
-    "cannotDeleteWithTransactions": "No se puede eliminar un establecimiento con transacciones registradas"
   }
 }
