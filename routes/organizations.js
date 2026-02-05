@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { registerRoute } from '../helpers/controller-wrapper.js';
-/* import listRoute from '../app/company/list/route.js'; */
+/* import listRoute from '../app/organizations/list/route.js'; */
 import createRoute from '../app/organizations/create/route.js';
 import updateRoute from '../app/organizations/update/route.js';
 
