@@ -47,11 +47,6 @@ const validators = [
         .isBoolean()
         .withMessage('validators.isAccountingRequired.invalid'),
 
-    /*  validateField('data.signatureExpiry')
-         .optional()
-         .isDate()
-         .withMessage('validators.signatureExpiry.invalid'), */
-
     validateRequest,
     authenticate,
     requirePermission('organizations.update'),
