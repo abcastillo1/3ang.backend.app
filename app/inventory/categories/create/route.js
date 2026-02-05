@@ -20,7 +20,7 @@ const validators = [
     .withMessage('validators.description.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('inventory.categories.create')
+  requirePermission('inventory.categories.update')
 ];
 
 async function handler(req, res, next) {

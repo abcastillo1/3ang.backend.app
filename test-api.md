@@ -680,6 +680,7 @@ Esto protege roles críticos del sistema que deben mantenerse intactos.
 **Permisos requeridos:**
 - `inventory.products.create` - Crear productos
 - `inventory.products.view` - Ver/listar productos
+- `inventory.categories.update` - Gestionar categorías (crear, ver, actualizar, eliminar)
 - `inventory.stock.update` - Actualizar stock (entradas, salidas, transferencias, ajustes)
 
 **Nota importante:** El propietario de la organización (`ownerUserId`) tiene acceso completo sin necesidad de permisos específicos.
@@ -931,6 +932,245 @@ Content-Type: application/json
 
 **Errores posibles:**
 - `403` - Permisos insuficientes (no tienes `inventory.products.view`)
+
+## APIs de Categorías de Productos
+
+**Permisos requeridos:**
+- `inventory.categories.update` - Gestionar categorías (crear, ver, actualizar, eliminar)
+
+**Nota importante:** El propietario de la organización (`ownerUserId`) tiene acceso completo sin necesidad de permisos específicos.
+
+### 17. Crear Categoría de Producto (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo 1: Crear categoría básica**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Vacunas",
+    "description": "Biológicos para la prevención de enfermedades (Parvovirus, Erisipela, Mycoplasma, etc.)"
+  }
+}
+```
+
+**Ejemplo 2: Crear categoría sin descripción**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Antibióticos"
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "category": {
+      "id": 1,
+      "organizationId": 1,
+      "name": "Vacunas",
+      "description": "Biológicos para la prevención de enfermedades",
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-01-22T10:00:00.000Z"
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+- `409` - El nombre de la categoría ya existe en la organización
+- `400` - Validación fallida (nombre requerido o inválido)
+
+### 18. Listar Categorías de Productos (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo básico (primera página):**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+**Ejemplo con búsqueda:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/list
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "page": 1,
+    "limit": 20,
+    "search": "vacuna"
+  }
+}
+```
+
+**Ejemplo mínimo (sin parámetros):**
+```json
+{
+  "data": {}
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "categories": [
+      {
+        "id": 1,
+        "organizationId": 1,
+        "name": "Vacunas",
+        "description": "Biológicos para la prevención de enfermedades",
+        "createdAt": "2026-01-22T10:00:00.000Z",
+        "updatedAt": "2026-01-22T10:00:00.000Z"
+      },
+      {
+        "id": 2,
+        "organizationId": 1,
+        "name": "Antibióticos",
+        "description": "Medicamentos para el tratamiento de infecciones bacterianas",
+        "createdAt": "2026-01-22T10:05:00.000Z",
+        "updatedAt": "2026-01-22T10:05:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 10,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+
+### 19. Actualizar Categoría de Producto (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo actualizando nombre y descripción:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1,
+    "name": "Vacunas Actualizadas",
+    "description": "Nueva descripción para vacunas"
+  }
+}
+```
+
+**Ejemplo solo actualizando nombre:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1,
+    "name": "Vacunas y Biológicos"
+  }
+}
+```
+
+**Ejemplo solo actualizando descripción:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/update
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1,
+    "description": "Descripción actualizada"
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "category": {
+      "id": 1,
+      "organizationId": 1,
+      "name": "Vacunas Actualizadas",
+      "description": "Nueva descripción para vacunas",
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-01-22T11:00:00.000Z"
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+- `404` - Categoría no encontrada
+- `409` - El nuevo nombre ya existe en la organización
+- `400` - Validación fallida (ID requerido o campos inválidos)
+
+### 20. Eliminar Categoría de Producto (requiere token y permiso 'inventory.categories.update')
+
+**Ejemplo:**
+```bash
+POST http://localhost:3000/api/v1/inventory/categories/delete
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1
+  }
+}
+```
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "message": "Category deleted successfully"
+  }
+}
+```
+
+**Errores posibles:**
+- `403` - Permisos insuficientes (no tienes `inventory.categories.update`)
+- `404` - Categoría no encontrada
+- `409` - No se puede eliminar una categoría con productos asignados
+
+**Notas importantes:**
+- El borrado es lógico (soft delete) - la categoría se marca como eliminada pero se mantiene en la BD
+- No se puede eliminar una categoría que tenga productos asignados
+- Para eliminar una categoría con productos, primero debes cambiar o eliminar los productos asociados
 
 ### 17. Actualizar Stock de Productos Veterinarios (requiere token y permiso 'inventory.stock.update')
 

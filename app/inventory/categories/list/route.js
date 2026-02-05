@@ -21,7 +21,7 @@ const validators = [
     .withMessage('validators.search.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('inventory.categories.view')
+  requirePermission('inventory.categories.update')
 ];
 
 async function handler(req, res, next) {

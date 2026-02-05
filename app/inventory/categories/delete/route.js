@@ -15,7 +15,7 @@ const validators = [
     .withMessage('validators.id.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('inventory.categories.delete')
+  requirePermission('inventory.categories.update')
 ];
 
 async function handler(req, res, next) {
