@@ -2,6 +2,28 @@ import { logger } from './logger.js';
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
 import modelsInstance from '../models/index.js';
 
+/**
+ * Executes a middleware function, handling both async (Promise) and callback-based patterns.
+ * This is necessary because some middlewares like multer use callbacks while others use Promises.
+ */
+function executeMiddleware(middleware, req, res) {
+  return new Promise((resolve, reject) => {
+    const result = middleware(req, res, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+    
+    // If middleware returns a Promise (async middleware), use it instead of callback
+    if (result && typeof result.then === 'function') {
+      result.then(resolve).catch(reject);
+    }
+    // Otherwise, wait for callback to be called (multer pattern)
+  });
+}
+
 export function registerRoute(router, path, routeModule, method = 'post') {
   const validators = routeModule.validators || [];
   const handler = routeModule.default;
@@ -25,11 +47,7 @@ export function registerRoute(router, path, routeModule, method = 'post') {
     try {
       for (const validator of validators) {
         if (typeof validator === 'function') {
-          await validator(req, res, (err) => {
-            if (err) {
-              throw err;
-            }
-          });
+          await executeMiddleware(validator, req, res);
         } else if (Array.isArray(validator)) {
           await Promise.all(validator.map(v => v.run(req)));
         } else {
