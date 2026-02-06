@@ -123,6 +123,82 @@
     "organizationId": {
       "required": "La organización es requerida",
       "invalid": "El ID de organización debe ser un entero válido"
+    },
+    "legalName": {
+      "invalid": "La razón social no es válida o excede los 255 caracteres."
+    },
+    "taxId": {
+      "required": "La identificación fiscal es obligatoria.",
+      "invalid": "La identificación fiscal no es válida o excede los 50 caracteres."
+    },
+    "ruc": {
+      "invalid": "El RUC debe tener exactamente 13 dígitos."
+    },
+    "environment": {
+      "invalid": "El ambiente seleccionado no es válido (debe ser 'pruebas' o 'produccion')."
+    },
+    "isAccountingRequired": {
+      "invalid": "El valor de obligatoriedad de contabilidad debe ser booleano."
+    },
+    "establishment": {
+      "name": {
+        "required": "El nombre del establecimiento es obligatorio.",
+        "invalid": "El nombre no puede exceder los 255 caracteres."
+      },
+      "code": {
+        "invalid": "El código interno debe ser una cadena de texto válida."
+      },
+      "establishmentCode": {
+        "required": "El código de establecimiento (3 dígitos) es obligatorio.",
+        "invalid": "El código debe tener exactamente 3 caracteres (ej: 001)."
+      },
+      "emissionPointCode": {
+        "required": "El punto de emisión es obligatorio.",
+        "invalid": "El punto de emisión debe tener exactamente 3 caracteres (ej: 001)."
+      },
+      "currentSequential": {
+        "invalid": "El secuencial debe ser un número entero positivo."
+      },
+      "documentSequences": {
+        "invalid": "El formato de las secuencias de documentos no es válido."
+      },
+      "id": {
+        "required": "El identificador del establecimiento es obligatorio.",
+        "invalid": "El identificador del establecimiento no es válido."
+      },
+      "isActive": {
+        "invalid": "El estado de activación debe ser un valor booleano (verdadero o falso)."
+      }
+    },
+    "organization": {
+      "name": {
+        "required": "El nombre de la organización es obligatorio.",
+        "invalid": "El nombre no es válido o excede los 255 caracteres."
+      },
+      "legalName": {
+        "invalid": "La razón social no es válida o excede los 255 caracteres."
+      },
+      "taxId": {
+        "required": "La identificación fiscal (Tax ID) es obligatoria.",
+        "invalid": "La identificación fiscal no puede exceder los 50 caracteres.",
+        "unique": "Esta identificación fiscal ya se encuentra registrada."
+      },
+      "ruc": {
+        "invalid": "El RUC debe tener exactamente 13 dígitos."
+      },
+      "email": {
+        "invalid": "El formato del correo electrónico no es válido."
+      },
+      "environment": {
+        "invalid": "El ambiente seleccionado no es válido (debe ser 'pruebas' o 'produccion')."
+      },
+      "isAccountingRequired": {
+        "invalid": "El valor de obligatoriedad de contabilidad debe ser un valor booleano."
+      },
+      "id": {
+        "invalid": "El identificador de la organización no es válido."
+      },
+      "notFound": "La organización solicitada no existe."
     }
   },
   "auth": {
@@ -159,7 +235,8 @@
   "permissions": {
     "userNotAuthenticated": "Usuario no autenticado",
     "userNotFound": "Usuario no encontrado",
-    "insufficientPermissions": "Permisos insuficientes"
+    "insufficientPermissions": "Permisos insuficientes",
+    "error": "No tienes permisos suficientes para realizar esta acción."
   },
   "validation": {
     "error": "Error de validación",
@@ -221,7 +298,9 @@
     "notFound": "Establecimiento no encontrado",
     "codeExists": "El código de establecimiento ya existe en esta organización",
     "cannotDeleteWithTransactions": "No se puede eliminar un establecimiento con transacciones registradas",
-    "targetNotFound": "Establecimiento destino no encontrado"
+    "targetNotFound": "Establecimiento destino no encontrado",
+    "update": "No tienes permiso para actualizar establecimientos.",
+    "create": "No tienes permiso para crear establecimientos."
   },
   "organizations": {
     "notFound": "Organización no encontrada",

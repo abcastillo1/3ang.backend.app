@@ -25,23 +25,21 @@ const validators = [
         .withMessage('validators.isActive.invalid'),
     validateRequest,
     authenticate,
-    requirePermission('establishments.view')
+    requirePermission('settings.organizations.view') // Ajusta el permiso según tu sistema
 ];
 
 async function handler(req, res, next) {
-    const { Establishment } = modelsInstance.models;
+    const { Organization } = modelsInstance.models;
     const { page = 1, limit = 10, search, isActive } = req.body.data || {};
 
-    const where = {
-        organizationId: req.organization.id
-    };
+    const where = {};
 
     if (search) {
         where[Op.or] = [
             { name: { [Op.like]: `%${search}%` } },
-            { code: { [Op.like]: `%${search}%` } },
-            { establishmentCode: { [Op.like]: `%${search}%` } },
-            { address: { [Op.like]: `%${search}%` } }
+            { legalName: { [Op.like]: `%${search}%` } },
+            { taxId: { [Op.like]: `%${search}%` } },
+            { email: { [Op.like]: `%${search}%` } }
         ];
     }
 
@@ -51,9 +49,9 @@ async function handler(req, res, next) {
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    const total = await Establishment.count({ where });
+    const total = await Organization.count({ where });
 
-    const establishments = await Establishment.findAll({
+    const organizations = await Organization.findAll({
         where,
         limit: parseInt(limit),
         offset,
@@ -61,30 +59,28 @@ async function handler(req, res, next) {
     });
 
     const response = {
-        establishments: establishments.map(est => {
-            let parsedSequences = [];
+        organizations: organizations.map(org => {
+            let parsedImage = [];
             try {
-                parsedSequences = typeof est.documentSequences === 'string'
-                    ? JSON.parse(est.documentSequences)
-                    : est.documentSequences;
+                parsedImage = typeof org.image === 'string' ? JSON.parse(org.image) : org.image;
             } catch (e) {
-                console.log(e);
-                parsedSequences = [];
+                parsedImage = [];
             }
 
             return {
-                id: est.id,
-                name: est.name,
-                code: est.code,
-                address: est.address,
-                phone: est.phone,
-                establishmentCode: est.establishmentCode,
-                emissionPointCode: est.emissionPointCode,
-                currentSequential: est.currentSequential,
-                documentSequences: parsedSequences ?? [],
-                isActive: est.isActive,
-                createdAt: est.createdAt,
-                updatedAt: est.updatedAt
+                id: org.id,
+                name: org.name,
+                legalName: org.legalName,
+                taxId: org.taxId,
+                email: org.email,
+                phone: org.phone,
+                address: org.address,
+                country: org.country,
+                city: org.city,
+                image: parsedImage ?? [],
+                isActive: org.isActive,
+                createdAt: org.createdAt,
+                updatedAt: org.updatedAt
             };
         }),
         pagination: {
@@ -102,7 +98,7 @@ const listRoute = {
     validators,
     default: handler,
     action: 'list',
-    entity: 'settings.establishments'
+    entity: 'settings.organizations'
 };
 
 export default listRoute;

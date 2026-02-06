@@ -9,37 +9,37 @@ const validators = [
     validateField('data.id')
         .notEmpty()
         .isInt({ min: 1 })
-        .withMessage('validators.id.invalid'),
+        .withMessage('validators.establishment.id.invalid'),
 
     validateField('data.name')
         .optional()
         .isLength({ max: 255 })
-        .withMessage('validators.name.invalid'),
+        .withMessage('validators.establishment.name.invalid'),
 
     validateField('data.code')
         .optional()
         .isString()
-        .withMessage('validators.code.invalid'),
+        .withMessage('validators.establishment.code.invalid'),
 
     validateField('data.establishmentCode')
         .optional()
         .isLength({ min: 3, max: 3 })
-        .withMessage('validators.establishmentCode.invalid'),
+        .withMessage('validators.establishment.establishmentCode.invalid'),
 
     validateField('data.emissionPointCode')
         .optional()
         .isLength({ min: 3, max: 3 })
-        .withMessage('validators.emissionPointCode.invalid'),
+        .withMessage('validators.establishment.emissionPointCode.invalid'),
 
     validateField('data.currentSequential')
         .optional()
         .isInt({ min: 0 })
-        .withMessage('validators.currentSequential.invalid'),
+        .withMessage('validators.establishment.currentSequential.invalid'),
 
     validateField('data.documentSequences')
         .optional()
         .isArray()
-        .withMessage('validators.documentSequences.invalid'),
+        .withMessage('validators.establishment.documentSequences.invalid'),
 
     validateField('data.address')
         .optional()
@@ -52,7 +52,7 @@ const validators = [
     validateField('data.isActive')
         .optional()
         .isBoolean()
-        .withMessage('validators.isActive.invalid'),
+        .withMessage('validators.establishment.isActive.invalid'),
 
     validateRequest,
     authenticate,

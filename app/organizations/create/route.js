@@ -8,9 +8,9 @@ import modelsInstance from '../../../models/index.js';
 const validators = [
     validateField('data.name')
         .notEmpty()
-        .withMessage('validators.name.required')
+        .withMessage('validators.organization.name.required')
         .isLength({ max: 255 })
-        .withMessage('validators.name.invalid'),
+        .withMessage('validators.organization.name.invalid'),
 
     validateField('data.legalName')
         .optional()
@@ -18,28 +18,28 @@ const validators = [
 
     validateField('data.taxId')
         .notEmpty()
-        .withMessage('validators.taxId.required')
+        .withMessage('validators.organization.taxId.required')
         .isLength({ max: 50 }),
 
     validateField('data.ruc')
         .optional()
         .isLength({ min: 13, max: 13 })
-        .withMessage('validators.ruc.invalid'),
+        .withMessage('validators.organization.ruc.invalid'),
 
     validateField('data.email')
         .optional()
         .isEmail()
-        .withMessage('validators.email.invalid'),
+        .withMessage('validators.organization.email.invalid'),
 
     validateField('data.environment')
         .optional()
         .isIn(['pruebas', 'produccion'])
-        .withMessage('validators.environment.invalid'),
+        .withMessage('validators.organization.environment.invalid'),
 
     validateField('data.isAccountingRequired')
         .optional()
         .isBoolean()
-        .withMessage('validators.isAccountingRequired.invalid'),
+        .withMessage('validators.organization.isAccountingRequired.invalid'),
     validateRequest,
     authenticate,
     requirePermission('organizations.create'),
@@ -56,7 +56,7 @@ async function handler(req, res, next) {
         });
         if (existing) {
             return res.status(400).json({
-                message: 'validators.taxId.unique'
+                message: 'validators.organization.taxId.unique'
             });
         }
     }
