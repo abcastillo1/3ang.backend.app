@@ -75,6 +75,26 @@ export function registerRoute(router, path, routeModule, method = 'post') {
         stack: error.stack
       });
 
+      if (error.name === 'MulterError') {
+        let errorCode = 'files.upload.failed';
+        
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          errorCode = 'files.size.exceeded';
+        } else if (error.code === 'LIMIT_FILE_COUNT') {
+          errorCode = 'files.count.exceeded';
+        } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+          errorCode = 'files.field.invalid';
+        }
+        
+        const message = req.translate ? req.translate(errorCode) : errorCode;
+        
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({
+          statusCode: HTTP_STATUS.BAD_REQUEST,
+          message,
+          errorCode
+        });
+      }
+
       if (error.status && error.code) {
         const statusCode = error.status;
         const errorCode = error.code;

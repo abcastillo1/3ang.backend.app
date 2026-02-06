@@ -16,31 +16,35 @@ export const FILE_CATEGORIES = {
 // MIME types allowed by category
 const ALLOWED_MIME_TYPES = {
   [FILE_CATEGORIES.PROFILES]: ['image/jpeg', 'image/png', 'image/webp'],
-  [FILE_CATEGORIES.DOCUMENTS]: ['application/pdf', 'image/jpeg', 'image/png'],
+  [FILE_CATEGORIES.DOCUMENTS]: ['application/pdf', 'image/jpeg', 'image/png', 'video/mp4'],
   [FILE_CATEGORIES.INVENTORY]: ['image/jpeg', 'image/png', 'image/webp'],
   [FILE_CATEGORIES.ESTABLISHMENTS]: ['image/jpeg', 'image/png', 'image/webp']
 };
 
+// Global file size limit (in bytes)
+const GLOBAL_MAX_FILE_SIZE = 40 * 1024 * 1024; // 40MB
+
 // Max file sizes by category (in bytes)
 const MAX_FILE_SIZES = {
   [FILE_CATEGORIES.PROFILES]: 5 * 1024 * 1024, // 5MB
-  [FILE_CATEGORIES.DOCUMENTS]: 10 * 1024 * 1024, // 10MB
+  [FILE_CATEGORIES.DOCUMENTS]: 40 * 1024 * 1024, // 40MB
   [FILE_CATEGORIES.INVENTORY]: 5 * 1024 * 1024, // 5MB
   [FILE_CATEGORIES.ESTABLISHMENTS]: 5 * 1024 * 1024 // 5MB
 };
 
 const fileFilter = (req, file, cb) => {
 
-  const isImage = file.mimetype.startsWith('image/');
-  const isPdf = file.mimetype === 'application/pdf';
+  const allAllowedTypes = new Set();
+  Object.values(ALLOWED_MIME_TYPES).forEach(types => {
+    types.forEach(type => allAllowedTypes.add(type));
+  });
   
-  if (!isImage && !isPdf) {
+
+  if (!allAllowedTypes.has(file.mimetype)) {
     return cb(createError(HTTP_STATUS.BAD_REQUEST, 'files.mimeType.invalid'));
   }
 
-
-  const maxSize = 10 * 1024 * 1024; //10MB limite global
-  if (file.size && file.size > maxSize) {
+  if (file.size && file.size > GLOBAL_MAX_FILE_SIZE) {
     return cb(createError(HTTP_STATUS.BAD_REQUEST, 'files.size.exceeded'));
   }
 
@@ -51,7 +55,7 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024 //10MB limite global
+    fileSize: GLOBAL_MAX_FILE_SIZE
   }
 });
 
