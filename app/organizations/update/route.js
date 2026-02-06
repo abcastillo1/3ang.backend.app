@@ -10,42 +10,42 @@ const validators = [
     validateField('data.id')
         .notEmpty()
         .isInt({ min: 1 })
-        .withMessage('validators.id.invalid'),
+        .withMessage('validators.organization.id.invalid'),
 
     validateField('data.name')
         .optional()
         .isLength({ max: 255 })
-        .withMessage('validators.name.invalid'),
+        .withMessage('validators.organization.name.invalid'),
 
     validateField('data.legalName')
         .optional()
         .isLength({ max: 255 })
-        .withMessage('validators.legalName.invalid'),
+        .withMessage('validators.organization.legalName.invalid'),
 
     validateField('data.taxId')
         .optional()
         .isLength({ max: 50 })
-        .withMessage('validators.taxId.invalid'),
+        .withMessage('validators.organization.taxId.invalid'),
 
     validateField('data.ruc')
         .optional()
         .isLength({ min: 13, max: 13 })
-        .withMessage('validators.ruc.invalid'),
+        .withMessage('validators.organization.ruc.invalid'),
 
     validateField('data.email')
         .optional()
         .isEmail()
-        .withMessage('validators.email.invalid'),
+        .withMessage('validators.organization.email.invalid'),
 
     validateField('data.environment')
         .optional()
         .isIn(['pruebas', 'produccion'])
-        .withMessage('validators.environment.invalid'),
+        .withMessage('validators.organization.environment.invalid'),
 
     validateField('data.isAccountingRequired')
         .optional()
         .isBoolean()
-        .withMessage('validators.isAccountingRequired.invalid'),
+        .withMessage('validators.organization.isAccountingRequired.invalid'),
 
     validateRequest,
     authenticate,
@@ -60,16 +60,16 @@ async function handler(req, res, next) {
         const organization = await Organization.findByPk(data.id);
 
         if (!organization) {
-            return res.status(404).json({ message: 'Organization not found' });
+            return res.status(404).json({ message: 'validators.organization.notFound' });
         }
 
         const updateData = {};
         if (data.name !== undefined) updateData.name = data.name;
-        if (data.image !== undefined) updateData.image = data.image; // Agregado
+        if (data.image !== undefined) updateData.image = JSON.stringify(data.image);
         if (data.legalName !== undefined) updateData.legalName = data.legalName;
         if (data.taxId !== undefined) updateData.taxId = data.taxId;
         if (data.ruc !== undefined) updateData.ruc = data.ruc;
-        if (data.sriRegimen !== undefined) updateData.sriRegimen = data.sriRegimen; // Agregado
+        if (data.sriRegimen !== undefined) updateData.sriRegimen = data.sriRegimen;
         if (data.email !== undefined) updateData.email = data.email;
         if (data.phone !== undefined) updateData.phone = data.phone;
         if (data.address !== undefined) updateData.address = data.address;

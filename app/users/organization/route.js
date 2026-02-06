@@ -8,16 +8,16 @@ const validators = [
 
 async function handler(req, res, next) {
   const { OrganizationSetting } = modelsInstance.models;
-  
+
   const settings = await OrganizationSetting.findAll({
     where: { organizationId: req.organization.id }
   });
-  
+
   const settingsObject = {};
   settings.forEach(setting => {
     settingsObject[setting.settingKey] = setting.settingValue;
   });
-  
+
   const response = {
     organization: {
       id: req.organization.id,
@@ -29,6 +29,7 @@ async function handler(req, res, next) {
       address: req.organization.address,
       country: req.organization.country,
       city: req.organization.city,
+      image: req.organization.image,
       isActive: req.organization.isActive,
       createdAt: req.organization.createdAt,
       updatedAt: req.organization.updatedAt

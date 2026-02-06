@@ -8,36 +8,36 @@ import modelsInstance from '../../../models/index.js';
 const validators = [
     validateField('data.name')
         .notEmpty()
-        .withMessage('validators.name.required')
+        .withMessage('validators.establishment.name.required')
         .isLength({ max: 255 })
-        .withMessage('validators.name.invalid'),
+        .withMessage('validators.establishment.name.invalid'),
 
     validateField('data.code')
         .optional()
         .isString()
-        .withMessage('validators.code.invalid'),
+        .withMessage('validators.establishment.code.invalid'),
 
     validateField('data.establishmentCode')
         .notEmpty()
-        .withMessage('validators.establishmentCode.required')
+        .withMessage('validators.establishment.establishmentCode.required')
         .isLength({ min: 3, max: 3 })
-        .withMessage('validators.establishmentCode.invalid'), // Ej: '001'
+        .withMessage('validators.establishment.establishmentCode.invalid'), // Ej: '001'
 
     validateField('data.emissionPointCode')
         .notEmpty()
-        .withMessage('validators.emissionPointCode.required')
+        .withMessage('validators.establishment.emissionPointCode.required')
         .isLength({ min: 3, max: 3 })
-        .withMessage('validators.emissionPointCode.invalid'), // Ej: '001'
+        .withMessage('validators.establishment.emissionPointCode.invalid'), // Ej: '001'
 
     validateField('data.currentSequential')
         .optional()
         .isInt({ min: 0 })
-        .withMessage('validators.currentSequential.invalid'),
+        .withMessage('validators.establishment.currentSequential.invalid'),
 
     validateField('data.documentSequences')
         .optional()
         .isArray()
-        .withMessage('validators.documentSequences.invalid'),
+        .withMessage('validators.establishment.documentSequences.invalid'),
 
     validateField('data.address')
         .optional()
