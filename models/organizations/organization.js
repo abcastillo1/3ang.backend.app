@@ -17,7 +17,7 @@ export default function (sequelize, DataTypes) {
         allowNull: false
       },
       image: {
-        type: DataTypes.STRING(255),
+        type: DataTypes.TEXT,
         allowNull: true
       },
       legalName: {

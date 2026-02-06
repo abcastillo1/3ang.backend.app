@@ -26,7 +26,8 @@ No son sugerencias.
 - Validación: express-validator (usando helpers propios)
 - Autenticación: JWT (jsonwebtoken)
 - Seguridad: helmet, bcryptjs
-- Manejo de archivos: Multer (o equivalente)
+- Manejo de archivos: Multer para multipart/form-data
+- Storage: Backblaze B2 (migrable a AWS S3)
 - Logging: sistema de logging a archivos locales
 - Internacionalización: sistema de traducciones con archivos JSON
 
@@ -71,6 +72,8 @@ La estructura del proyecto es obligatoria y no debe modificarse:
   - config/environment.js
   - config/constants.js
 - assets/translations/ → archivos JSON de traducciones
+- helpers/ → utilidades reutilizables
+  - helpers/storage.js → servicio de almacenamiento (Backblaze/S3)
 - server.js → clase Server
 - index.js → punto de entrada principal
 - package.json → dependencias (ES Modules)
@@ -333,6 +336,65 @@ ANTES de implementar o modificar funcionalidades, consultar este archivo para:
 - Respetar las restricciones de integridad de datos
 
 Este archivo es la fuente de verdad para la lógica del dominio.
+
+# =====================================================
+# CARGA DE ARCHIVOS (FILE UPLOAD)
+# =====================================================
+
+Arquitectura centralizada de carga de archivos:
+
+1. STORAGE EXTERNO:
+   - Backblaze B2 como servicio principal (migrable a AWS S3)
+   - Todos los archivos se almacenan en buckets externos
+   - NO almacenar archivos en el servidor local
+
+2. ESTRUCTURA DE ALMACENAMIENTO:
+   - Path en bucket: {organizationId}/{category}/{filename}
+   - Categorías permitidas: profiles, documents, inventory, etc.
+   - Cada organización tiene su carpeta raíz
+   - Los archivos se organizan por categoría dentro de cada organización
+
+3. MODELO DE DATOS:
+   - NO se crea tabla File en la base de datos
+   - NO almacenar el archivo físico en la base de datos
+   - Solo guardar la URL retornada directamente en las entidades que la necesiten (ej: users.profileImageUrl, inventory_products.imageUrl)
+
+4. FLUJO DE CARGA:
+   - Frontend envía archivo con categoría especificada
+   - API valida categoría, tamaño, tipo de archivo
+   - Archivo se sube al bucket (Backblaze/S3)
+   - Se retorna URL directamente (sin crear registro en BD)
+   - Frontend guarda la URL en la entidad correspondiente (usuario, producto, etc.)
+
+5. VALIDACIONES:
+   - Categoría debe ser válida (profiles, documents, inventory, etc.)
+   - Tamaño máximo configurable por tipo de archivo
+   - Tipos MIME permitidos por categoría
+   - Usuario debe pertenecer a la organización
+
+6. PERMISOS:
+   - Requiere permiso específico para upload (files.upload)
+   - El propietario tiene acceso completo sin permisos específicos
+
+7. MIDDLEWARE:
+   - Multer para manejar multipart/form-data
+   - Validación de archivo antes de subir
+   - Limpieza de archivos temporales en caso de error
+
+8. HELPER DE STORAGE:
+   - helpers/storage.js encapsula lógica de Backblaze/S3
+   - Métodos: uploadFile(), deleteFile(), getFileUrl()
+   - Abstracción permite migrar fácilmente entre servicios
+
+9. RESPUESTA:
+   - Retorna objeto con: url, path, category, originalName, fileName, mimeType, size
+   - URL es pública o firmada según configuración
+   - Frontend guarda la URL directamente en el campo correspondiente de la entidad (ej: profileImageUrl, imageUrl)
+
+10. MIGRACIÓN FUTURA:
+    - Código preparado para migrar a AWS S3
+    - Cambios solo en helpers/storage.js
+    - Resto del código permanece igual
 
 # =====================================================
 # CONVENCIONES GENERALES

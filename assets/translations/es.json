@@ -192,6 +192,31 @@
       "hasProducts": "No se puede eliminar una categoría con productos asignados"
     }
   },
+  "files": {
+    "category": {
+      "required": "La categoría del archivo es requerida",
+      "invalid": "La categoría del archivo no es válida. Categorías permitidas: profiles, documents, inventory, establishments"
+    },
+    "file": {
+      "required": "El archivo es requerido"
+    },
+    "mimeType": {
+      "invalid": "El tipo de archivo no está permitido para esta categoría"
+    },
+    "size": {
+      "exceeded": "El tamaño del archivo excede el límite permitido"
+    },
+    "upload": {
+      "failed": "Error al subir el archivo al almacenamiento"
+    },
+    "path": {
+      "required": "El path del archivo es requerido",
+      "invalid": "El path del archivo no es válido o no pertenece a tu organización"
+    },
+    "url": {
+      "generationFailed": "Error al generar la URL del archivo"
+    }
+  },
   "establishments": {
     "notFound": "Establecimiento no encontrado",
     "codeExists": "El código de establecimiento ya existe en esta organización",
