@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { throwError } from '../../helpers/errors.js';
+import { throwError, createError } from '../../helpers/errors.js';
 import { HTTP_STATUS } from '../../config/constants.js';
 
 // In-memory storage (files are processed immediately and not saved to disk)
@@ -35,13 +35,13 @@ const fileFilter = (req, file, cb) => {
   const isPdf = file.mimetype === 'application/pdf';
   
   if (!isImage && !isPdf) {
-    return cb(throwError(HTTP_STATUS.BAD_REQUEST, 'files.mimeType.invalid'));
+    return cb(createError(HTTP_STATUS.BAD_REQUEST, 'files.mimeType.invalid'));
   }
 
 
   const maxSize = 10 * 1024 * 1024; //10MB limite global
   if (file.size && file.size > maxSize) {
-    return cb(throwError(HTTP_STATUS.BAD_REQUEST, 'files.size.exceeded'));
+    return cb(createError(HTTP_STATUS.BAD_REQUEST, 'files.size.exceeded'));
   }
 
   cb(null, true);
@@ -57,27 +57,29 @@ export const upload = multer({
 
 export function validateFileUpload(req, res, next) {
   const files = req.files || (req.file ? [req.file] : []);
-
-  console.log('files', files);
   
   if (!files || files.length === 0) {
-    return next(throwError(HTTP_STATUS.BAD_REQUEST, 'files.file.required'));
+    throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.file.required');
   }
 
   const category = req.body.category;
   if (!category) {
-    return next(throwError(HTTP_STATUS.BAD_REQUEST, 'files.category.required'));
+    throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.category.required');
+  }
+
+  if (!Object.values(FILE_CATEGORIES).includes(category)) {
+    throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.category.invalid');
   }
 
   for (const file of files) {
     const allowedTypes = ALLOWED_MIME_TYPES[category] || [];
     if (!allowedTypes.includes(file.mimetype)) {
-      return next(throwError(HTTP_STATUS.BAD_REQUEST, 'files.mimeType.invalid'));
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.mimeType.invalid');
     }
 
     const maxSize = MAX_FILE_SIZES[category] || 5 * 1024 * 1024;
     if (file.size && file.size > maxSize) {
-      return next(throwError(HTTP_STATUS.BAD_REQUEST, 'files.size.exceeded'));
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.size.exceeded');
     }
   }
   next();
