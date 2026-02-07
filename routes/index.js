@@ -11,7 +11,6 @@ import organizationRoutes from './organizations.js';
 import filesRoutes from './files.js';
 
 const mainRouter = Router();
-
 mainRouter.use('/auth', authRoutes);
 mainRouter.use('/users', usersRoutes);
 mainRouter.use('/roles', rolesRoutes);

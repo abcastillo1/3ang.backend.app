@@ -28,6 +28,8 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.file.required');
   }
 
+  console.log(`files: ${files}`);
+
   logger.debug(`Processing ${files.length} file(s)`);
 
   const uploadedFiles = [];
@@ -58,13 +60,14 @@ async function handler(req, res, next) {
         fileId: rest.fileId
       });
     } catch (error) {
+
       logger.error('Error uploading file:', {
         fileName: file.originalname,
         error: error.message
       });
     }
   }
-
+  console.log(uploadedFiles);
   if (uploadedFiles.length === 0) {
     throw throwError(
       HTTP_STATUS.INTERNAL_SERVER_ERROR,

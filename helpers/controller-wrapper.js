@@ -15,7 +15,7 @@ function executeMiddleware(middleware, req, res) {
         resolve();
       }
     });
-    
+
     // If middleware returns a Promise (async middleware), use it instead of callback
     if (result && typeof result.then === 'function') {
       result.then(resolve).catch(reject);
@@ -77,7 +77,7 @@ export function registerRoute(router, path, routeModule, method = 'post') {
 
       if (error.name === 'MulterError') {
         let errorCode = 'files.upload.failed';
-        
+
         if (error.code === 'LIMIT_FILE_SIZE') {
           errorCode = 'files.size.exceeded';
         } else if (error.code === 'LIMIT_FILE_COUNT') {
@@ -85,9 +85,9 @@ export function registerRoute(router, path, routeModule, method = 'post') {
         } else if (error.code === 'LIMIT_UNEXPECTED_FILE') {
           errorCode = 'files.field.invalid';
         }
-        
+
         const message = req.translate ? req.translate(errorCode) : errorCode;
-        
+
         return res.status(HTTP_STATUS.BAD_REQUEST).json({
           statusCode: HTTP_STATUS.BAD_REQUEST,
           message,
@@ -100,7 +100,7 @@ export function registerRoute(router, path, routeModule, method = 'post') {
         const errorCode = error.code;
         const translationOptions = error.translationOptions || {};
         const message = req.translate ? req.translate(errorCode, translationOptions) : errorCode;
-        
+
         const response = {
           statusCode,
           message,
@@ -115,7 +115,7 @@ export function registerRoute(router, path, routeModule, method = 'post') {
       }
 
       const message = req.translate ? req.translate(ERROR_CODES.INTERNAL_ERROR) : 'Internal server error';
-      
+
       return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         statusCode: HTTP_STATUS.INTERNAL_SERVER_ERROR,
         message,
@@ -127,7 +127,7 @@ export function registerRoute(router, path, routeModule, method = 'post') {
 
 function getActionFromPath(path, method) {
   const pathLower = path.toLowerCase();
-  
+
   if (pathLower.includes('login')) return 'login';
   if (pathLower.includes('logout')) return 'logout';
   if (pathLower.includes('create') || pathLower.includes('register')) return 'create';
@@ -136,7 +136,7 @@ function getActionFromPath(path, method) {
   if (pathLower.includes('list') || pathLower.includes('get')) return 'list';
   if (pathLower.includes('profile')) return 'view';
   if (pathLower.includes('organization')) return 'view';
-  
+
   return method === 'post' ? 'execute' : 'view';
 }
 
@@ -196,9 +196,9 @@ function createAuditLogAsync({ path, method, routeModule, req, responseData, res
 
 function sanitizeBody(body) {
   if (!body || typeof body !== 'object') return null;
-  
+
   const sanitized = { ...body };
-  
+
   if (sanitized.data) {
     sanitized.data = { ...sanitized.data };
     if (sanitized.data.password) {
@@ -208,6 +208,6 @@ function sanitizeBody(body) {
       sanitized.data.passwordHash = '***REDACTED***';
     }
   }
-  
+
   return sanitized;
 }
