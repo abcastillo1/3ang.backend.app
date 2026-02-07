@@ -60,12 +60,6 @@ async function handler(req, res, next) {
 
     const response = {
         organizations: organizations.map(org => {
-            let parsedImage = [];
-            try {
-                parsedImage = typeof org.image === 'string' ? JSON.parse(org.image) : org.image;
-            } catch (e) {
-                parsedImage = [];
-            }
 
             return {
                 id: org.id,
@@ -77,7 +71,7 @@ async function handler(req, res, next) {
                 address: org.address,
                 country: org.country,
                 city: org.city,
-                image: parsedImage ?? [],
+                image: org.image ?? null,
                 isActive: org.isActive,
                 createdAt: org.createdAt,
                 updatedAt: org.updatedAt

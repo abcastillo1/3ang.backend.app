@@ -61,11 +61,11 @@ async function handler(req, res, next) {
 
         if (!organization) {
             return res.status(404).json({ message: 'validators.organization.notFound' });
-        }
+        } console.log(data.image[0].url);
 
         const updateData = {};
         if (data.name !== undefined) updateData.name = data.name;
-        if (data.image !== undefined) updateData.image = JSON.stringify(data.image);
+        if (data.image !== undefined) updateData.image = data.image;
         if (data.legalName !== undefined) updateData.legalName = data.legalName;
         if (data.taxId !== undefined) updateData.taxId = data.taxId;
         if (data.ruc !== undefined) updateData.ruc = data.ruc;
