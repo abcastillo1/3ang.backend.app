@@ -19,7 +19,7 @@ const validators = [
 async function handler(req, res, next) {
   const { user } = req;
 
-
+  console.log('Hola mundo');
 
   const files = req.files || (req.file ? [req.file] : []);
   const category = req.body?.category;

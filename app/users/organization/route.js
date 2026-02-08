@@ -17,7 +17,6 @@ async function handler(req, res, next) {
   settings.forEach(setting => {
     settingsObject[setting.settingKey] = setting.settingValue;
   });
-
   const response = {
     organization: {
       id: req.organization.id,
@@ -29,7 +28,7 @@ async function handler(req, res, next) {
       address: req.organization.address,
       country: req.organization.country,
       city: req.organization.city,
-      image: req.organization.image,
+      image: JSON.parse(req.organization.image) ?? null,
       isActive: req.organization.isActive,
       createdAt: req.organization.createdAt,
       updatedAt: req.organization.updatedAt
