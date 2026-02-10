@@ -18,8 +18,8 @@ const validators = [
 
 async function handler(req, res, next) {
   const { user } = req;
-  
 
+  console.log('Hola mundo');
 
   const files = req.files || (req.file ? [req.file] : []);
   const category = req.body?.category;
@@ -27,7 +27,9 @@ async function handler(req, res, next) {
   if (!files || files.length === 0) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.file.required');
   }
-  
+
+  console.log(`files: ${files}`);
+
   logger.debug(`Processing ${files.length} file(s)`);
 
   const uploadedFiles = [];
@@ -40,7 +42,7 @@ async function handler(req, res, next) {
     const storagePath = `${user.organizationId}/${category}/${fileName}`;
 
     try {
-      await storageService.uploadFile(
+      const rest = await storageService.uploadFile(
         file.buffer,
         fileName,
         storagePath,
@@ -53,16 +55,19 @@ async function handler(req, res, next) {
         originalName: file.originalname,
         //fileName,
         mimeType: file.mimetype,
-        size: file.size
+        size: file.size,
+        url: rest.url,
+        fileId: rest.fileId
       });
     } catch (error) {
+
       logger.error('Error uploading file:', {
         fileName: file.originalname,
         error: error.message
       });
     }
   }
-
+  console.log(uploadedFiles);
   if (uploadedFiles.length === 0) {
     throw throwError(
       HTTP_STATUS.INTERNAL_SERVER_ERROR,

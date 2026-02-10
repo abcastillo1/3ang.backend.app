@@ -47,6 +47,11 @@ const validators = [
         .isBoolean()
         .withMessage('validators.organization.isAccountingRequired.invalid'),
 
+    validateField('data.image')
+        .optional()
+        .isObject()
+        .withMessage('validators.organization.image.invalid'),
+
     validateRequest,
     authenticate,
     requirePermission('organizations.update'),
@@ -65,7 +70,21 @@ async function handler(req, res, next) {
 
         const updateData = {};
         if (data.name !== undefined) updateData.name = data.name;
-        if (data.image !== undefined) updateData.image = JSON.stringify(data.image);
+
+        if (data.image !== undefined) {
+            if (typeof data.image === 'string') {
+                try {
+                    updateData.image = JSON.parse(data.image);
+                } catch (e) {
+                    updateData.image = data.image;
+                }
+            } else {
+                updateData.image = data.image;
+            }
+            updateData.image = JSON.stringify(updateData.image);
+        } else {
+            updateData.image = null;
+        }
         if (data.legalName !== undefined) updateData.legalName = data.legalName;
         if (data.taxId !== undefined) updateData.taxId = data.taxId;
         if (data.ruc !== undefined) updateData.ruc = data.ruc;

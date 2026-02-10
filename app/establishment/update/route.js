@@ -88,7 +88,7 @@ async function handler(req, res, next) {
 
             if (existing) {
                 return res.status(400).json({
-                    message: 'validators.code.unique'
+                    message: 'validators.establishment.code.unique'
                 });
             }
         }

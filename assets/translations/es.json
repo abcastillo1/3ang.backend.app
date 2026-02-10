@@ -146,7 +146,9 @@
         "invalid": "El nombre no puede exceder los 255 caracteres."
       },
       "code": {
-        "invalid": "El código interno debe ser una cadena de texto válida."
+        "required": "El código interno es obligatorio.",
+        "invalid": "El código interno debe ser una cadena de texto válida.",
+        "unique": "El código interno ya existe."
       },
       "establishmentCode": {
         "required": "El código de establecimiento (3 dígitos) es obligatorio.",

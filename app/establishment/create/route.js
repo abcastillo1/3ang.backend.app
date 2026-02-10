@@ -31,7 +31,7 @@ const validators = [
 
     validateField('data.currentSequential')
         .optional()
-        .isInt({ min: 0 })
+        .isInt({ min: 1 })
         .withMessage('validators.establishment.currentSequential.invalid'),
 
     validateField('data.documentSequences')
@@ -66,7 +66,7 @@ async function handler(req, res, next) {
         });
         if (existing) {
             return res.status(400).json({
-                message: 'validators.code.unique'
+                message: 'validators.establishment.code.unique'
             });
         }
     }

@@ -92,7 +92,6 @@ async function handler(req, res, next) {
 
         return apiResponse(res, req, next)(response);
     } catch (error) {
-        console.log(error);
         next(error);
     }
 }
