@@ -29,6 +29,14 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.TEXT,
         allowNull: true
       },
+      image: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      gallery: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       unitOfMeasure: {
         type: DataTypes.STRING(50),
         allowNull: false,

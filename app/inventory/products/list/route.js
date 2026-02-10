@@ -80,6 +80,8 @@ async function handler(req, res, next) {
       name: product.name,
       sku: product.sku,
       description: product.description,
+      image: product.image,
+      gallery: product.gallery,
       unitOfMeasure: product.unitOfMeasure,
       isActive: product.isActive,
       createdAt: product.createdAt,

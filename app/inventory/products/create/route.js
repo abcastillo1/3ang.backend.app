@@ -30,6 +30,14 @@ const validators = [
     .optional()
     .isString()
     .withMessage('validators.description.invalid'),
+  validateField('data.image')
+    .optional()
+    .isString()
+    .withMessage('validators.image.invalid'),
+  validateField('data.gallery')
+    .optional()
+    .isString()
+    .withMessage('validators.gallery.invalid'),
   validateField('data.isActive')
     .optional()
     .isBoolean()
@@ -50,6 +58,8 @@ async function handler(req, res, next) {
     name: data.name,
     sku: data.sku || null,
     description: data.description || null,
+    image: data.image || null,
+    gallery: data.gallery || null,
     unitOfMeasure: data.unitOfMeasure,
     isActive: data.isActive !== undefined ? data.isActive : true
   };
@@ -71,6 +81,8 @@ async function handler(req, res, next) {
       name: productWithRelations.name,
       sku: productWithRelations.sku,
       description: productWithRelations.description,
+      image: productWithRelations.image,
+      gallery: productWithRelations.gallery,
       unitOfMeasure: productWithRelations.unitOfMeasure,
       isActive: productWithRelations.isActive,
       createdAt: productWithRelations.createdAt,
