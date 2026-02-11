@@ -22,14 +22,9 @@ const validators = [
         .isLength({ max: 255 })
         .withMessage('validators.organization.legalName.invalid'),
 
-    validateField('data.taxId')
-        .optional()
-        .isLength({ max: 50 })
-        .withMessage('validators.organization.taxId.invalid'),
-
     validateField('data.ruc')
         .optional()
-        .isLength({ min: 13, max: 13 })
+        .matches(/^(\d{10}|\d{10}001)$/)
         .withMessage('validators.organization.ruc.invalid'),
 
     validateField('data.email')
@@ -52,6 +47,11 @@ const validators = [
         .isObject()
         .withMessage('validators.organization.image.invalid'),
 
+    validateField('data.phone')
+        .optional()
+        .isNumeric()
+        .withMessage('validators.organization.phone.invalid'),
+
     validateRequest,
     authenticate,
     requirePermission('organizations.update'),
@@ -68,6 +68,22 @@ async function handler(req, res, next) {
             return res.status(404).json({ message: 'validators.organization.notFound' });
         }
 
+        // Validación de unicidad para RUC (excluyendo el actual)
+        if (data.ruc) {
+            const { Op } = modelsInstance.Sequelize;
+            const existing = await Organization.findOne({
+                where: {
+                    id: { [Op.ne]: data.id },
+                    ruc: data.ruc
+                }
+            });
+            if (existing) {
+                return res.status(400).json({
+                    message: 'validators.organization.ruc.unique'
+                });
+            }
+        }
+
         const updateData = {};
         if (data.name !== undefined) updateData.name = data.name;
 
@@ -82,11 +98,8 @@ async function handler(req, res, next) {
                 updateData.image = data.image;
             }
             updateData.image = JSON.stringify(updateData.image);
-        } else {
-            updateData.image = null;
         }
         if (data.legalName !== undefined) updateData.legalName = data.legalName;
-        if (data.taxId !== undefined) updateData.taxId = data.taxId;
         if (data.ruc !== undefined) updateData.ruc = data.ruc;
         if (data.sriRegimen !== undefined) updateData.sriRegimen = data.sriRegimen;
         if (data.email !== undefined) updateData.email = data.email;
