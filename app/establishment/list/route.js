@@ -57,31 +57,22 @@ async function handler(req, res, next) {
         where,
         limit: parseInt(limit),
         offset,
-        order: [['id', 'ASC']]
+        order: [['id', 'DESC']]
     });
 
     const response = {
         establishments: establishments.map(est => {
-            let parsedSequences = [];
-            try {
-                parsedSequences = typeof est.documentSequences === 'string'
-                    ? JSON.parse(est.documentSequences)
-                    : est.documentSequences;
-            } catch (e) {
-                console.log(e);
-                parsedSequences = [];
-            }
-
             return {
                 id: est.id,
                 name: est.name,
                 code: est.code,
                 address: est.address,
                 phone: est.phone,
+                image: est.image,
                 establishmentCode: est.establishmentCode,
                 emissionPointCode: est.emissionPointCode,
                 currentSequential: est.currentSequential,
-                documentSequences: parsedSequences ?? [],
+                documentSequences: est.documentSequences || [],
                 isActive: est.isActive,
                 createdAt: est.createdAt,
                 updatedAt: est.updatedAt

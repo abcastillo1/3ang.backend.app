@@ -34,16 +34,6 @@ async function handler(req, res, next) {
             });
         }
 
-        let parsedSequences = [];
-        try {
-            parsedSequences = typeof establishment.documentSequences === 'string'
-                ? JSON.parse(establishment.documentSequences)
-                : establishment.documentSequences;
-        } catch (e) {
-            console.log(e);
-            parsedSequences = [];
-        }
-
         const response = {
             establishment: {
                 id: establishment.id,
@@ -51,10 +41,11 @@ async function handler(req, res, next) {
                 code: establishment.code,
                 address: establishment.address,
                 phone: establishment.phone,
+                image: establishment.image,
                 establishmentCode: establishment.establishmentCode,
                 emissionPointCode: establishment.emissionPointCode,
                 currentSequential: establishment.currentSequential,
-                documentSequences: parsedSequences ?? [],
+                documentSequences: establishment.documentSequences || [],
                 isActive: establishment.isActive,
                 createdAt: establishment.createdAt,
                 updatedAt: establishment.updatedAt

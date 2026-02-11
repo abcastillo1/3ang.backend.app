@@ -57,6 +57,22 @@ export default function (sequelize, DataTypes) {
         defaultValue: true,
         field: 'is_active'
       },
+      image: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        get() {
+          const value = this.getDataValue('image');
+          if (!value) return null;
+          try {
+            return JSON.parse(value);
+          } catch (e) {
+            return value;
+          }
+        },
+        set(value) {
+          this.setDataValue('image', value ? JSON.stringify(value) : null);
+        }
+      },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at'

@@ -18,7 +18,19 @@ export default function (sequelize, DataTypes) {
       },
       image: {
         type: DataTypes.TEXT,
-        allowNull: true
+        allowNull: true,
+        get() {
+          const value = this.getDataValue('image');
+          if (!value) return null;
+          try {
+            return JSON.parse(value);
+          } catch (e) {
+            return value;
+          }
+        },
+        set(value) {
+          this.setDataValue('image', value ? JSON.stringify(value) : null);
+        }
       },
       legalName: {
         type: DataTypes.STRING(255),

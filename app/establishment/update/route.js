@@ -54,6 +54,9 @@ const validators = [
         .isBoolean()
         .withMessage('validators.establishment.isActive.invalid'),
 
+    validateField('data.image')
+        .optional(),
+
     validateRequest,
     authenticate,
     requirePermission('establishments.update'),
@@ -103,8 +106,9 @@ async function handler(req, res, next) {
         if (data.address !== undefined) updateData.address = data.address;
         if (data.phone !== undefined) updateData.phone = data.phone;
         if (data.isActive !== undefined) updateData.isActive = data.isActive;
+        if (data.image !== undefined) updateData.image = data.image;
         if (data.documentSequences !== undefined) {
-            updateData.documentSequences = data.documentSequences ? JSON.stringify(data.documentSequences) : null;
+            updateData.documentSequences = data.documentSequences || null;
         }
 
         await establishment.update(updateData);
