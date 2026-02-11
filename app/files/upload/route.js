@@ -51,9 +51,9 @@ async function handler(req, res, next) {
 
       uploadedFiles.push({
         path: storagePath,
-        category,
+        //category,
         originalName: file.originalname,
-        fileName,
+        //fileName,
         mimeType: file.mimetype,
         size: file.size,
         url: rest.url,
