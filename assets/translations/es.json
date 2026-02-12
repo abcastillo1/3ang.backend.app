@@ -213,6 +213,12 @@
         "invalid": "El identificador de la organización no es válido."
       },
       "notFound": "La organización solicitada no existe."
+    },
+    "product": {
+      "id": {
+        "required": "El identificador del producto es obligatorio.",
+        "invalid": "El identificador del producto no es válido."
+      }
     }
   },
   "auth": {

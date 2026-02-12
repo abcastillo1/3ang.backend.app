@@ -131,6 +131,12 @@
     "gallery": {
       "invalid": "Gallery is invalid",
       "uploadFormatInvalid": "Gallery must be an array of objects with the upload API format (path, originalName, mimeType, size, url, fileId)"
+    },
+    "product": {
+      "id": {
+        "required": "Product ID is required",
+        "invalid": "Product ID must be a valid integer"
+      }
     }
   },
   "auth": {
