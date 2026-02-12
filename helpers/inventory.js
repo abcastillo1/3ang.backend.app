@@ -1,30 +1,11 @@
 /**
- * Parses image and gallery from product (stored as JSON string in DB) to the same
- * structure returned by the file upload API, for API responses.
- * @param {object} product - Product instance or plain object with image, gallery
+ * Devuelve image y gallery del producto usando el get del modelo (ya parseados).
+ * Normaliza gallery a array para la respuesta de la API.
+ * @param {object} product - Instancia de InventoryProduct (get ya devuelve objeto/array)
  * @returns {{ image: object|null, gallery: array }}
  */
 export function parseProductImages(product) {
-  let image = product.image ?? null;
-  let gallery = product.gallery ?? null;
-
-  if (typeof image === 'string' && image.trim() !== '') {
-    try {
-      image = JSON.parse(image);
-    } catch {
-      image = null;
-    }
-  }
-  if (typeof gallery === 'string' && gallery.trim() !== '') {
-    try {
-      gallery = JSON.parse(gallery);
-    } catch {
-      gallery = [];
-    }
-  }
-  if (gallery != null && !Array.isArray(gallery)) {
-    gallery = [];
-  }
-
+  const image = product.image ?? null;
+  const gallery = Array.isArray(product.gallery) ? product.gallery : [];
   return { image, gallery };
 }

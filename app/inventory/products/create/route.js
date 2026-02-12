@@ -61,8 +61,8 @@ async function handler(req, res, next) {
     name: data.name,
     sku: data.sku || null,
     description: data.description || null,
-    image: data.image != null ? JSON.stringify(data.image) : null,
-    gallery: data.gallery != null && Array.isArray(data.gallery) ? JSON.stringify(data.gallery) : null,
+    image: data.image ?? null,
+    gallery: data.gallery ?? null,
     unitOfMeasure: data.unitOfMeasure,
     isActive: data.isActive !== undefined ? data.isActive : true
   };

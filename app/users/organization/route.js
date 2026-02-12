@@ -28,7 +28,7 @@ async function handler(req, res, next) {
       address: req.organization.address,
       country: req.organization.country,
       city: req.organization.city,
-      image: JSON.parse(req.organization.image) ?? null,
+      image: req.organization.image ?? null,
       isActive: req.organization.isActive,
       createdAt: req.organization.createdAt,
       updatedAt: req.organization.updatedAt
