@@ -776,6 +776,57 @@ Content-Type: application/json
 }
 ```
 
+**Ejemplo 6: Producto con imagen principal e imágenes de galería**
+
+Los campos `image` y `gallery` deben tener **exactamente el mismo formato** que devuelve el API de subida de archivos (`POST /api/v1/files/upload`). Primero subes los archivos, obtienes el objeto por cada archivo, y luego envías ese objeto (o array) en el create.
+
+Formato de cada archivo devuelto por upload: `{ "path", "originalName", "mimeType", "size", "url", "fileId" }`.
+
+```bash
+POST http://localhost:3000/api/v1/inventory/products/create
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "name": "Vacuna Triple Bovina",
+    "sku": "VAC-TB-001",
+    "description": "Vacuna para prevenir enfermedades virales en ganado bovino",
+    "unitOfMeasure": "Dosis",
+    "categoryId": 1,
+    "isActive": true,
+    "image": {
+      "path": "1/inventory/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+      "originalName": "vacuna-portada.jpg",
+      "mimeType": "image/jpeg",
+      "size": 125000,
+      "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+      "fileId": "4_ze1a2b3c4d5e6f7890"
+    },
+    "gallery": [
+      {
+        "path": "1/inventory/uuid-detalle1.jpg",
+        "originalName": "detalle-1.jpg",
+        "mimeType": "image/jpeg",
+        "size": 98000,
+        "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/uuid-detalle1.jpg",
+        "fileId": "4_ze1a2b3c4d5e6f7891"
+      },
+      {
+        "path": "1/inventory/uuid-detalle2.jpg",
+        "originalName": "detalle-2.jpg",
+        "mimeType": "image/jpeg",
+        "size": 110000,
+        "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/uuid-detalle2.jpg",
+        "fileId": "4_ze1a2b3c4d5e6f7892"
+      }
+    ]
+  }
+}
+```
+
+**Flujo recomendado:** 1) Llamar `POST /api/v1/files/upload` con `category: inventory` y obtener `data.files` (array). 2) Usar `data.files[0]` como `image` y el resto (o todo el array) como `gallery` al crear el producto.
+
 **Ejemplo mínimo (sin SKU ni descripción):**
 ```json
 {
@@ -786,7 +837,7 @@ Content-Type: application/json
 }
 ```
 
-**Respuesta exitosa:**
+**Respuesta exitosa (producto con imagen y galería):**
 ```json
 {
   "statusCode": 200,
@@ -798,6 +849,24 @@ Content-Type: application/json
       "name": "Vacuna Triple Bovina",
       "sku": "VAC-TB-001",
       "description": "Vacuna para prevenir enfermedades virales en ganado bovino",
+      "image": {
+        "path": "1/inventory/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+        "originalName": "vacuna-portada.jpg",
+        "mimeType": "image/jpeg",
+        "size": 125000,
+        "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+        "fileId": "4_ze1a2b3c4d5e6f7890"
+      },
+      "gallery": [
+        {
+          "path": "1/inventory/uuid-detalle1.jpg",
+          "originalName": "detalle-1.jpg",
+          "mimeType": "image/jpeg",
+          "size": 98000,
+          "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/uuid-detalle1.jpg",
+          "fileId": "4_ze1a2b3c4d5e6f7891"
+        }
+      ],
       "unitOfMeasure": "Dosis",
       "isActive": true,
       "createdAt": "2026-01-22T10:00:00.000Z",
@@ -812,10 +881,12 @@ Content-Type: application/json
 }
 ```
 
+Si el producto no tiene imagen ni galería, `image` será `null` y `gallery` será `[]` (o `null`).
+
 **Errores posibles:**
 - `403` - Permisos insuficientes (no tienes `inventory.products.create`)
 - `404` - Categoría no encontrada (si `categoryId` no existe o no pertenece a tu organización)
-- `400` - Validación fallida (campos requeridos faltantes o inválidos)
+- `400` - Validación fallida (campos requeridos faltantes o inválidos). Para `image`/`gallery`: usar el formato que devuelve `POST /api/v1/files/upload` (objeto con `path`, `originalName`, `mimeType`, `size`, `url`, `fileId`; galería = array de esos objetos).
 
 ### 16. Listar Productos Veterinarios (requiere token y permiso 'inventory.products.view')
 
@@ -881,6 +952,9 @@ Content-Type: application/json
 ```
 
 **Respuesta exitosa:**
+
+Cada producto incluye `image` (objeto del upload o `null`) y `gallery` (array de objetos del upload).
+
 ```json
 {
   "statusCode": 200,
@@ -893,6 +967,24 @@ Content-Type: application/json
         "name": "Vacuna Triple Bovina",
         "sku": "VAC-TB-001",
         "description": "Vacuna para prevenir enfermedades virales en ganado bovino",
+        "image": {
+          "path": "1/inventory/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+          "originalName": "vacuna-portada.jpg",
+          "mimeType": "image/jpeg",
+          "size": 125000,
+          "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/a1b2c3d4-e5f6-7890-abcd-ef1234567890.jpg",
+          "fileId": "4_ze1a2b3c4d5e6f7890"
+        },
+        "gallery": [
+          {
+            "path": "1/inventory/uuid-detalle1.jpg",
+            "originalName": "detalle-1.jpg",
+            "mimeType": "image/jpeg",
+            "size": 98000,
+            "url": "https://tu-bucket.s3.amazonaws.com/1/inventory/uuid-detalle1.jpg",
+            "fileId": "4_ze1a2b3c4d5e6f7891"
+          }
+        ],
         "unitOfMeasure": "Dosis",
         "isActive": true,
         "createdAt": "2026-01-22T10:00:00.000Z",
@@ -909,6 +1001,8 @@ Content-Type: application/json
         "name": "Penicilina Procaínica 300.000 UI",
         "sku": "ANT-PEN-300",
         "description": "Antibiótico de amplio espectro",
+        "image": null,
+        "gallery": [],
         "unitOfMeasure": "Frasco",
         "isActive": true,
         "createdAt": "2026-01-22T10:05:00.000Z",
@@ -1409,141 +1503,72 @@ const userResult = await userResponse.json();
 const imageUrl = userResult.data.users[0].profileImageUrl;
 ```
 
-### 17. Actualizar Stock de Productos Veterinarios (requiere token y permiso 'inventory.stock.update')
+### 17. Cambios de stock: Movimientos (requiere token y permiso 'inventory.stock.update')
 
-**Tipos de movimiento disponibles:**
-- `entry` - Entrada de stock (compra, recepción)
-- `exit` - Salida de stock (venta, consumo)
-- `transfer` - Transferencia entre establecimientos
-- `adjustment` - Ajuste de inventario (conteo físico)
+**Todos los cambios de stock** (entradas, salidas, transferencias, ajustes) se realizan mediante **movimientos**. Un movimiento puede tener uno o varios ítems (varios productos). Ver sección **Movimientos** más abajo para ejemplos completos.
 
-**Ejemplo 1: Entrada de stock (compra de vacunas)**
+**Ejemplo rápido – un solo producto:**
 ```bash
-POST http://localhost:3000/api/v1/inventory/stock/update
+POST http://localhost:3000/api/v1/inventory/movements/create
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
   "data": {
     "establishmentId": 1,
-    "productId": 1,
-    "type": "entry",
-    "quantity": 500,
-    "minStockLevel": 100,
-    "reason": "Compra de vacunas para campaña de vacunación",
-    "metadata": {
-      "supplier": "Laboratorios Veterinarios S.A.",
-      "invoice": "FAC-2026-001",
-      "batch": "LOT-2026-01"
-    }
+    "description": "Entrada de vacunas",
+    "items": [
+      {
+        "productId": 1,
+        "type": "entry",
+        "quantity": 500,
+        "minStockLevel": 100,
+        "reason": "Compra de vacunas para campaña"
+      }
+    ]
   }
 }
 ```
 
-**Ejemplo 2: Salida de stock (venta a cliente)**
+---
+
+### Movimientos (uno o varios productos en una sola transacción)
+
+Un **movimiento** agrupa uno o más cambios de stock (ingresos/egresos de uno o varios productos) en una sola operación. Envías un array `items` y todo se aplica atómicamente.
+
+**Requisitos:** Header `Authorization: Bearer <token>`, permiso `inventory.stock.update`.
+
+#### 1. Crear movimiento (varios productos)
+
 ```bash
-POST http://localhost:3000/api/v1/inventory/stock/update
-Authorization: Bearer <token>
+POST http://localhost:3000/api/v1/inventory/movements/create
 Content-Type: application/json
+Authorization: Bearer <tu_token>
 
 {
   "data": {
     "establishmentId": 1,
-    "productId": 2,
-    "type": "exit",
-    "quantity": 10,
-    "reason": "Venta a cliente: Finca Los Alamos",
-    "metadata": {
-      "customer": "Finca Los Alamos",
-      "saleId": 1234,
-      "invoice": "VTA-2026-045"
-    }
-  }
-}
-```
-
-**Ejemplo 3: Transferencia entre establecimientos (automática)**
-```bash
-POST http://localhost:3000/api/v1/inventory/stock/update
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "data": {
-    "establishmentId": 1,
-    "productId": 3,
-    "type": "transfer",
-    "quantity": 50,
-    "targetEstablishmentId": 2,
-    "reason": "Transferencia a Establecimiento 2 - Finca Norte",
-    "metadata": {
-      "transferId": "TRF-2026-012"
-    }
-  }
-}
-```
-
-**Nota importante:** Las transferencias son operaciones atómicas que automáticamente:
-- Restan stock del establecimiento origen (`establishmentId`)
-- Suman stock al establecimiento destino (`targetEstablishmentId`)
-- Crean logs en ambos establecimientos
-- Todo en una sola transacción (si falla algo, se revierte todo)
-
-**Ejemplo 4: Ajuste de inventario (conteo físico)**
-```bash
-POST http://localhost:3000/api/v1/inventory/stock/update
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "data": {
-    "establishmentId": 1,
-    "productId": 4,
-    "type": "adjustment",
-    "currentStock": 75,
-    "minStockLevel": 50,
-    "reason": "Ajuste por conteo físico - Diferencia encontrada",
-    "metadata": {
-      "physicalCount": 75,
-      "systemCount": 80,
-      "difference": -5,
-      "countDate": "2026-01-22"
-    }
-  }
-}
-```
-
-**Ejemplo 5: Entrada simple (sin metadata)**
-```bash
-POST http://localhost:3000/api/v1/inventory/stock/update
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "data": {
-    "establishmentId": 1,
-    "productId": 5,
-    "type": "entry",
-    "quantity": 200,
-    "reason": "Recepción de mercancía"
-  }
-}
-```
-
-**Ejemplo 6: Establecer nivel mínimo de stock**
-```bash
-POST http://localhost:3000/api/v1/inventory/stock/update
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "data": {
-    "establishmentId": 1,
-    "productId": 1,
-    "type": "adjustment",
-    "currentStock": 500,
-    "minStockLevel": 150,
-    "reason": "Actualización de nivel mínimo de stock"
+    "description": "Recepción de compra #123 - múltiples productos",
+    "items": [
+      {
+        "productId": 1,
+        "type": "entry",
+        "quantity": 100,
+        "reason": "Ingreso producto A"
+      },
+      {
+        "productId": 2,
+        "type": "entry",
+        "quantity": 50,
+        "reason": "Ingreso producto B"
+      },
+      {
+        "productId": 3,
+        "type": "exit",
+        "quantity": 10,
+        "reason": "Salida para venta"
+      }
+    ]
   }
 }
 ```
@@ -1554,89 +1579,190 @@ Content-Type: application/json
   "statusCode": 200,
   "message": "Operación exitosa",
   "data": {
-    "stock": {
+    "movement": {
       "id": 1,
       "establishmentId": 1,
-      "productId": 1,
-      "currentStock": 500,
-      "minStockLevel": 100,
-      "updatedAt": "2026-01-22T10:30:00.000Z",
+      "userId": 1,
+      "sequenceNumber": 1,
+      "description": "Recepción de compra #123 - múltiples productos",
+      "createdAt": "2026-02-11T12:00:00.000Z",
       "establishment": {
         "id": 1,
         "name": "Bodega Central",
         "code": "BOD-001"
       },
-      "product": {
+      "user": {
         "id": 1,
-        "name": "Vacuna Triple Bovina",
-        "sku": "VAC-TB-001",
-        "unitOfMeasure": "Dosis"
-      }
+        "fullName": "Juan Pérez"
+      },
+      "itemsCount": 3
     }
   }
 }
 ```
 
-**Respuesta exitosa para transferencias:**
+#### 2. Movimiento con transferencia (un ítem transfiere a otro establecimiento)
+
+```bash
+POST http://localhost:3000/api/v1/inventory/movements/create
+Content-Type: application/json
+Authorization: Bearer <tu_token>
+
+{
+  "data": {
+    "establishmentId": 1,
+    "description": "Entradas + transferencia a sucursal",
+    "items": [
+      {
+        "productId": 1,
+        "type": "entry",
+        "quantity": 200,
+        "reason": "Compra"
+      },
+      {
+        "productId": 2,
+        "type": "transfer",
+        "quantity": 30,
+        "targetEstablishmentId": 2,
+        "reason": "Envío a Finca Norte"
+      }
+    ]
+  }
+}
+```
+
+#### 3. Ajuste en un ítem (stock final fijo)
+
+```bash
+POST http://localhost:3000/api/v1/inventory/movements/create
+Content-Type: application/json
+Authorization: Bearer <tu_token>
+
+{
+  "data": {
+    "establishmentId": 1,
+    "description": "Conteo físico y ajuste",
+    "items": [
+      {
+        "productId": 1,
+        "type": "adjustment",
+        "currentStock": 85.5,
+        "reason": "Conteo físico"
+      }
+    ]
+  }
+}
+```
+
+#### 4. Editar un movimiento
+
+Primero se revierten los cambios actuales (stock vuelve al estado anterior) y luego se aplican los nuevos `items`.
+
+```bash
+POST http://localhost:3000/api/v1/inventory/movements/update
+Content-Type: application/json
+Authorization: Bearer <tu_token>
+
+{
+  "data": {
+    "movementId": 1,
+    "description": "Recepción de compra #123 - corregido",
+    "items": [
+      {
+        "productId": 1,
+        "type": "entry",
+        "quantity": 120,
+        "reason": "Ingreso producto A corregido"
+      },
+      {
+        "productId": 2,
+        "type": "entry",
+        "quantity": 50,
+        "reason": "Ingreso producto B"
+      }
+    ]
+  }
+}
+```
+
+#### 5. Listar movimientos de un establecimiento
+
+```bash
+POST http://localhost:3000/api/v1/inventory/movements/list
+Content-Type: application/json
+Authorization: Bearer <tu_token>
+
+{
+  "data": {
+    "establishmentId": 1,
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+**Respuesta:**
 ```json
 {
   "statusCode": 200,
   "message": "Operación exitosa",
   "data": {
-    "stock": {
-      "id": 1,
-      "establishmentId": 1,
-      "productId": 3,
-      "currentStock": 450,
-      "minStockLevel": 50,
-      "updatedAt": "2026-01-22T10:30:00.000Z",
-      "establishment": {
-        "id": 1,
-        "name": "Bodega Central",
-        "code": "BOD-001"
-      },
-      "product": {
-        "id": 3,
-        "name": "Ivermectina 1% Oral",
-        "sku": "DES-IVM-1",
-        "unitOfMeasure": "Litro"
-      }
-    },
-    "targetStock": {
-      "establishmentId": 2,
-      "productId": 3,
-      "currentStock": 50,
-      "minStockLevel": null,
-      "updatedAt": "2026-01-22T10:30:00.000Z",
-      "establishment": {
+    "movements": [
+      {
         "id": 2,
-        "name": "Finca Norte",
-        "code": "FIN-002"
+        "establishmentId": 1,
+        "userId": 1,
+        "sequenceNumber": 2,
+        "description": "Recepción de compra #124",
+        "createdAt": "2026-02-11T14:00:00.000Z",
+        "updatedAt": "2026-02-11T14:00:00.000Z",
+        "establishment": { "id": 1, "name": "Bodega Central", "code": "BOD-001" },
+        "user": { "id": 1, "fullName": "Juan Pérez" },
+        "itemsCount": 2
+      },
+      {
+        "id": 1,
+        "establishmentId": 1,
+        "userId": 1,
+        "sequenceNumber": 1,
+        "description": "Recepción de compra #123",
+        "createdAt": "2026-02-11T12:00:00.000Z",
+        "updatedAt": "2026-02-11T12:00:00.000Z",
+        "establishment": { "id": 1, "name": "Bodega Central", "code": "BOD-001" },
+        "user": { "id": 1, "fullName": "Juan Pérez" },
+        "itemsCount": 3
       }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 2,
+      "totalPages": 1
     }
   }
 }
 ```
 
-**Errores posibles:**
-- `403` - Permisos insuficientes (no tienes `inventory.stock.update`)
-- `404` - Establecimiento no encontrado
-- `404` - Establecimiento destino no encontrado (para transferencias)
-- `404` - Producto no encontrado
-- `400` - Stock insuficiente (para salidas o transferencias)
-- `400` - Cantidad requerida para movimientos entry/exit/transfer
-- `400` - Establecimiento destino requerido para transferencias (`targetEstablishmentId`)
-- `400` - No se puede transferir al mismo establecimiento
-- `400` - Stock actual requerido para ajustes
+**Campos por ítem en `items`:**
 
-**Notas importantes:**
-- Para `entry`, `exit` y `transfer`: se requiere `quantity` (cantidad a agregar/quitar)
-- Para `adjustment`: se requiere `currentStock` (stock final después del ajuste)
-- Para `transfer`: se requiere `targetEstablishmentId` (establecimiento destino)
-- El sistema calcula automáticamente el nuevo stock basado en el tipo de movimiento
-- Todas las operaciones generan un registro en `inventory_logs` automáticamente
-- **Las transferencias son operaciones atómicas:** automáticamente restan del origen y suman al destino en una sola transacción
-- Si la transferencia falla en cualquier punto, toda la operación se revierte (rollback)
+| Campo | Obligatorio | Descripción |
+|-------|-------------|-------------|
+| `productId` | Sí | ID del producto (debe existir en tu organización). |
+| `type` | Opcional (default: `adjustment`) | `entry`, `exit`, `transfer`, `adjustment`. |
+| `quantity` | Sí para entry/exit/transfer | Cantidad (decimal > 0). |
+| `currentStock` | Sí para adjustment | Stock final deseado (o usar `quantity` en adjustment). |
+| `reason` | No | Texto libre (máx 255). |
+| `metadata` | No | Objeto JSON. |
+| `targetEstablishmentId` | Sí si type=transfer | Establecimiento destino (distinto al del movimiento). |
+| `minStockLevel` | No | Nivel mínimo de stock para ese producto en ese establecimiento. |
+
+**Errores posibles (movements):**
+- `400` - `validators.items.required` si `items` está vacío o no es array.
+- `404` - `establishments.notFound` / `inventory.products.notFound`.
+- `400` - `inventory.stock.insufficientStock` en exit/transfer si no hay stock suficiente.
+- `404` - `inventory.movements.notFound` al actualizar si el movimiento no existe o es de otra organización.
+
+---
 
 ### Ejemplos de Flujo Completo: Gestión de Inventario Veterinario
 
@@ -1657,15 +1783,20 @@ POST /api/v1/inventory/products/create
 
 2. **Registrar entrada de stock (compra):**
 ```bash
-POST /api/v1/inventory/stock/update
+POST /api/v1/inventory/movements/create
 {
   "data": {
     "establishmentId": 1,
-    "productId": 1,
-    "type": "entry",
-    "quantity": 1000,
-    "minStockLevel": 200,
-    "reason": "Compra inicial de vacunas"
+    "description": "Compra inicial de vacunas",
+    "items": [
+      {
+        "productId": 1,
+        "type": "entry",
+        "quantity": 1000,
+        "minStockLevel": 200,
+        "reason": "Compra inicial de vacunas"
+      }
+    ]
   }
 }
 ```
@@ -1682,28 +1813,38 @@ POST /api/v1/inventory/products/list
 
 4. **Registrar salida de stock (venta):**
 ```bash
-POST /api/v1/inventory/stock/update
+POST /api/v1/inventory/movements/create
 {
   "data": {
     "establishmentId": 1,
-    "productId": 1,
-    "type": "exit",
-    "quantity": 150,
-    "reason": "Venta a cliente: Ganadería San José"
+    "description": "Venta a cliente",
+    "items": [
+      {
+        "productId": 1,
+        "type": "exit",
+        "quantity": 150,
+        "reason": "Venta a cliente: Ganadería San José"
+      }
+    ]
   }
 }
 ```
 
 5. **Ajuste de inventario (conteo físico):**
 ```bash
-POST /api/v1/inventory/stock/update
+POST /api/v1/inventory/movements/create
 {
   "data": {
     "establishmentId": 1,
-    "productId": 1,
-    "type": "adjustment",
-    "currentStock": 840,
-    "reason": "Conteo físico mensual"
+    "description": "Conteo físico mensual",
+    "items": [
+      {
+        "productId": 1,
+        "type": "adjustment",
+        "currentStock": 840,
+        "reason": "Conteo físico mensual"
+      }
+    ]
   }
 }
 ```
@@ -1712,18 +1853,21 @@ POST /api/v1/inventory/stock/update
 
 **Transferencia completa en una sola llamada:**
 ```bash
-POST /api/v1/inventory/stock/update
+POST /api/v1/inventory/movements/create
 {
   "data": {
     "establishmentId": 1,
-    "productId": 2,
-    "type": "transfer",
-    "quantity": 50,
-    "targetEstablishmentId": 2,
-    "reason": "Transferencia a Establecimiento Norte",
-    "metadata": {
-      "transferId": "TRF-2026-012"
-    }
+    "description": "Transferencia a Establecimiento Norte",
+    "items": [
+      {
+        "productId": 2,
+        "type": "transfer",
+        "quantity": 50,
+        "targetEstablishmentId": 2,
+        "reason": "Transferencia a Establecimiento Norte",
+        "metadata": { "transferId": "TRF-2026-012" }
+      }
+    ]
   }
 }
 ```
