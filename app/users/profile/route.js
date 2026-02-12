@@ -9,7 +9,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const user = req.userModel;
-  
+
   const profile = await user.getProfile();
 
   if (!profile) {

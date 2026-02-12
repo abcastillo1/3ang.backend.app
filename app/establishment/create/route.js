@@ -47,6 +47,9 @@ const validators = [
         .optional()
         .isString(),
 
+    validateField('data.image')
+        .optional(),
+
     validateRequest,
     authenticate,
     requirePermission('establishments.create'),
@@ -78,9 +81,10 @@ async function handler(req, res, next) {
         establishmentCode: data.establishmentCode,
         emissionPointCode: data.emissionPointCode,
         currentSequential: data.currentSequential || 0,
-        documentSequences: data.documentSequences ? JSON.stringify(data.documentSequences) : [],
+        documentSequences: data.documentSequences || [],
         address: data.address || null,
         phone: data.phone || null,
+        image: data.image || null,
         isActive: true
     };
 

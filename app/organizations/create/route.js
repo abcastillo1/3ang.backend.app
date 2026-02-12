@@ -16,14 +16,9 @@ const validators = [
         .optional()
         .isLength({ max: 255 }),
 
-    validateField('data.taxId')
-        .notEmpty()
-        .withMessage('validators.organization.taxId.required')
-        .isLength({ max: 50 }),
-
     validateField('data.ruc')
         .optional()
-        .isLength({ min: 13, max: 13 })
+        .matches(/^(\d{10}|\d{10}001)$/)
         .withMessage('validators.organization.ruc.invalid'),
 
     validateField('data.email')
@@ -40,6 +35,11 @@ const validators = [
         .optional()
         .isBoolean()
         .withMessage('validators.organization.isAccountingRequired.invalid'),
+
+    validateField('data.phone')
+        .optional()
+        .isNumeric()
+        .withMessage('validators.organization.phone.invalid'),
     validateRequest,
     authenticate,
     requirePermission('organizations.create'),
@@ -49,14 +49,14 @@ async function handler(req, res, next) {
     const { data } = req.body;
     const { Organization } = modelsInstance.models;
 
-    // Validación de unicidad para TaxID (o RUC según tu lógica)
-    if (data.taxId) {
+    // Validación de unicidad para RUC
+    if (data.ruc) {
         const existing = await Organization.findOne({
-            where: { taxId: data.taxId }
+            where: { ruc: data.ruc }
         });
         if (existing) {
             return res.status(400).json({
-                message: 'validators.organization.taxId.unique'
+                message: 'validators.organization.ruc.unique'
             });
         }
     }
@@ -66,7 +66,6 @@ async function handler(req, res, next) {
         name: data.name,
         image: data.image || null,
         legalName: data.legalName || null,
-        taxId: data.taxId,
         ruc: data.ruc || null,
         sriRegimen: data.sriRegimen || null,
         email: data.email || null,
