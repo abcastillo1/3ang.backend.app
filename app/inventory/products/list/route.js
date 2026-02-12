@@ -3,6 +3,7 @@ import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
+import { parseProductImages } from '../../../../helpers/inventory.js';
 import { Op } from 'sequelize';
 import modelsInstance from '../../../../models/index.js';
 
@@ -74,24 +75,29 @@ async function handler(req, res, next) {
   });
 
   const response = {
-    products: products.map(product => ({
-      id: product.id,
-      organizationId: product.organizationId,
-      name: product.name,
-      sku: product.sku,
-      description: product.description,
-      image: product.image,
-      gallery: product.gallery,
-      unitOfMeasure: product.unitOfMeasure,
-      isActive: product.isActive,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-      category: product.category ? {
-        id: product.category.id,
-        name: product.category.name,
-        description: product.category.description
-      } : null
-    })),
+    products: products.map((product) => {
+      const { image, gallery } = parseProductImages(product);
+      return {
+        id: product.id,
+        organizationId: product.organizationId,
+        name: product.name,
+        sku: product.sku,
+        description: product.description,
+        image,
+        gallery,
+        unitOfMeasure: product.unitOfMeasure,
+        isActive: product.isActive,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+        category: product.category
+          ? {
+              id: product.category.id,
+              name: product.category.name,
+              description: product.category.description
+            }
+          : null
+      };
+    }),
     pagination: {
       page: parseInt(page),
       limit: parseInt(limit),

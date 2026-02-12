@@ -4,6 +4,8 @@ import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import validateProductCreation from '../../../../middleware/inventory/validateProductCreation.js';
+import validateProductImages from '../../../../middleware/inventory/validateProductImages.js';
+import { parseProductImages } from '../../../../helpers/inventory.js';
 import modelsInstance from '../../../../models/index.js';
 
 const validators = [
@@ -32,11 +34,9 @@ const validators = [
     .withMessage('validators.description.invalid'),
   validateField('data.image')
     .optional()
-    .isString()
     .withMessage('validators.image.invalid'),
   validateField('data.gallery')
     .optional()
-    .isString()
     .withMessage('validators.gallery.invalid'),
   validateField('data.isActive')
     .optional()
@@ -45,6 +45,7 @@ const validators = [
   validateRequest,
   authenticate,
   requirePermission('inventory.products.create'),
+  validateProductImages,
   validateProductCreation
 ];
 
@@ -58,8 +59,8 @@ async function handler(req, res, next) {
     name: data.name,
     sku: data.sku || null,
     description: data.description || null,
-    image: data.image || null,
-    gallery: data.gallery || null,
+    image: data.image != null ? JSON.stringify(data.image) : null,
+    gallery: data.gallery != null && Array.isArray(data.gallery) ? JSON.stringify(data.gallery) : null,
     unitOfMeasure: data.unitOfMeasure,
     isActive: data.isActive !== undefined ? data.isActive : true
   };
@@ -74,24 +75,28 @@ async function handler(req, res, next) {
     }]
   });
 
+  const { image, gallery } = parseProductImages(productWithRelations);
+
   const response = {
     product: {
       id: productWithRelations.id,
-      organizationId: productWithRelations.organizationId,      
+      organizationId: productWithRelations.organizationId,
       name: productWithRelations.name,
       sku: productWithRelations.sku,
       description: productWithRelations.description,
-      image: productWithRelations.image,
-      gallery: productWithRelations.gallery,
+      image,
+      gallery,
       unitOfMeasure: productWithRelations.unitOfMeasure,
       isActive: productWithRelations.isActive,
       createdAt: productWithRelations.createdAt,
       updatedAt: productWithRelations.updatedAt,
-      category: productWithRelations.category ? {
-        id: productWithRelations.category.id,
-        name: productWithRelations.category.name,
-        description: productWithRelations.category.description
-      } : null
+      category: productWithRelations.category
+        ? {
+            id: productWithRelations.category.id,
+            name: productWithRelations.category.name,
+            description: productWithRelations.category.description
+          }
+        : null
     }
   };
 
