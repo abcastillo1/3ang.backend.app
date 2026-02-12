@@ -34,9 +34,11 @@ const validators = [
     .withMessage('validators.description.invalid'),
   validateField('data.image')
     .optional()
+    .isObject()
     .withMessage('validators.image.invalid'),
   validateField('data.gallery')
     .optional()
+    .isArray()
     .withMessage('validators.gallery.invalid'),
   validateField('data.isActive')
     .optional()
