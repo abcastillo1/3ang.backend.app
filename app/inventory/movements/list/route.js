@@ -69,6 +69,7 @@ async function handler(req, res, next) {
       userId: m.userId,
       sequenceNumber: m.sequenceNumber,
       description: m.description,
+      type: m.type,
       createdAt: m.createdAt,
       updatedAt: m.updatedAt,
       establishment: m.establishment

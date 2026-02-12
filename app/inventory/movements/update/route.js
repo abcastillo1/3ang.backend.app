@@ -56,6 +56,7 @@ async function handler(req, res, next) {
       userId: movementWithRelations.userId,
       sequenceNumber: movementWithRelations.sequenceNumber,
       description: movementWithRelations.description,
+      type: movementWithRelations.type,
       createdAt: movementWithRelations.createdAt,
       updatedAt: movementWithRelations.updatedAt,
       establishment: movementWithRelations.establishment

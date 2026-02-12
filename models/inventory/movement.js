@@ -30,6 +30,11 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(255),
         allowNull: true
       },
+      type: {
+        type: DataTypes.ENUM('transfer', 'adjustment'),
+        allowNull: false,
+        defaultValue: 'adjustment'
+      },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at'
@@ -73,16 +78,17 @@ export default function (sequelize, DataTypes) {
    * @param {number} establishmentId
    * @param {number} userId
    * @param {string|null} description
+   * @param {string} type - 'transfer' | 'adjustment'
    * @param {Array<{ productId: number, type: string, quantity: number, currentStock: number, previousStock: number, minStockLevel?: number, reason?: string, metadata?: object, targetEstablishmentId?: number }>} items - one or more products (each entry/exit affects stock)
    * @param {object|null} existingTransaction
    * @returns {Promise<Movement>}
    */
-  Movement.createWithItems = async function (establishmentId, userId, description, items, existingTransaction = null) {
+  Movement.createWithItems = async function (establishmentId, userId, description, type, items, existingTransaction = null) {
     const { InventoryStock } = sequelize.models;
     const run = async (transaction) => {
       const sequenceNumber = await Movement.getNextSequenceNumber(establishmentId, transaction);
       const movement = await Movement.create(
-        { establishmentId, userId, sequenceNumber, description: description || null },
+        { establishmentId, userId, sequenceNumber, description: description || null, type: type || 'adjustment' },
         { transaction }
       );
       for (const item of items) {

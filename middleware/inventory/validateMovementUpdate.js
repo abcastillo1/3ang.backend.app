@@ -24,11 +24,19 @@ export default async function validateMovementUpdate(req, res, next) {
     throwError(HTTP_STATUS.BAD_REQUEST, 'validators.items.required');
   }
 
+  const movementType = movement.type || 'adjustment';
   const validatedItems = [];
   const establishmentId = movement.establishmentId;
 
   for (let i = 0; i < data.items.length; i++) {
     const item = data.items[i];
+    const itemType = item.type || 'adjustment';
+    if (movementType === 'transfer' && itemType !== 'transfer') {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.movements.itemsMustBeTransfer');
+    }
+    if (movementType === 'adjustment' && itemType === 'transfer') {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.movements.itemsMustBeAdjustment');
+    }
     const product = await InventoryProduct.findOne({
       where: {
         id: item.productId,
@@ -40,7 +48,7 @@ export default async function validateMovementUpdate(req, res, next) {
       throwError(HTTP_STATUS.NOT_FOUND, 'inventory.products.notFound');
     }
 
-    const type = item.type || 'adjustment';
+    const type = itemType;
     const existingStock = await InventoryStock.findOne({
       where: {
         establishmentId,

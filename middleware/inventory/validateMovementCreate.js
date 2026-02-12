@@ -17,6 +17,11 @@ export default async function validateMovementCreate(req, res, next) {
     throwError(HTTP_STATUS.NOT_FOUND, 'establishments.notFound');
   }
 
+  const movementType = data.type === 'transfer' || data.type === 'adjustment' ? data.type : null;
+  if (!movementType) {
+    throwError(HTTP_STATUS.BAD_REQUEST, 'validators.movementType.required');
+  }
+
   if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
     throwError(HTTP_STATUS.BAD_REQUEST, 'validators.items.required');
   }
@@ -24,6 +29,13 @@ export default async function validateMovementCreate(req, res, next) {
   const validatedItems = [];
   for (let i = 0; i < data.items.length; i++) {
     const item = data.items[i];
+    const itemType = item.type || 'adjustment';
+    if (movementType === 'transfer' && itemType !== 'transfer') {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.movements.itemsMustBeTransfer');
+    }
+    if (movementType === 'adjustment' && itemType === 'transfer') {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.movements.itemsMustBeAdjustment');
+    }
     const product = await InventoryProduct.findOne({
       where: {
         id: item.productId,
@@ -35,7 +47,7 @@ export default async function validateMovementCreate(req, res, next) {
       throwError(HTTP_STATUS.NOT_FOUND, 'inventory.products.notFound');
     }
 
-    const type = item.type || 'adjustment';
+    const type = itemType;
     const existingStock = await InventoryStock.findOne({
       where: {
         establishmentId: data.establishmentId,
@@ -108,6 +120,7 @@ export default async function validateMovementCreate(req, res, next) {
   req.movementData = {
     establishmentId: data.establishmentId,
     description: data.description || null,
+    type: movementType,
     items: validatedItems
   };
   req.establishment = establishment;

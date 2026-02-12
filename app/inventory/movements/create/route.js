@@ -17,6 +17,11 @@ const validators = [
     .isString()
     .isLength({ max: 255 })
     .withMessage('validators.description.invalid'),
+  validateField('data.type')
+    .notEmpty()
+    .withMessage('validators.movementType.required')
+    .isIn(['transfer', 'adjustment'])
+    .withMessage('validators.movementType.invalid'),
   validateField('data.items')
     .notEmpty()
     .withMessage('validators.items.required')
@@ -33,7 +38,7 @@ async function handler(req, res, next) {
   const { establishmentId, description, items } = req.movementData;
   const userId = req.user.id;
 
-  const movement = await Movement.createWithItems(establishmentId, userId, description, items);
+  const movement = await Movement.createWithItems(establishmentId, userId, description, req.movementData.type, items);
 
   const movementWithRelations = await Movement.findByPk(movement.id, {
     include: [
@@ -50,6 +55,7 @@ async function handler(req, res, next) {
       userId: movementWithRelations.userId,
       sequenceNumber: movementWithRelations.sequenceNumber,
       description: movementWithRelations.description,
+      type: movementWithRelations.type,
       createdAt: movementWithRelations.createdAt,
       establishment: movementWithRelations.establishment
         ? {

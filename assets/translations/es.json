@@ -104,6 +104,10 @@
     "type": {
       "invalid": "El tipo debe ser: entry, exit, transfer o adjustment"
     },
+    "movementType": {
+      "required": "El tipo de movimiento es requerido (transfer o adjustment)",
+      "invalid": "El tipo de movimiento debe ser: transfer o adjustment"
+    },
     "reason": {
       "invalid": "La razón debe ser una cadena de texto válida con máximo 255 caracteres"
     },
@@ -284,7 +288,9 @@
       "notFound": "Producto no encontrado"
     },
     "movements": {
-      "notFound": "Movimiento no encontrado"
+      "notFound": "Movimiento no encontrado",
+      "itemsMustBeTransfer": "En un movimiento de tipo transferencia todos los ítems deben ser transfer",
+      "itemsMustBeAdjustment": "En un movimiento de tipo ajuste no se permiten ítems de tipo transfer"
     },
     "categories": {
       "notFound": "Categoría no encontrada",

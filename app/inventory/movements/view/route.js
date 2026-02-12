@@ -80,6 +80,7 @@ async function handler(req, res, next) {
       userId: movement.userId,
       sequenceNumber: movement.sequenceNumber,
       description: movement.description ?? null,
+      type: movement.type,
       createdAt: movement.createdAt,
       updatedAt: movement.updatedAt,
       establishment: movement.establishment
