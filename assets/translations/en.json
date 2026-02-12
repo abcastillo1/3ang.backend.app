@@ -110,6 +110,10 @@
     "metadata": {
       "invalid": "Metadata must be a valid JSON object"
     },
+    "items": {
+      "required": "Movement items are required",
+      "invalid": "Items must be a non-empty array"
+    },
     "sku": {
       "invalid": "SKU must be a valid string with maximum 100 characters"
     },
@@ -119,6 +123,14 @@
     },
     "categoryId": {
       "invalid": "Category ID must be a valid integer"
+    },
+    "image": {
+      "invalid": "Image is invalid",
+      "uploadFormatInvalid": "Image must be the object returned by the file upload API (path, originalName, mimeType, size, url, fileId)"
+    },
+    "gallery": {
+      "invalid": "Gallery is invalid",
+      "uploadFormatInvalid": "Gallery must be an array of objects with the upload API format (path, originalName, mimeType, size, url, fileId)"
     }
   },
   "auth": {
@@ -185,6 +197,9 @@
     },
     "products": {
       "notFound": "Product not found"
+    },
+    "movements": {
+      "notFound": "Movement not found"
     },
     "categories": {
       "notFound": "Category not found",

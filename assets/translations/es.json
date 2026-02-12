@@ -110,6 +110,10 @@
     "metadata": {
       "invalid": "Los metadatos deben ser un objeto JSON válido"
     },
+    "items": {
+      "required": "Los items del movimiento son requeridos",
+      "invalid": "Los items deben ser un array no vacío"
+    },
     "sku": {
       "invalid": "El SKU debe ser una cadena de texto válida con máximo 100 caracteres"
     },
@@ -119,6 +123,14 @@
     },
     "categoryId": {
       "invalid": "El ID de categoría debe ser un entero válido"
+    },
+    "image": {
+      "invalid": "La imagen no es válida",
+      "uploadFormatInvalid": "La imagen debe ser el objeto que devuelve el API de subida de archivos (path, originalName, mimeType, size, url, fileId)"
+    },
+    "gallery": {
+      "invalid": "La galería no es válida",
+      "uploadFormatInvalid": "La galería debe ser un array de objetos con el formato del API de subida (path, originalName, mimeType, size, url, fileId)"
     },
     "organizationId": {
       "required": "La organización es requerida",
@@ -264,6 +276,9 @@
     },
     "products": {
       "notFound": "Producto no encontrado"
+    },
+    "movements": {
+      "notFound": "Movimiento no encontrado"
     },
     "categories": {
       "notFound": "Categoría no encontrada",

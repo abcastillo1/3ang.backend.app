@@ -33,7 +33,7 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - Los productos pueden ser categorizados usando `ProductCategory` (específico de la organización)
 - Los establecimientos (granjas) pertenecen a una organización
 - El stock se rastrea por establecimiento y producto
-- Todos los movimientos de inventario se registran en `InventoryLog`
+- Todos los movimientos de inventario se registran en la tabla `kardex` (Kardex). Las operaciones pueden agruparse en un movimiento (tabla `movements`, Movement) que actúa como transacción con secuencia por establecimiento.
 
 ## Reglas de Negocio
 
@@ -160,23 +160,19 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - El stock se actualiza automáticamente cuando ocurren movimientos de inventario
 - La tabla de stock no usa borrado lógico (solo timestamp `updatedAt`)
 
-#### Logs de Inventario (`InventoryLog`)
-- Todos los movimientos de inventario se registran
-- Tipos de log:
-  - `entry` - Entrada de producto (aumenta stock)
-  - `exit` - Salida de producto (disminuye stock)
-  - `transfer` - Transferencia entre establecimientos
-  - `adjustment` - Ajuste manual de stock
-- Cada entrada de log registra:
-  - Establecimiento y producto
-  - Usuario que realizó la acción
-  - Tipo de movimiento
-  - Cantidad (puede ser positiva o negativa)
-  - Stock anterior y stock nuevo
-  - Razón (texto opcional)
-  - Metadatos (JSON opcional para datos adicionales)
-- Los logs son inmutables (solo `createdAt`, sin actualizaciones ni eliminaciones)
-- Los logs se usan para auditoría e historial de stock
+#### Movimientos (`Movement`) y Kardex (`Kardex`)
+- **Movimientos (tabla `movements`)**: Una transacción que agrupa **varios cambios de stock en un solo movimiento**: en el mismo movimiento se pueden hacer ingresos y/o egresos de **varios productos**. Cada movimiento tiene:
+  - Establecimiento, usuario, número de secuencia único por establecimiento (`sequence_number`), descripción opcional.
+  - La secuencia permite identificar orden y referencia (ej. MOV-0001, MOV-0002).
+- **Kardex (tabla `kardex`)**: Registra cada entrada/salida de producto (reemplaza al antiguo `inventory_logs`). Cada registro tiene:
+  - Establecimiento, producto, usuario, opcionalmente `movement_id` (si pertenece a un movimiento).
+  - Tipo: `entry`, `exit`, `transfer`, `adjustment`.
+  - Cantidad, stock anterior y stock nuevo, razón, metadatos.
+  - **`is_current`**: identifica los registros que representan el estado vigente. Al editar un movimiento, los registros antiguos se marcan como no vigentes y se crean reversiones y nuevos registros; solo los últimos son `is_current = true`.
+  - **`is_reversal`**: indica que el registro es una reversión (deshace un registro anterior).
+- Al **editar un movimiento**: primero se revierte el efecto actual (se crean registros de reversión con la misma cantidad en sentido inverso, **se restaura el stock** en `inventory_stock` y se marca `is_current = false` en los registros originales); luego se aplican los nuevos cambios como registros normales con `is_current = true`. **Todos los cambios (reversiones, ingresos, egresos) afectan siempre al stock.**
+- La lógica de crear/editar movimientos y aplicar reversiones está centralizada en el modelo `Movement` (`createWithItems`, `updateWithItems`); el stock se actualiza mediante `InventoryStock.updateStock` desde dichos métodos.
+- Los registros de kardex son inmutables en contenido (solo se actualiza `is_current` cuando se edita el movimiento); se usan para auditoría e historial de stock.
 
 ### Autenticación y Sesiones
 
@@ -239,9 +235,12 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - Establecimientos → Organización (CASCADE on delete)
 - Stock → Establecimiento (CASCADE on delete)
 - Stock → Producto (CASCADE on delete)
-- Logs → Establecimiento (restringido)
-- Logs → Producto (restringido)
-- Logs → Usuario (restringido)
+- Kardex → Establecimiento (restringido)
+- Kardex → Producto (restringido)
+- Kardex → Usuario (restringido)
+- Kardex → Movement (SET NULL on delete, opcional)
+- Movement → Establecimiento (restringido)
+- Movement → Usuario (restringido)
 
 ### Comportamiento de Borrado Lógico
 
@@ -266,19 +265,16 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 5. Los usuarios pueden entonces operar dentro de sus permisos
 
 ### Flujo de Movimiento de Inventario
-1. El usuario selecciona establecimiento y producto
-2. El usuario especifica el tipo de movimiento (entrada/salida/transferencia/ajuste)
-3. El sistema calcula el nuevo stock:
-   - Entrada: `newStock = previousStock + quantity`
-   - Salida: `newStock = previousStock - quantity`
-   - Transferencia: Disminuye en origen, aumenta en destino
-   - Ajuste: `newStock = previousStock + quantity` (puede ser negativo)
-4. El sistema crea una entrada de log con:
-   - Stock anterior
-   - Cantidad
-   - Stock nuevo
-   - Usuario, establecimiento, producto, tipo, razón, metadatos
-5. El sistema actualiza o crea el registro de stock
+- **Sin movimiento (actualización directa de stock)**: Igual que antes: se actualiza stock y se crea un registro en kardex con `movement_id` nulo y `is_current = true`.
+- **Con movimiento (agrupado)**:
+  1. Se crea un registro en `movements` con el siguiente `sequence_number` del establecimiento.
+  2. Por cada ítem (producto + tipo + cantidad): se calcula el nuevo stock, se actualiza `inventory_stock` y se crea un registro en `kardex` con `movement_id`, `is_current = true`, `is_reversal = false`.
+  3. Para transferencias se generan dos registros de kardex (salida en origen, entrada en destino), ambos ligados al mismo movimiento.
+- **Edición de un movimiento**:
+  1. Se marcan como no vigentes (`is_current = false`) todos los registros de kardex del movimiento con `is_current = true`.
+  2. Por cada uno se crea un registro de reversión (misma cantidad en tipo inverso, restauración del stock anterior) con `is_reversal = true`, `is_current = false`.
+  3. Se aplican los nuevos ítems del movimiento como en la creación (nuevos registros en kardex con `is_current = true`).
+- Cálculo de stock: Entrada `newStock = previousStock + quantity`; Salida/Transferencia origen `newStock = previousStock - quantity`; Ajuste `newStock` según valor indicado.
 
 ### Flujo de Validación de Permisos
 1. La petición llega con token JWT
@@ -321,13 +317,20 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - `currentStock`: Requerido, decimal(12,4), por defecto 0.0000
 - `minStockLevel`: Opcional, decimal(12,4), por defecto 0.0000
 
-### Campos de Log de Inventario
+### Campos de Movement
+- `establishmentId`, `userId`: Requeridos
+- `sequenceNumber`: Entero, único por establecimiento
+- `description`: Opcional, string (máx 255)
+
+### Campos de Kardex (ex Log de Inventario)
 - `type`: Requerido, enum: 'entry', 'exit', 'transfer', 'adjustment'
-- `quantity`: Requerido, decimal(12,4), puede ser positivo o negativo
-- `previousStock`: Requerido, decimal(12,4)
-- `newStock`: Requerido, decimal(12,4)
+- `quantity`: Requerido, decimal(12,4)
+- `previousStock`, `newStock`: Requeridos, decimal(12,4)
 - `reason`: Opcional, string (máx 255)
 - `metadata`: Opcional, JSON válido
+- `movement_id`: Opcional, FK a movements
+- `is_current`: Booleano, indica si el registro es el vigente para ese movimiento
+- `is_reversal`: Booleano, indica si el registro es una reversión
 
 ## Reglas de Seguridad
 
@@ -390,3 +393,7 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 8. **Respetar permisos**: Siempre verificar permisos a menos que el usuario sea propietario
 9. **Rastrear cambios**: Usar `previousStock` y `newStock` en los logs de inventario
 10. **Mantener auditoría**: Registrar acciones importantes en los logs de auditoría
+
+### Cambios de base de datos (Kardex y Movements)
+- La tabla `inventory_logs` se renombró a `kardex`. Si ya existía `inventory_logs`, ejecutar: `RENAME TABLE inventory_logs TO kardex;` y agregar columnas `movement_id` (INT NULL), `is_current` (BOOLEAN DEFAULT TRUE), `is_reversal` (BOOLEAN DEFAULT FALSE).
+- Crear tabla `movements`: `id`, `establishment_id`, `user_id`, `sequence_number`, `description` (VARCHAR 255 NULL), `created_at`, `updated_at`; índice único en `(establishment_id, sequence_number)`.
