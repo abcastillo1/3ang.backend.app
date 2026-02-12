@@ -1927,6 +1927,63 @@ Authorization: Bearer <tu_token>
 - `400` - `inventory.stock.insufficientStock` en exit/transfer si no hay stock suficiente.
 - `404` - `inventory.movements.notFound` al actualizar si el movimiento no existe o es de otra organización.
 
+#### 7. Listar stock por establecimiento
+
+Devuelve los productos que tienen stock en un establecimiento, con unidades actuales (`currentStock`) y nivel mínimo. Útil para elegir producto y cantidad al armar una transferencia o salida.
+
+```bash
+POST http://localhost:3000/api/v1/inventory/stock/list
+Content-Type: application/json
+Authorization: Bearer <tu_token>
+
+{
+  "data": {
+    "establishmentId": 1,
+    "page": 1,
+    "limit": 20,
+    "search": "vacuna"
+  }
+}
+```
+
+- `establishmentId` (obligatorio): establecimiento del que quieres ver stock.
+- `search` (opcional): filtra por nombre o SKU del producto.
+- `page` / `limit` (opcionales): paginación (default 1, 20).
+
+**Respuesta exitosa:**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "establishment": {
+      "id": 1,
+      "name": "Bodega Central",
+      "code": "BOD-001"
+    },
+    "items": [
+      {
+        "productId": 1,
+        "productName": "Vacuna Triple Bovina",
+        "sku": "VAC-TB-001",
+        "unitOfMeasure": "Dosis",
+        "currentStock": 150,
+        "minStockLevel": 10,
+        "category": { "id": 1, "name": "Vacunas" }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 1,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+Solo aparecen productos que tienen registro de stock en ese establecimiento (aunque `currentStock` sea 0). Permiso: `inventory.stock.update`. Errores: `404` `establishments.notFound` si el establecimiento no es de tu organización.
+
 ---
 
 ### Ejemplos de Flujo Completo: Gestión de Inventario Veterinario

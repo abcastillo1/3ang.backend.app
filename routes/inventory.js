@@ -11,6 +11,7 @@ import movementCreateRoute from '../app/inventory/movements/create/route.js';
 import movementUpdateRoute from '../app/inventory/movements/update/route.js';
 import movementListRoute from '../app/inventory/movements/list/route.js';
 import movementViewRoute from '../app/inventory/movements/view/route.js';
+import stockListRoute from '../app/inventory/stock/list/route.js';
 
 const router = Router();
 
@@ -25,5 +26,6 @@ registerRoute(router, '/movements/create', movementCreateRoute, 'post');
 registerRoute(router, '/movements/list', movementListRoute, 'post');
 registerRoute(router, '/movements/view', movementViewRoute, 'post');
 registerRoute(router, '/movements/update', movementUpdateRoute, 'post');
+registerRoute(router, '/stock/list', stockListRoute, 'post');
 
 export default router;
