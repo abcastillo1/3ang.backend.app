@@ -1027,6 +1027,86 @@ Cada producto incluye `image` (objeto del upload o `null`) y `gallery` (array de
 **Errores posibles:**
 - `403` - Permisos insuficientes (no tienes `inventory.products.view`)
 
+### 16.1. Ver un producto (detalle) – requiere token y permiso `inventory.products.view`
+
+Obtiene un solo producto por ID. Las imágenes vienen con `url` con token (lista para usar en el front) y opcionalmente `originalName`.
+
+**Request:**
+```bash
+POST http://localhost:3000/api/v1/inventory/products/view
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "data": {
+    "id": 1
+  }
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "product": {
+      "id": 1,
+      "organizationId": 1,
+      "name": "Vacuna Triple Bovina",
+      "sku": "VAC-TB-001",
+      "description": "Vacuna para prevenir enfermedades virales en ganado bovino",
+      "image": {
+        "url": "https://f005.backblazeb2.com/file/mi-bucket/1%2Finventory%2Fabc.jpg?Authorization=...",
+        "originalName": "vacuna-portada.jpg"
+      },
+      "gallery": [
+        {
+          "url": "https://f005.backblazeb2.com/file/mi-bucket/1%2Finventory%2Fdetalle1.jpg?Authorization=...",
+          "originalName": "detalle-1.jpg"
+        }
+      ],
+      "unitOfMeasure": "Dosis",
+      "isActive": true,
+      "createdAt": "2026-01-22T10:00:00.000Z",
+      "updatedAt": "2026-01-22T10:00:00.000Z",
+      "category": {
+        "id": 1,
+        "name": "Vacunas",
+        "description": "Productos vacunales para ganado"
+      }
+    }
+  }
+}
+```
+
+**Errores posibles:**
+- `404` - Producto no encontrado o no pertenece a tu organización (`inventory.products.notFound`)
+- `400` - `data.id` faltante o no es un entero válido (`validators.product.id.required` / `validators.product.id.invalid`)
+- `403` - Permisos insuficientes (no tienes `inventory.products.view`)
+
+**Ejemplo en JavaScript (fetch):**
+```javascript
+const token = 'eyJhbGciOiJIUzI1NiIs...'; // token del login
+
+const res = await fetch('http://localhost:3000/api/v1/inventory/products/view', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({ data: { id: 1 } })
+});
+
+const json = await res.json();
+if (res.ok) {
+  const product = json.data.product;
+  console.log(product.name, product.image?.url, product.gallery);
+} else {
+  console.error(json.message); // ej. inventory.products.notFound
+}
+```
+
 ## APIs de Categorías de Productos
 
 **Permisos requeridos:**
@@ -1656,8 +1736,15 @@ Authorization: Bearer <tu_token>
 
 #### 4. Editar un movimiento
 
-Primero se revierten los cambios actuales (stock vuelve al estado anterior) y luego se aplican los nuevos `items`.
+**Comportamiento:** Al editar un movimiento, el sistema hace todo en una sola transacción:
 
+1. **Reverso:** Por cada ítem vigente del movimiento, se deshace el efecto en stock (el stock vuelve al valor anterior) y se crean registros de kardex de reverso.
+2. **Marcar no vigentes:** Los registros de kardex anteriores de ese movimiento se marcan como no vigentes (`isCurrent: false`); los reversos también quedan como no vigentes (histórico).
+3. **Aplicar lo nuevo:** Se aplican los nuevos `items` que envías: se actualiza stock y se crean los nuevos registros de kardex vigentes.
+
+Así el historial se mantiene (reversos + registros viejos) y el estado actual de stock refleja solo la última versión del movimiento.
+
+**Request:**
 ```bash
 POST http://localhost:3000/api/v1/inventory/movements/update
 Content-Type: application/json
@@ -1685,7 +1772,85 @@ Authorization: Bearer <tu_token>
 }
 ```
 
-#### 5. Listar movimientos de un establecimiento
+#### 5. Ver un movimiento (detalle con ítems)
+
+Obtiene un movimiento por ID con todos sus ítems vigentes (para mostrar el formulario de edición). Puedes enviar `data.id` o `data.movementId`.
+
+```bash
+POST http://localhost:3000/api/v1/inventory/movements/view
+Content-Type: application/json
+Authorization: Bearer <tu_token>
+
+{
+  "data": {
+    "id": 1
+  }
+}
+```
+
+O con `movementId`:
+```json
+{
+  "data": {
+    "movementId": 1
+  }
+}
+```
+
+**Respuesta exitosa (200):**
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": {
+    "movement": {
+      "id": 1,
+      "establishmentId": 1,
+      "userId": 1,
+      "sequenceNumber": 1,
+      "description": "Recepción de compra #123",
+      "createdAt": "2026-02-11T12:00:00.000Z",
+      "updatedAt": "2026-02-11T12:00:00.000Z",
+      "establishment": { "id": 1, "name": "Bodega Central", "code": "BOD-001" },
+      "user": { "id": 1, "fullName": "Juan Pérez" },
+      "items": [
+        {
+          "productId": 1,
+          "productName": "Vacuna Triple Bovina",
+          "sku": "VAC-TB-001",
+          "type": "entry",
+          "quantity": 100,
+          "previousStock": 0,
+          "newStock": 100,
+          "reason": "Ingreso producto A",
+          "metadata": null,
+          "targetEstablishmentId": null,
+          "minStockLevel": 10
+        },
+        {
+          "productId": 2,
+          "productName": "Penicilina 300.000 UI",
+          "sku": "ANT-PEN-300",
+          "type": "exit",
+          "quantity": 5,
+          "previousStock": 50,
+          "newStock": 45,
+          "reason": "Venta",
+          "metadata": null,
+          "targetEstablishmentId": null,
+          "minStockLevel": 5
+        }
+      ]
+    }
+  }
+}
+```
+
+**Errores:** `404` `inventory.movements.notFound` si no existe o no es de tu organización; `400` si falta `data.id` o `data.movementId`.
+
+**Flujo típico para editar:** 1) `POST /inventory/movements/list` (con `establishmentId`) para listar. 2) `POST /inventory/movements/view` con `data.id` del movimiento elegido para cargar ítems. 3) `POST /inventory/movements/update` con `movementId` y los `items` (modificados o iguales).
+
+#### 6. Listar movimientos de un establecimiento
 
 ```bash
 POST http://localhost:3000/api/v1/inventory/movements/list

@@ -10,6 +10,7 @@ import categoryDeleteRoute from '../app/inventory/categories/delete/route.js';
 import movementCreateRoute from '../app/inventory/movements/create/route.js';
 import movementUpdateRoute from '../app/inventory/movements/update/route.js';
 import movementListRoute from '../app/inventory/movements/list/route.js';
+import movementViewRoute from '../app/inventory/movements/view/route.js';
 
 const router = Router();
 
@@ -21,7 +22,8 @@ registerRoute(router, '/categories/list', categoryListRoute, 'post');
 registerRoute(router, '/categories/update', categoryUpdateRoute, 'post');
 registerRoute(router, '/categories/delete', categoryDeleteRoute, 'post');
 registerRoute(router, '/movements/create', movementCreateRoute, 'post');
-registerRoute(router, '/movements/update', movementUpdateRoute, 'post');
 registerRoute(router, '/movements/list', movementListRoute, 'post');
+registerRoute(router, '/movements/view', movementViewRoute, 'post');
+registerRoute(router, '/movements/update', movementUpdateRoute, 'post');
 
 export default router;
