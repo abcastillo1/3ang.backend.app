@@ -31,11 +31,11 @@ export default function (sequelize, DataTypes) {
       },
       image: {
         type: DataTypes.TEXT,
-        allowNull: true,
+        allowNull: true
       },
       gallery: {
         type: DataTypes.TEXT,
-        allowNull: true,
+        allowNull: true
       },
       unitOfMeasure: {
         type: DataTypes.STRING(50),
@@ -85,9 +85,9 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'product_id',
       as: 'stocks'
     });
-    InventoryProduct.hasMany(models.InventoryLog, {
+    InventoryProduct.hasMany(models.Kardex, {
       foreignKey: 'product_id',
-      as: 'logs'
+      as: 'kardexEntries'
     });
   };
 

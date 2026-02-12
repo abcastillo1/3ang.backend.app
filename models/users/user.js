@@ -244,9 +244,13 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'user_id',
       as: 'auditLogs'
     });
-    User.hasMany(models.InventoryLog, {
+    User.hasMany(models.Kardex, {
       foreignKey: 'user_id',
-      as: 'inventoryLogs'
+      as: 'kardexEntries'
+    });
+    User.hasMany(models.Movement, {
+      foreignKey: 'user_id',
+      as: 'movements'
     });
   };
 

@@ -49,11 +49,16 @@ export default function (sequelize, DataTypes) {
     }
   );
 
-  InventoryStock.updateStock = async function (stockParams, userId) {
+  /**
+   * Applies one stock change: updates inventory_stock and creates kardex record(s).
+   * For transfers, updates both origin and destination stock and creates two kardex rows.
+   * Used by Movement.createWithItems and Movement.updateWithItems (movements API).
+   */
+  InventoryStock.updateStock = async function (stockParams, userId, movementId = null, existingTransaction = null) {
     const { establishmentId, productId, currentStock, minStockLevel, type, quantity, previousStock, reason, metadata, targetEstablishmentId } = stockParams;
-    const { InventoryLog } = sequelize.models;
+    const { Kardex } = sequelize.models;
 
-    return await sequelize.transaction(async (transaction) => {
+    const runInTransaction = async (transaction) => {
 
       const existingStock = await InventoryStock.findOne({
         where: {
@@ -87,20 +92,23 @@ export default function (sequelize, DataTypes) {
           }
         : metadata;
 
-      const logData = {
+      const kardexData = {
         establishmentId: establishmentId,
         productId: productId,
         userId: userId,
+        movementId: movementId || null,
         type: type,
         quantity: quantity,
         previousStock: previousStock,
         newStock: currentStock,
         reason: reason || null,
         metadata: logMetadata || null,
+        isCurrent: true,
+        isReversal: false,
         createdAt: new Date()
       };
 
-      await InventoryLog.create(logData, { transaction });
+      await Kardex.create(kardexData, { transaction });
 
       //tranferencias de producto  
       if (type === 'transfer' && targetEstablishmentId) {
@@ -129,10 +137,11 @@ export default function (sequelize, DataTypes) {
           await InventoryStock.create(targetStockData, { transaction });
         }
 
-        const targetLogData = {
+        const targetKardexData = {
           establishmentId: targetEstablishmentId,
           productId: productId,
           userId: userId,
+          movementId: movementId || null,
           type: 'entry',
           quantity: parseFloat(quantity),
           previousStock: targetPreviousStock,
@@ -143,14 +152,21 @@ export default function (sequelize, DataTypes) {
             sourceEstablishmentId: establishmentId,
             transferType: 'transfer'
           },
+          isCurrent: true,
+          isReversal: false,
           createdAt: new Date()
         };
 
-        await InventoryLog.create(targetLogData, { transaction });
+        await Kardex.create(targetKardexData, { transaction });
       }
 
       return stock;
-    });
+    };
+
+    if (existingTransaction) {
+      return await runInTransaction(existingTransaction);
+    }
+    return await sequelize.transaction(runInTransaction);
   };
 
   InventoryStock.associate = function (models) {

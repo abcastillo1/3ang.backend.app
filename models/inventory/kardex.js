@@ -1,6 +1,6 @@
 export default function (sequelize, DataTypes) {
-  const InventoryLog = sequelize.define(
-    'InventoryLog',
+  const Kardex = sequelize.define(
+    'Kardex',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -22,14 +22,18 @@ export default function (sequelize, DataTypes) {
         allowNull: false,
         field: 'user_id'
       },
+      movementId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'movement_id'
+      },
       type: {
         type: DataTypes.ENUM('entry', 'exit', 'transfer', 'adjustment'),
         allowNull: false
       },
       quantity: {
         type: DataTypes.DECIMAL(12, 4),
-        allowNull: false,
-        field: 'quantity'
+        allowNull: false
       },
       previousStock: {
         type: DataTypes.DECIMAL(12, 4),
@@ -49,33 +53,49 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.JSON,
         allowNull: true
       },
+      isCurrent: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+        field: 'is_current'
+      },
+      isReversal: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        field: 'is_reversal'
+      },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at'
       }
     },
     {
-      tableName: 'inventory_logs',
+      tableName: 'kardex',
       paranoid: false,
       timestamps: false,
       underscored: true
     }
   );
 
-  InventoryLog.associate = function (models) {
-    InventoryLog.belongsTo(models.Establishment, {
+  Kardex.associate = function (models) {
+    Kardex.belongsTo(models.Establishment, {
       foreignKey: 'establishment_id',
       as: 'establishment'
     });
-    InventoryLog.belongsTo(models.InventoryProduct, {
+    Kardex.belongsTo(models.InventoryProduct, {
       foreignKey: 'product_id',
       as: 'product'
     });
-    InventoryLog.belongsTo(models.User, {
+    Kardex.belongsTo(models.User, {
       foreignKey: 'user_id',
       as: 'user'
     });
+    Kardex.belongsTo(models.Movement, {
+      foreignKey: 'movement_id',
+      as: 'movement'
+    });
   };
 
-  return InventoryLog;
+  return Kardex;
 }

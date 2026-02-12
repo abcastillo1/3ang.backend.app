@@ -90,9 +90,13 @@ class Models {
     const InventoryStockFactory = inventoryStockModule.default;
     this.models.InventoryStock = InventoryStockFactory(this.sequelize, Sequelize.DataTypes);
 
-    const inventoryLogModule = await import('./inventory/inventoryLog.js');
-    const InventoryLogFactory = inventoryLogModule.default;
-    this.models.InventoryLog = InventoryLogFactory(this.sequelize, Sequelize.DataTypes);
+    const movementModule = await import('./inventory/movement.js');
+    const MovementFactory = movementModule.default;
+    this.models.Movement = MovementFactory(this.sequelize, Sequelize.DataTypes);
+
+    const kardexModule = await import('./inventory/kardex.js');
+    const KardexFactory = kardexModule.default;
+    this.models.Kardex = KardexFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {
