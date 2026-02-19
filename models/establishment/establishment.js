@@ -115,6 +115,10 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'establishment_id',
       as: 'movements'
     });
+    Establishment.hasMany(models.InventoryBatch, {
+      foreignKey: 'establishment_id',
+      as: 'batches'
+    });
   };
 
   return Establishment;

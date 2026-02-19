@@ -208,6 +208,11 @@
     "products": {
       "notFound": "Product not found"
     },
+    "batches": {
+      "notFound": "Batch not found",
+      "quantityRequired": "Each batch in batches must have quantity greater than 0",
+      "sumMustEqualQuantity": "The sum of batch quantities must equal the item quantity"
+    },
     "movements": {
       "notFound": "Movement not found",
       "itemsMustBeTransfer": "In a transfer movement all items must be transfer type",

@@ -90,6 +90,10 @@ class Models {
     const InventoryStockFactory = inventoryStockModule.default;
     this.models.InventoryStock = InventoryStockFactory(this.sequelize, Sequelize.DataTypes);
 
+    const inventoryBatchModule = await import('./inventory/inventoryBatch.js');
+    const InventoryBatchFactory = inventoryBatchModule.default;
+    this.models.InventoryBatch = InventoryBatchFactory(this.sequelize, Sequelize.DataTypes);
+
     const movementModule = await import('./inventory/movement.js');
     const MovementFactory = movementModule.default;
     this.models.Movement = MovementFactory(this.sequelize, Sequelize.DataTypes);

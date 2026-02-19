@@ -67,6 +67,9 @@ async function handler(req, res, next) {
     quantity: parseFloat(k.quantity),
     previousStock: parseFloat(k.previousStock),
     newStock: parseFloat(k.newStock),
+    costPrice: k.costPrice != null ? parseFloat(k.costPrice) : null,
+    batchDetail: k.batchDetail ?? null,
+    dateAt: k.dateAt ?? null,
     reason: k.reason ?? null,
     metadata: k.metadata ?? null,
     targetEstablishmentId: k.metadata?.targetEstablishmentId ?? null,
@@ -81,6 +84,7 @@ async function handler(req, res, next) {
       sequenceNumber: movement.sequenceNumber,
       description: movement.description ?? null,
       type: movement.type,
+      dateAt: movement.dateAt ?? null,
       createdAt: movement.createdAt,
       updatedAt: movement.updatedAt,
       establishment: movement.establishment

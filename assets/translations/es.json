@@ -287,6 +287,11 @@
     "products": {
       "notFound": "Producto no encontrado"
     },
+    "batches": {
+      "notFound": "Lote no encontrado",
+      "quantityRequired": "Cada lote en batches debe tener quantity mayor a 0",
+      "sumMustEqualQuantity": "La suma de quantity de batches debe coincidir con la cantidad del ítem"
+    },
     "movements": {
       "notFound": "Movimiento no encontrado",
       "itemsMustBeTransfer": "En un movimiento de tipo transferencia todos los ítems deben ser transfer",

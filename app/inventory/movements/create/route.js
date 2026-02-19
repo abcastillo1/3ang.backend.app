@@ -27,6 +27,10 @@ const validators = [
     .withMessage('validators.items.required')
     .isArray()
     .withMessage('validators.items.invalid'),
+  validateField('data.dateAt')
+    .optional()
+    .isISO8601()
+    .withMessage('validators.date.invalid'),
   validateRequest,
   authenticate,
   requirePermission('inventory.stock.update'),
@@ -35,10 +39,10 @@ const validators = [
 
 async function handler(req, res, next) {
   const { Movement } = modelsInstance.models;
-  const { establishmentId, description, items } = req.movementData;
+  const { establishmentId, description, items, dateAt } = req.movementData;
   const userId = req.user.id;
 
-  const movement = await Movement.createWithItems(establishmentId, userId, description, req.movementData.type, items);
+  const movement = await Movement.createWithItems(establishmentId, userId, description, req.movementData.type, items, null, dateAt);
 
   const movementWithRelations = await Movement.findByPk(movement.id, {
     include: [
@@ -56,6 +60,7 @@ async function handler(req, res, next) {
       sequenceNumber: movementWithRelations.sequenceNumber,
       description: movementWithRelations.description,
       type: movementWithRelations.type,
+      dateAt: movementWithRelations.dateAt || null,
       createdAt: movementWithRelations.createdAt,
       establishment: movementWithRelations.establishment
         ? {

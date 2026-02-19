@@ -66,6 +66,44 @@ export default function (sequelize, DataTypes) {
         allowNull: false,
         field: 'unit_of_measure'
       },
+      generalPrice: {
+        type: DataTypes.DECIMAL(12, 4),
+        allowNull: true,
+        defaultValue: 0.0000,
+        field: 'general_price'
+      },
+      costPrice: {
+        type: DataTypes.DECIMAL(12, 4),
+        allowNull: true,
+        defaultValue: 0.0000,
+        field: 'cost_price'
+      },
+      ivaType: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+        field: 'iva_type',
+        comment: 'Ej: 0, 12, 15 (porcentaje IVA)'
+      },
+      minimumPrice: {
+        type: DataTypes.DECIMAL(12, 4),
+        allowNull: true,
+        defaultValue: 0.0000,
+        field: 'minimum_price'
+      },
+      minStockLevel: {
+        type: DataTypes.DECIMAL(12, 4),
+        allowNull: true,
+        defaultValue: 0.0000,
+        field: 'min_stock_level',
+        comment: 'Stock mínimo por defecto del producto'
+      },
+      batchActive: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+        field: 'batch_active',
+        comment: 'true = control por lote activo (UI muestra código, vencimiento, listado); false = no (backend igual crea lote S/N)'
+      },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
@@ -112,6 +150,10 @@ export default function (sequelize, DataTypes) {
     InventoryProduct.hasMany(models.Kardex, {
       foreignKey: 'product_id',
       as: 'kardexEntries'
+    });
+    InventoryProduct.hasMany(models.InventoryBatch, {
+      foreignKey: 'product_id',
+      as: 'batches'
     });
   };
 

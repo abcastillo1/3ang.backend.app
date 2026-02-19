@@ -17,6 +17,12 @@ export default function (sequelize, DataTypes) {
         allowNull: false,
         field: 'product_id'
       },
+      batchDetail: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        field: 'batch_detail',
+        comment: 'Array of { batchId, batchCode, quantity } - breakdown of batches used'
+      },
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -34,6 +40,12 @@ export default function (sequelize, DataTypes) {
       quantity: {
         type: DataTypes.DECIMAL(12, 4),
         allowNull: false
+      },
+      costPrice: {
+        type: DataTypes.DECIMAL(12, 4),
+        allowNull: true,
+        field: 'cost_price',
+        comment: 'Precio costo: en entrada = costo del lote (input); en transferencia/salida = costo por defecto del producto'
       },
       previousStock: {
         type: DataTypes.DECIMAL(12, 4),
@@ -64,6 +76,12 @@ export default function (sequelize, DataTypes) {
         allowNull: false,
         defaultValue: false,
         field: 'is_reversal'
+      },
+      dateAt: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        field: 'date_at',
+        comment: 'Fecha ingresada por el usuario (fecha de ingreso/transferencia)'
       },
       createdAt: {
         type: DataTypes.DATE,

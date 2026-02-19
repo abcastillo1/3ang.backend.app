@@ -4,7 +4,7 @@ import modelsInstance from '../../models/index.js';
 
 export default async function validateMovementCreate(req, res, next) {
   const { data } = req.body;
-  const { Establishment, InventoryProduct, InventoryStock } = modelsInstance.models;
+  const { Establishment, InventoryProduct, InventoryStock, InventoryBatch } = modelsInstance.models;
 
   const establishment = await Establishment.findOne({
     where: {
@@ -86,6 +86,87 @@ export default async function validateMovementCreate(req, res, next) {
       throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.invalidType');
     }
 
+    if (type === 'entry' && item.batchId && (!item.batches || !Array.isArray(item.batches) || item.batches.length === 0)) {
+      const batch = await InventoryBatch.findOne({
+        where: {
+          id: item.batchId,
+          productId: item.productId,
+          establishmentId: data.establishmentId
+        }
+      });
+      if (!batch) {
+        throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
+      }
+    }
+
+    let validatedBatches = null;
+    if (type === 'entry' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
+      let batchesSum = 0;
+      validatedBatches = item.batches.map((b) => {
+        const qty = parseFloat(b.quantity);
+        if (qty == null || Number.isNaN(qty) || qty <= 0) {
+          throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.quantityRequired');
+        }
+        batchesSum += qty;
+        return {
+          quantity: qty,
+          batchCode: b.batchCode != null ? String(b.batchCode).trim() : null,
+          manufacturingDate: b.manufacturingDate || null,
+          expirationDate: b.expirationDate || null,
+          unitCost: b.unitCost != null ? parseFloat(b.unitCost) : null
+        };
+      });
+      if (Math.abs(batchesSum - quantity) > 0.0001) {
+        throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.sumMustEqualQuantity');
+      }
+    }
+
+    if (type === 'exit' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
+      let exitBatchesSum = 0;
+      validatedBatches = [];
+      for (const b of item.batches) {
+        const batchIdVal = b.batchId != null ? parseInt(b.batchId, 10) : null;
+        const qty = parseFloat(b.quantity);
+        if (batchIdVal == null || Number.isNaN(qty) || qty <= 0) {
+          throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.batchIdAndQuantityRequired');
+        }
+        exitBatchesSum += qty;
+        const exitBatch = await InventoryBatch.findOne({
+          where: {
+            id: batchIdVal,
+            productId: item.productId,
+            establishmentId: data.establishmentId
+          }
+        });
+        if (!exitBatch) {
+          throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
+        }
+        const batchQty = parseFloat(exitBatch.currentQuantity);
+        if (batchQty < qty) {
+          throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
+        }
+        validatedBatches.push({ batchId: batchIdVal, quantity: qty });
+      }
+      if (Math.abs(exitBatchesSum - quantity) > 0.0001) {
+        throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.sumMustEqualQuantity');
+      }
+    } else if (type === 'exit' && item.batchId) {
+      const exitBatch = await InventoryBatch.findOne({
+        where: {
+          id: item.batchId,
+          productId: item.productId,
+          establishmentId: data.establishmentId
+        }
+      });
+      if (!exitBatch) {
+        throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
+      }
+      const batchQty = parseFloat(exitBatch.currentQuantity);
+      if (batchQty < quantity) {
+        throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
+      }
+    }
+
     if (type === 'transfer') {
       if (!item.targetEstablishmentId) {
         throwError(HTTP_STATUS.BAD_REQUEST, 'validators.targetEstablishmentId.required');
@@ -113,15 +194,31 @@ export default async function validateMovementCreate(req, res, next) {
       minStockLevel: item.minStockLevel !== undefined ? parseFloat(item.minStockLevel) : (existingStock?.minStockLevel ?? 0),
       reason: item.reason || null,
       metadata: item.metadata || null,
-      targetEstablishmentId: type === 'transfer' ? item.targetEstablishmentId : null
+      targetEstablishmentId: type === 'transfer' ? item.targetEstablishmentId : null,
+      batchId: ((type === 'entry' && !validatedBatches && item.batchId) || (type === 'exit' && !validatedBatches && item.batchId)) ? parseInt(item.batchId, 10) : null,
+      unitCost: (type === 'entry' && !validatedBatches && item.unitCost != null) ? parseFloat(item.unitCost) : null,
+      batchCode: (type === 'entry' && !validatedBatches && item.batchCode) ? String(item.batchCode).trim() : null,
+      manufacturingDate: (type === 'entry' && !validatedBatches && item.manufacturingDate) ? item.manufacturingDate : null,
+      expirationDate: (type === 'entry' && !validatedBatches && item.expirationDate) ? item.expirationDate : null,
+      batches: validatedBatches
     });
+  }
+
+  let dateAt = null;
+  if (data.dateAt != null && data.dateAt !== '') {
+    const d = new Date(data.dateAt);
+    if (Number.isNaN(d.getTime())) {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'validators.date.invalid');
+    }
+    dateAt = d.toISOString().slice(0, 10);
   }
 
   req.movementData = {
     establishmentId: data.establishmentId,
     description: data.description || null,
     type: movementType,
-    items: validatedItems
+    items: validatedItems,
+    dateAt
   };
   req.establishment = establishment;
   next();

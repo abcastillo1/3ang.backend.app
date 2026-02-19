@@ -30,6 +30,12 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(255),
         allowNull: true
       },
+      dateAt: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        field: 'date_at',
+        comment: 'Fecha ingresada por el usuario (ej. fecha de ingreso/transferencia); si no se envía, se usa la fecha del sistema'
+      },
       type: {
         type: DataTypes.ENUM('transfer', 'adjustment'),
         allowNull: false,
@@ -83,12 +89,13 @@ export default function (sequelize, DataTypes) {
    * @param {object|null} existingTransaction
    * @returns {Promise<Movement>}
    */
-  Movement.createWithItems = async function (establishmentId, userId, description, type, items, existingTransaction = null) {
+  Movement.createWithItems = async function (establishmentId, userId, description, type, items, existingTransaction = null, dateAt = null) {
     const { InventoryStock } = sequelize.models;
     const run = async (transaction) => {
       const sequenceNumber = await Movement.getNextSequenceNumber(establishmentId, transaction);
+      const opDate = dateAt || new Date().toISOString().slice(0, 10);
       const movement = await Movement.create(
-        { establishmentId, userId, sequenceNumber, description: description || null, type: type || 'adjustment' },
+        { establishmentId, userId, sequenceNumber, description: description || null, type: type || 'adjustment', dateAt: opDate },
         { transaction }
       );
       for (const item of items) {
@@ -102,7 +109,14 @@ export default function (sequelize, DataTypes) {
           previousStock: item.previousStock,
           reason: item.reason,
           metadata: item.metadata,
-          targetEstablishmentId: item.targetEstablishmentId
+          targetEstablishmentId: item.targetEstablishmentId,
+          batchId: item.batchId,
+          unitCost: item.unitCost,
+          batchCode: item.batchCode,
+          manufacturingDate: item.manufacturingDate,
+          expirationDate: item.expirationDate,
+          batches: item.batches,
+          dateAt: movement.dateAt
         };
         await InventoryStock.updateStock(stockParams, userId, movement.id, transaction);
       }
@@ -123,7 +137,7 @@ export default function (sequelize, DataTypes) {
    * @returns {Promise<Movement>}
    */
   Movement.updateWithItems = async function (movementId, userId, description, items, existingTransaction = null) {
-    const { Kardex, InventoryStock } = sequelize.models;
+    const { Kardex, InventoryStock, InventoryBatch } = sequelize.models;
     const inverseType = (type) => (type === 'entry' ? 'exit' : type === 'exit' ? 'entry' : type);
 
     const run = async (transaction) => {
@@ -140,20 +154,41 @@ export default function (sequelize, DataTypes) {
         await entry.update({ isCurrent: false }, { transaction });
         const reversalQuantity = -parseFloat(entry.quantity);
         const reversalType = inverseType(entry.type);
-        const stockRow = await InventoryStock.findOne({
-          where: { establishmentId: entry.establishmentId, productId: entry.productId },
-          transaction
-        });
-        if (stockRow) {
-          await stockRow.update(
-            { currentStock: entry.previousStock, updatedAt: new Date() },
-            { transaction }
-          );
+
+        if (entry.batchDetail && Array.isArray(entry.batchDetail) && entry.batchDetail.length > 0) {
+          for (const item of entry.batchDetail) {
+            const batch = await InventoryBatch.findByPk(item.batchId, { transaction });
+            if (batch) {
+              const qty = parseFloat(item.quantity);
+              const currentQty = parseFloat(batch.currentQuantity);
+              if (entry.type === 'entry') {
+                await batch.update({ currentQuantity: Math.max(0, currentQty - qty), updatedAt: new Date() }, { transaction });
+              } else {
+                await batch.update({ currentQuantity: currentQty + qty, updatedAt: new Date() }, { transaction });
+              }
+            }
+          }
+          await InventoryBatch.syncInventoryStock(entry.productId, entry.establishmentId, transaction);
+        } else {
+          const stockRow = await InventoryStock.findOne({
+            where: { establishmentId: entry.establishmentId, productId: entry.productId },
+            transaction
+          });
+          if (stockRow) {
+            await stockRow.update(
+              { currentStock: entry.previousStock, updatedAt: new Date() },
+              { transaction }
+            );
+          }
         }
+
         await Kardex.create(
           {
             establishmentId: entry.establishmentId,
             productId: entry.productId,
+            batchDetail: entry.batchDetail,
+            costPrice: entry.costPrice,
+            dateAt: entry.dateAt,
             userId,
             movementId: movement.id,
             type: reversalType,
@@ -203,7 +238,14 @@ export default function (sequelize, DataTypes) {
           previousStock,
           reason: item.reason,
           metadata: item.metadata,
-          targetEstablishmentId: item.targetEstablishmentId
+          targetEstablishmentId: item.targetEstablishmentId,
+          batchId: item.batchId,
+          unitCost: item.unitCost,
+          batchCode: item.batchCode,
+          manufacturingDate: item.manufacturingDate,
+          expirationDate: item.expirationDate,
+          batches: item.batches,
+          dateAt: movement.dateAt
         };
         await InventoryStock.updateStock(stockParams, userId, movement.id, transaction);
       }
