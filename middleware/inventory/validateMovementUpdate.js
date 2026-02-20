@@ -207,10 +207,20 @@ export default async function validateMovementUpdate(req, res, next) {
     });
   }
 
+  let dateAt = null;
+  if (data.dateAt != null && data.dateAt !== '') {
+    const d = new Date(data.dateAt);
+    if (Number.isNaN(d.getTime())) {
+      throwError(HTTP_STATUS.BAD_REQUEST, 'validators.date.invalid');
+    }
+    dateAt = d.toISOString().slice(0, 10);
+  }
+
   req.movement = movement;
   req.movementData = {
     establishmentId,
     description: data.description !== undefined ? data.description : movement.description,
+    dateAt: dateAt !== null ? dateAt : undefined,
     items: validatedItems
   };
   next();

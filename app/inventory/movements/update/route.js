@@ -8,8 +8,11 @@ import modelsInstance from '../../../../models/index.js';
 
 const validators = [
   validateField('data.movementId')
-    .notEmpty()
-    .withMessage('validators.id.required')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.id.invalid'),
+  validateField('data.id')
+    .optional()
     .isInt({ min: 1 })
     .withMessage('validators.id.invalid'),
   validateField('data.description')
@@ -17,6 +20,10 @@ const validators = [
     .isString()
     .isLength({ max: 255 })
     .withMessage('validators.description.invalid'),
+  validateField('data.dateAt')
+    .optional()
+    .isISO8601()
+    .withMessage('validators.date.invalid'),
   validateField('data.items')
     .notEmpty()
     .withMessage('validators.items.required')
@@ -31,10 +38,10 @@ const validators = [
 async function handler(req, res, next) {
   const { Movement } = modelsInstance.models;
   const movement = req.movement;
-  const { description, items } = req.movementData;
+  const { description, dateAt, items } = req.movementData;
   const userId = req.user.id;
 
-  await Movement.updateWithItems(movement.id, userId, description, items);
+  await Movement.updateWithItems(movement.id, userId, description, items, null, dateAt);
 
   const movementWithRelations = await Movement.findByPk(movement.id, {
     include: [

@@ -71,10 +71,12 @@ export default function (sequelize, DataTypes) {
       const totalQty = parseFloat(quantity);
       for (const b of batchesInput) {
         const qty = parseFloat(b.quantity);
+        const batchId = b.batchId != null ? parseInt(b.batchId, 10) : null;
         const batch = await InventoryBatch.getOrCreateForEntry(
           {
             productId,
             establishmentId,
+            batchId,
             batchCode: b.batchCode || 'S/N',
             manufacturingDate: b.manufacturingDate || null,
             expirationDate: b.expirationDate || null,

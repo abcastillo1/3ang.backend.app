@@ -136,7 +136,7 @@ export default function (sequelize, DataTypes) {
    * @param {object|null} existingTransaction
    * @returns {Promise<Movement>}
    */
-  Movement.updateWithItems = async function (movementId, userId, description, items, existingTransaction = null) {
+  Movement.updateWithItems = async function (movementId, userId, description, items, existingTransaction = null, dateAt = null) {
     const { Kardex, InventoryStock, InventoryBatch } = sequelize.models;
     const inverseType = (type) => (type === 'entry' ? 'exit' : type === 'exit' ? 'entry' : type);
 
@@ -212,10 +212,14 @@ export default function (sequelize, DataTypes) {
         );
       }
 
-      if (description !== undefined) {
-        await movement.update({ description, updatedAt: new Date() }, { transaction });
+      const updatePayload = { updatedAt: new Date() };
+      if (description !== undefined) updatePayload.description = description;
+      if (dateAt != null && dateAt !== '') updatePayload.dateAt = dateAt;
+      if (Object.keys(updatePayload).length > 1) {
+        await movement.update(updatePayload, { transaction });
       }
 
+      const movementDateAt = updatePayload.dateAt ?? movement.dateAt;
       for (const item of items) {
         const existingStock = await InventoryStock.findOne({
           where: { establishmentId: movement.establishmentId, productId: item.productId },
@@ -278,7 +282,7 @@ export default function (sequelize, DataTypes) {
           manufacturingDate: item.manufacturingDate,
           expirationDate: item.expirationDate,
           batches,
-          dateAt: movement.dateAt
+          dateAt: movementDateAt
         };
         await InventoryStock.updateStock(stockParams, userId, movement.id, transaction);
       }
