@@ -68,7 +68,7 @@ async function handler(req, res, next) {
     previousStock: parseFloat(k.previousStock),
     newStock: parseFloat(k.newStock),
     costPrice: k.costPrice != null ? parseFloat(k.costPrice) : null,
-    batchDetail: k.batchDetail ?? null,
+    batchDetail: k.batchDetail,
     dateAt: k.dateAt ?? null,
     reason: k.reason ?? null,
     metadata: k.metadata ?? null,
