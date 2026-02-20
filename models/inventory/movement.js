@@ -150,13 +150,20 @@ export default function (sequelize, DataTypes) {
         transaction
       });
 
+      const originalBatchDetailByProduct = {};
       for (const entry of currentEntries) {
         await entry.update({ isCurrent: false }, { transaction });
+        const rawBatchDetail = entry.getDataValue('batchDetail');
+        const batchDetailArr = rawBatchDetail != null
+          ? (Array.isArray(rawBatchDetail) ? rawBatchDetail : (typeof rawBatchDetail === 'string' ? (() => { try { const p = JSON.parse(rawBatchDetail); return Array.isArray(p) ? p : []; } catch { return []; } })() : []))
+          : [];
+        originalBatchDetailByProduct[`${entry.productId}:${entry.type}`] = { rawBatchDetail: batchDetailArr, entry };
+
         const reversalQuantity = -parseFloat(entry.quantity);
         const reversalType = inverseType(entry.type);
 
-        if (entry.batchDetail && Array.isArray(entry.batchDetail) && entry.batchDetail.length > 0) {
-          for (const item of entry.batchDetail) {
+        if (batchDetailArr.length > 0) {
+          for (const item of batchDetailArr) {
             const batch = await InventoryBatch.findByPk(item.batchId, { transaction });
             if (batch) {
               const qty = parseFloat(item.quantity);
@@ -186,7 +193,7 @@ export default function (sequelize, DataTypes) {
           {
             establishmentId: entry.establishmentId,
             productId: entry.productId,
-            batchDetail: entry.batchDetail,
+            batchDetail: batchDetailArr.length > 0 ? batchDetailArr : null,
             costPrice: entry.costPrice,
             dateAt: entry.dateAt,
             userId,
@@ -228,6 +235,32 @@ export default function (sequelize, DataTypes) {
           newStock = parseFloat(item.currentStock ?? item.quantity ?? 0);
           quantity = newStock - previousStock;
         }
+
+        let batchId = item.batchId;
+        let batches = item.batches;
+        const hasNoBatchInfo = (type === 'entry') && !batchId && (!batches || !Array.isArray(batches) || batches.length === 0);
+        if (hasNoBatchInfo) {
+          const original = originalBatchDetailByProduct[`${item.productId}:${type}`];
+          const origDetail = original?.rawBatchDetail;
+          if (origDetail && origDetail.length > 0) {
+            if (origDetail.length === 1) {
+              batchId = origDetail[0]?.batchId;
+            } else {
+              const origTotal = origDetail.reduce((s, b) => s + parseFloat(b.quantity || 0), 0);
+              const qty = parseFloat(quantity);
+              batches = origDetail.map((b, i) => {
+                const origQty = parseFloat(b.quantity || 0);
+                const ratio = origTotal > 0 ? origQty / origTotal : (i === 0 ? 1 : 0);
+                if (i === origDetail.length - 1) {
+                  const restQty = origDetail.slice(0, -1).reduce((s, x) => s + (qty * (parseFloat(x.quantity || 0) / origTotal)), 0);
+                  return { batchId: b.batchId, quantity: Math.round((qty - restQty) * 10000) / 10000 };
+                }
+                return { batchId: b.batchId, quantity: Math.round(qty * ratio * 10000) / 10000 };
+              });
+            }
+          }
+        }
+
         const stockParams = {
           establishmentId: movement.establishmentId,
           productId: item.productId,
@@ -239,12 +272,12 @@ export default function (sequelize, DataTypes) {
           reason: item.reason,
           metadata: item.metadata,
           targetEstablishmentId: item.targetEstablishmentId,
-          batchId: item.batchId,
+          batchId,
           unitCost: item.unitCost,
           batchCode: item.batchCode,
           manufacturingDate: item.manufacturingDate,
           expirationDate: item.expirationDate,
-          batches: item.batches,
+          batches,
           dateAt: movement.dateAt
         };
         await InventoryStock.updateStock(stockParams, userId, movement.id, transaction);
