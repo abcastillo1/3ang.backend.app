@@ -126,7 +126,7 @@ export default function (sequelize, DataTypes) {
     const hasUserBatchData = (batchCode && batchCode.trim() !== 'S/N') || manufacturingDate || expirationDate;
 
     if (!hasUserBatchData) {
-      const { Op } = require('sequelize');
+      const { Op } = sequelize.Sequelize;
       const existingDefault = await InventoryBatch.findOne({
         where: {
           productId,
@@ -168,7 +168,7 @@ export default function (sequelize, DataTypes) {
    * Obtiene lotes con stock disponibles ordenados FEFO (First Expired, First Out).
    */
   InventoryBatch.findAvailableByFEFO = async function (productId, establishmentId, transaction = null) {
-    const { Op } = require('sequelize');
+    const { Op } = sequelize.Sequelize;
     const options = transaction ? { transaction } : {};
     return InventoryBatch.findAll({
       where: {
