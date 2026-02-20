@@ -67,7 +67,7 @@ async function handler(req, res, next) {
         as: 'product',
         required: true,
         where: productWhere,
-        attributes: ['id', 'name', 'sku', 'unitOfMeasure'],
+        attributes: ['id', 'name', 'sku', 'unitOfMeasure', 'generalPrice', 'costPrice', 'ivaType', 'minimumPrice', 'minStockLevel', 'batchActive'],
         include: [
           {
             model: ProductCategory,
@@ -89,6 +89,12 @@ async function handler(req, res, next) {
     productName: s.product?.name ?? null,
     sku: s.product?.sku ?? null,
     unitOfMeasure: s.product?.unitOfMeasure ?? null,
+    price: s.price != null ? parseFloat(s.price) : null,
+    generalPrice: s.product?.generalPrice != null ? parseFloat(s.product.generalPrice) : null,
+    costPrice: s.product?.costPrice != null ? parseFloat(s.product.costPrice) : null,
+    ivaType: s.product?.ivaType ?? null,
+    minimumPrice: s.product?.minimumPrice != null ? parseFloat(s.product.minimumPrice) : null,
+    batchActive: !!s.product?.batchActive,
     currentStock: parseFloat(s.currentStock),
     minStockLevel: s.minStockLevel != null ? parseFloat(s.minStockLevel) : null,
     category: s.product?.category

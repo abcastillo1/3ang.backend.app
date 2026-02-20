@@ -7,16 +7,21 @@ import validateProductCreation from '../../../../middleware/inventory/validatePr
 import validateProductImages from '../../../../middleware/inventory/validateProductImages.js';
 import { parseProductImages } from '../../../../helpers/inventory.js';
 import modelsInstance from '../../../../models/index.js';
+import { HTTP_STATUS } from '../../../../config/constants.js';
+import { throwError } from '../../../../helpers/errors.js';
 
 const validators = [
-  validateField('data.name')
+  validateField('data.id')
     .notEmpty()
-    .withMessage('validators.name.required')
+    .withMessage('validators.product.id.required')
+    .isInt({ min: 1 })
+    .withMessage('validators.product.id.invalid'),
+  validateField('data.name')
+    .optional()
     .isLength({ min: 1, max: 255 })
     .withMessage('validators.name.invalid'),
   validateField('data.unitOfMeasure')
-    .notEmpty()
-    .withMessage('validators.unitOfMeasure.required')
+    .optional()
     .isLength({ min: 1, max: 50 })
     .withMessage('validators.unitOfMeasure.invalid'),
   validateField('data.categoryId')
@@ -71,7 +76,7 @@ const validators = [
     .withMessage('validators.minStockLevel.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('inventory.products.create'),
+  requirePermission('inventory.products.update'),
   validateProductImages,
   validateProductCreation
 ];
@@ -80,61 +85,72 @@ async function handler(req, res, next) {
   const { data } = req.body;
   const { InventoryProduct, ProductCategory } = modelsInstance.models;
 
-  const productData = {
-    organizationId: req.user.organizationId,
-    categoryId: data.categoryId || null,
-    name: data.name,
-    sku: data.sku || null,
-    description: data.description || null,
-    image: data.image ?? null,
-    gallery: data.gallery ?? null,
-    unitOfMeasure: data.unitOfMeasure,
-    generalPrice: data.generalPrice != null ? parseFloat(data.generalPrice) : null,
-    costPrice: data.costPrice != null ? parseFloat(data.costPrice) : null,
-    ivaType: data.ivaType || null,
-    minimumPrice: data.minimumPrice != null ? parseFloat(data.minimumPrice) : null,
-    minStockLevel: data.minStockLevel != null ? parseFloat(data.minStockLevel) : null,
-    batchActive: data.batchActive === true,
-    isActive: data.isActive !== undefined ? data.isActive : true
-  };
-
-  const newProduct = await InventoryProduct.create(productData);
-
-  const productWithRelations = await InventoryProduct.findByPk(newProduct.id, {
+  const product = await InventoryProduct.findOne({
+    where: {
+      id: data.id,
+      organizationId: req.user.organizationId
+    },
     include: [{
       model: ProductCategory,
       as: 'category',
-      attributes: ['id', 'name', 'description']
+      attributes: ['id', 'name', 'description'],
+      required: false
     }]
   });
 
-  const { image, gallery } = parseProductImages(productWithRelations);
+  if (!product) {
+    throwError(HTTP_STATUS.NOT_FOUND, 'inventory.products.notFound');
+  }
+
+  const updateData = {};
+
+  const fields = [
+    'name', 'sku', 'description', 'image', 'gallery', 'unitOfMeasure',
+    'generalPrice', 'costPrice', 'ivaType', 'minimumPrice', 'minStockLevel',
+    'batchActive', 'isActive', 'categoryId'
+  ];
+
+  for (const field of fields) {
+    if (data[field] === undefined) continue;
+    if (field === 'categoryId') {
+      updateData.categoryId = data.categoryId || null;
+    } else if (field === 'generalPrice' || field === 'costPrice' || field === 'minimumPrice' || field === 'minStockLevel') {
+      updateData[field] = data[field] != null ? parseFloat(data[field]) : null;
+    } else if (field === 'batchActive') {
+      updateData.batchActive = data.batchActive === true;
+    } else {
+      updateData[field] = data[field];
+    }
+  }
+
+  if (Object.keys(updateData).length > 0) {
+    await product.update(updateData);
+    await product.reload({ include: [{ model: ProductCategory, as: 'category', attributes: ['id', 'name', 'description'], required: false }] });
+  }
+
+  const { image, gallery } = parseProductImages(product);
 
   const response = {
     product: {
-      id: productWithRelations.id,
-      organizationId: productWithRelations.organizationId,
-      name: productWithRelations.name,
-      sku: productWithRelations.sku,
-      description: productWithRelations.description,
+      id: product.id,
+      organizationId: product.organizationId,
+      name: product.name,
+      sku: product.sku,
+      description: product.description,
       image,
       gallery,
-      unitOfMeasure: productWithRelations.unitOfMeasure,
-      generalPrice: productWithRelations.generalPrice != null ? parseFloat(productWithRelations.generalPrice) : null,
-      costPrice: productWithRelations.costPrice != null ? parseFloat(productWithRelations.costPrice) : null,
-      ivaType: productWithRelations.ivaType,
-      minimumPrice: productWithRelations.minimumPrice != null ? parseFloat(productWithRelations.minimumPrice) : null,
-      minStockLevel: productWithRelations.minStockLevel != null ? parseFloat(productWithRelations.minStockLevel) : null,
-      batchActive: !!productWithRelations.batchActive,
-      isActive: productWithRelations.isActive,
-      createdAt: productWithRelations.createdAt,
-      updatedAt: productWithRelations.updatedAt,
-      category: productWithRelations.category
-        ? {
-            id: productWithRelations.category.id,
-            name: productWithRelations.category.name,
-            description: productWithRelations.category.description
-          }
+      unitOfMeasure: product.unitOfMeasure,
+      generalPrice: product.generalPrice != null ? parseFloat(product.generalPrice) : null,
+      costPrice: product.costPrice != null ? parseFloat(product.costPrice) : null,
+      ivaType: product.ivaType,
+      minimumPrice: product.minimumPrice != null ? parseFloat(product.minimumPrice) : null,
+      minStockLevel: product.minStockLevel != null ? parseFloat(product.minStockLevel) : null,
+      batchActive: !!product.batchActive,
+      isActive: product.isActive,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt,
+      category: product.category
+        ? { id: product.category.id, name: product.category.name, description: product.category.description }
         : null
     }
   };
@@ -142,12 +158,12 @@ async function handler(req, res, next) {
   return apiResponse(res, req, next)(response);
 }
 
-const createRoute = {
+const updateRoute = {
   validators,
   default: handler,
-  action: 'create',
+  action: 'update',
   entity: 'inventory.products'
 };
 
-export default createRoute;
+export default updateRoute;
 export { validators };
