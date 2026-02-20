@@ -167,6 +167,52 @@ export default async function validateMovementCreate(req, res, next) {
       }
     }
 
+    if (type === 'transfer' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
+      let exitBatchesSum = 0;
+      validatedBatches = [];
+      for (const b of item.batches) {
+        const batchIdVal = b.batchId != null ? parseInt(b.batchId, 10) : null;
+        const qty = parseFloat(b.quantity);
+        if (batchIdVal == null || Number.isNaN(qty) || qty <= 0) {
+          throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.batchIdAndQuantityRequired');
+        }
+        exitBatchesSum += qty;
+        const exitBatch = await InventoryBatch.findOne({
+          where: {
+            id: batchIdVal,
+            productId: item.productId,
+            establishmentId: data.establishmentId
+          }
+        });
+        if (!exitBatch) {
+          throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
+        }
+        const batchQty = parseFloat(exitBatch.currentQuantity);
+        if (batchQty < qty) {
+          throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
+        }
+        validatedBatches.push({ batchId: batchIdVal, quantity: qty });
+      }
+      if (Math.abs(exitBatchesSum - quantity) > 0.0001) {
+        throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.sumMustEqualQuantity');
+      }
+    } else if (type === 'transfer' && item.batchId) {
+      const exitBatch = await InventoryBatch.findOne({
+        where: {
+          id: item.batchId,
+          productId: item.productId,
+          establishmentId: data.establishmentId
+        }
+      });
+      if (!exitBatch) {
+        throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
+      }
+      const batchQty = parseFloat(exitBatch.currentQuantity);
+      if (batchQty < quantity) {
+        throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
+      }
+    }
+
     if (type === 'transfer') {
       if (!item.targetEstablishmentId) {
         throwError(HTTP_STATUS.BAD_REQUEST, 'validators.targetEstablishmentId.required');
@@ -195,7 +241,7 @@ export default async function validateMovementCreate(req, res, next) {
       reason: item.reason || null,
       metadata: item.metadata || null,
       targetEstablishmentId: type === 'transfer' ? item.targetEstablishmentId : null,
-      batchId: ((type === 'entry' && !validatedBatches && item.batchId) || (type === 'exit' && !validatedBatches && item.batchId)) ? parseInt(item.batchId, 10) : null,
+      batchId: ((type === 'entry' && !validatedBatches && item.batchId) || (type === 'exit' && !validatedBatches && item.batchId) || (type === 'transfer' && !validatedBatches && item.batchId)) ? parseInt(item.batchId, 10) : null,
       unitCost: (type === 'entry' && !validatedBatches && item.unitCost != null) ? parseFloat(item.unitCost) : null,
       batchCode: (type === 'entry' && !validatedBatches && item.batchCode) ? String(item.batchCode).trim() : null,
       manufacturingDate: (type === 'entry' && !validatedBatches && item.manufacturingDate) ? item.manufacturingDate : null,
