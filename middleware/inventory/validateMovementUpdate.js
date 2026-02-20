@@ -109,8 +109,10 @@ export default async function validateMovementUpdate(req, res, next) {
           throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.quantityRequired');
         }
         batchesSum += qty;
+        const batchIdVal = b.batchId != null ? parseInt(b.batchId, 10) : null;
         return {
           quantity: qty,
+          batchId: batchIdVal,
           batchCode: b.batchCode != null ? String(b.batchCode).trim() : null,
           manufacturingDate: b.manufacturingDate || null,
           expirationDate: b.expirationDate || null,
