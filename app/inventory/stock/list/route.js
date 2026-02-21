@@ -33,7 +33,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const { data } = req.body;
-  const { InventoryStock, Establishment, InventoryProduct, ProductCategory } = modelsInstance.models;
+  const { InventoryStock, Establishment, InventoryProduct, ProductCategory, InventoryBatch } = modelsInstance.models;
 
   const establishment = await Establishment.findOne({
     where: {
@@ -84,23 +84,54 @@ async function handler(req, res, next) {
     distinct: true
   });
 
-  const items = stocks.map((s) => ({
-    productId: s.productId,
-    productName: s.product?.name ?? null,
-    sku: s.product?.sku ?? null,
-    unitOfMeasure: s.product?.unitOfMeasure ?? null,
-    price: s.price != null ? parseFloat(s.price) : null,
-    generalPrice: s.product?.generalPrice != null ? parseFloat(s.product.generalPrice) : null,
-    costPrice: s.product?.costPrice != null ? parseFloat(s.product.costPrice) : null,
-    ivaType: s.product?.ivaType ?? null,
-    minimumPrice: s.product?.minimumPrice != null ? parseFloat(s.product.minimumPrice) : null,
-    batchActive: !!s.product?.batchActive,
-    currentStock: parseFloat(s.currentStock),
-    minStockLevel: s.minStockLevel != null ? parseFloat(s.minStockLevel) : null,
-    category: s.product?.category
-      ? { id: s.product.category.id, name: s.product.category.name }
-      : null
-  }));
+  const productIdsWithBatches = [...new Set(stocks.filter((s) => s.product?.batchActive).map((s) => s.productId))];
+  let batchesByProduct = {};
+  if (productIdsWithBatches.length > 0) {
+    const batches = await InventoryBatch.findAll({
+      where: {
+        establishmentId: data.establishmentId,
+        productId: productIdsWithBatches,
+        currentQuantity: { [Op.gt]: 0 }
+      },
+      order: [['expirationDate', 'ASC']],
+      attributes: ['id', 'productId', 'batchCode', 'currentQuantity', 'manufacturingDate', 'expirationDate', 'unitCost']
+    });
+    for (const b of batches) {
+      const pid = b.productId;
+      if (!batchesByProduct[pid]) batchesByProduct[pid] = [];
+      batchesByProduct[pid].push({
+        batchId: b.id,
+        batchCode: b.batchCode,
+        currentQuantity: parseFloat(b.currentQuantity),
+        manufacturingDate: b.manufacturingDate ?? null,
+        expirationDate: b.expirationDate ?? null,
+        unitCost: b.unitCost != null ? parseFloat(b.unitCost) : null
+      });
+    }
+  }
+
+  const items = stocks.map((s) => {
+    const batchActive = !!s.product?.batchActive;
+    const batches = batchActive && batchesByProduct[s.productId] ? batchesByProduct[s.productId] : [];
+    return {
+      productId: s.productId,
+      productName: s.product?.name ?? null,
+      sku: s.product?.sku ?? null,
+      unitOfMeasure: s.product?.unitOfMeasure ?? null,
+      price: s.price != null ? parseFloat(s.price) : null,
+      generalPrice: s.product?.generalPrice != null ? parseFloat(s.product.generalPrice) : null,
+      costPrice: s.product?.costPrice != null ? parseFloat(s.product.costPrice) : null,
+      ivaType: s.product?.ivaType ?? null,
+      minimumPrice: s.product?.minimumPrice != null ? parseFloat(s.product.minimumPrice) : null,
+      batchActive,
+      currentStock: parseFloat(s.currentStock),
+      minStockLevel: s.minStockLevel != null ? parseFloat(s.minStockLevel) : null,
+      ...(batchActive ? { batches } : {}),
+      category: s.product?.category
+        ? { id: s.product.category.id, name: s.product.category.name }
+        : null
+    };
+  });
 
   const response = {
     establishment: {

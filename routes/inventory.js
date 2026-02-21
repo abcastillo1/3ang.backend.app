@@ -13,6 +13,7 @@ import movementUpdateRoute from '../app/inventory/movements/update/route.js';
 import movementListRoute from '../app/inventory/movements/list/route.js';
 import movementViewRoute from '../app/inventory/movements/view/route.js';
 import stockListRoute from '../app/inventory/stock/list/route.js';
+import stockProductInfoRoute from '../app/inventory/stock/product-info/route.js';
 
 const router = Router();
 
@@ -29,5 +30,6 @@ registerRoute(router, '/movements/list', movementListRoute, 'post');
 registerRoute(router, '/movements/view', movementViewRoute, 'post');
 registerRoute(router, '/movements/update', movementUpdateRoute, 'post');
 registerRoute(router, '/stock/list', stockListRoute, 'post');
+registerRoute(router, '/stock/product-info', stockProductInfoRoute, 'post');
 
 export default router;
