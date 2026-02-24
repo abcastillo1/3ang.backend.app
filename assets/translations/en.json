@@ -141,6 +141,34 @@
         "required": "Product ID is required",
         "invalid": "Product ID must be a valid integer"
       }
+    },
+    "animals": {
+      "code": {
+        "required": "Animal code is required",
+        "invalid": "Animal code must be at most 50 characters"
+      },
+      "name": {
+        "invalid": "Animal name must be at most 100 characters"
+      },
+      "speciesId": {
+        "required": "Species is required",
+        "invalid": "Species ID must be a valid integer"
+      },
+      "establishmentId": {
+        "required": "Establishment is required",
+        "invalid": "Establishment ID must be a valid integer"
+      },
+      "sex": {
+        "required": "Sex is required",
+        "invalid": "Sex must be Male or Female"
+      },
+      "entryDate": {
+        "required": "Entry date is required"
+      },
+      "entryType": {
+        "required": "Entry type is required",
+        "invalid": "Entry type must be: Birth, Purchase or Transfer"
+      }
     }
   },
   "auth": {
@@ -198,6 +226,21 @@
   "establishments": {
     "notFound": "Establishment not found",
     "targetNotFound": "Target establishment not found"
+  },
+  "species": {
+    "notFound": "Species not found",
+    "nameExists": "Species name already exists",
+    "hasAnimals": "Cannot delete a species with assigned animals"
+  },
+  "animals": {
+    "notFound": "Animal not found",
+    "codeExists": "Animal code already exists in this organization",
+    "hasChildren": "Cannot delete an animal that is father or mother of other animals",
+    "fatherNotFound": "Father not found",
+    "motherNotFound": "Mother not found",
+    "fatherMustBeMale": "Father must be a male animal",
+    "motherMustBeFemale": "Mother must be a female animal",
+    "cannotBeOwnParent": "An animal cannot be its own parent"
   },
   "inventory": {
     "stock": {

@@ -223,6 +223,34 @@
         "required": "El identificador del producto es obligatorio.",
         "invalid": "El identificador del producto no es válido."
       }
+    },
+    "animals": {
+      "code": {
+        "required": "El código del animal es requerido",
+        "invalid": "El código del animal debe tener máximo 50 caracteres"
+      },
+      "name": {
+        "invalid": "El nombre del animal debe tener máximo 100 caracteres"
+      },
+      "speciesId": {
+        "required": "La especie es requerida",
+        "invalid": "El ID de especie debe ser un entero válido"
+      },
+      "establishmentId": {
+        "required": "El establecimiento es requerido",
+        "invalid": "El ID de establecimiento debe ser un entero válido"
+      },
+      "sex": {
+        "required": "El sexo es requerido",
+        "invalid": "El sexo debe ser Macho o Hembra"
+      },
+      "entryDate": {
+        "required": "La fecha de ingreso es requerida"
+      },
+      "entryType": {
+        "required": "El tipo de ingreso es requerido",
+        "invalid": "El tipo de ingreso debe ser: Nacimiento, Compra o Transferencia"
+      }
     }
   },
   "auth": {
@@ -344,5 +372,20 @@
     "emailExists": "El email de la organización ya existe",
     "cannotDeleteWithEstablishments": "No se puede eliminar una organización con establecimientos asignados",
     "cannotDeleteWithUsers": "No se puede eliminar una organización con usuarios asignados"
+  },
+  "species": {
+    "notFound": "Especie no encontrada",
+    "nameExists": "El nombre de la especie ya existe",
+    "hasAnimals": "No se puede eliminar una especie con animales asignados"
+  },
+  "animals": {
+    "notFound": "Animal no encontrado",
+    "codeExists": "El código del animal ya existe en esta organización",
+    "hasChildren": "No se puede eliminar un animal que es padre o madre de otros animales",
+    "fatherNotFound": "Padre no encontrado",
+    "motherNotFound": "Madre no encontrada",
+    "fatherMustBeMale": "El padre debe ser un animal macho",
+    "motherMustBeFemale": "La madre debe ser un animal hembra",
+    "cannotBeOwnParent": "Un animal no puede ser su propio padre o madre"
   }
 }
