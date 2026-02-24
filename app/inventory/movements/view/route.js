@@ -50,7 +50,7 @@ async function handler(req, res, next) {
       establishmentId: movement.establishmentId
     },
     order: [['id', 'ASC']],
-    include: [{ model: InventoryProduct, as: 'product', attributes: ['id', 'name', 'sku'] }]
+    include: [{ model: InventoryProduct, as: 'product', attributes: ['id', 'name', 'sku', 'unitOfMeasure', 'batchActive'] }]
   });
 
   const productIds = [...new Set(kardexEntries.map((k) => k.productId))];
@@ -58,6 +58,7 @@ async function handler(req, res, next) {
     where: { establishmentId: movement.establishmentId, productId: productIds }
   });
   const minStockByProduct = Object.fromEntries(stocks.map((s) => [s.productId, parseFloat(s.minStockLevel)]));
+  const currentStockByProduct = Object.fromEntries(stocks.map((s) => [s.productId, parseFloat(s.currentStock)]));
 
   const rawBatchDetails = kardexEntries.map((k) => k.getDataValue?.('batchDetail') ?? k.batchDetail);
   const batchDetailArrays = rawBatchDetails.map((val) => {
@@ -104,14 +105,19 @@ async function handler(req, res, next) {
       expirationDate: d.expirationDate,
       unitCost: d.unitCost
     }));
+    const batchActive = !!k.product?.batchActive;
+    const currentStock = k.productId in currentStockByProduct ? currentStockByProduct[k.productId] : 0;
     return {
       productId: k.productId,
       productName: k.product?.name ?? null,
       sku: k.product?.sku ?? null,
+      unitOfMeasure: k.product?.unitOfMeasure ?? null,
+      batchActive,
       type: k.type,
       quantity: parseFloat(k.quantity),
       previousStock: parseFloat(k.previousStock),
       newStock: parseFloat(k.newStock),
+      currentStock,
       costPrice: k.costPrice != null ? parseFloat(k.costPrice) : null,
       batchDetail: enrichedBatchDetail,
       batches,
