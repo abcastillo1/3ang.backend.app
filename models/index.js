@@ -101,6 +101,14 @@ class Models {
     const kardexModule = await import('./inventory/kardex.js');
     const KardexFactory = kardexModule.default;
     this.models.Kardex = KardexFactory(this.sequelize, Sequelize.DataTypes);
+
+    const speciesModule = await import('./animals/species.js');
+    const SpeciesFactory = speciesModule.default;
+    this.models.Species = SpeciesFactory(this.sequelize, Sequelize.DataTypes);
+
+    const animalModule = await import('./animals/animal.js');
+    const AnimalFactory = animalModule.default;
+    this.models.Animal = AnimalFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {

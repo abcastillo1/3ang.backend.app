@@ -10,7 +10,8 @@ export const FILE_CATEGORIES = {
   PROFILES: 'profiles',
   DOCUMENTS: 'documents',
   INVENTORY: 'inventory',
-  ESTABLISHMENTS: 'establishments'
+  ESTABLISHMENTS: 'establishments',
+  ANIMALS: 'animals'
 };
 
 // MIME types allowed by category
@@ -18,7 +19,8 @@ const ALLOWED_MIME_TYPES = {
   [FILE_CATEGORIES.PROFILES]: ['image/jpeg', 'image/png', 'image/webp'],
   [FILE_CATEGORIES.DOCUMENTS]: ['application/pdf', 'image/jpeg', 'image/png', 'video/mp4'],
   [FILE_CATEGORIES.INVENTORY]: ['image/jpeg', 'image/png', 'image/webp'],
-  [FILE_CATEGORIES.ESTABLISHMENTS]: ['image/jpeg', 'image/png', 'image/webp']
+  [FILE_CATEGORIES.ESTABLISHMENTS]: ['image/jpeg', 'image/png', 'image/webp'],
+  [FILE_CATEGORIES.ANIMALS]: ['image/jpeg', 'image/png', 'image/webp']
 };
 
 // Global file size limit (in bytes)
@@ -29,7 +31,8 @@ const MAX_FILE_SIZES = {
   [FILE_CATEGORIES.PROFILES]: 5 * 1024 * 1024, // 5MB
   [FILE_CATEGORIES.DOCUMENTS]: 40 * 1024 * 1024, // 40MB
   [FILE_CATEGORIES.INVENTORY]: 5 * 1024 * 1024, // 5MB
-  [FILE_CATEGORIES.ESTABLISHMENTS]: 5 * 1024 * 1024 // 5MB
+  [FILE_CATEGORIES.ESTABLISHMENTS]: 5 * 1024 * 1024, // 5MB
+  [FILE_CATEGORIES.ANIMALS]: 5 * 1024 * 1024 // 5MB
 };
 
 const fileFilter = (req, file, cb) => {
