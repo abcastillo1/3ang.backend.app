@@ -87,7 +87,10 @@ export default async function validateMovementUpdate(req, res, next) {
       throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.invalidType');
     }
 
-    if (type === 'entry' && item.batchId && (!item.batches || !Array.isArray(item.batches) || item.batches.length === 0)) {
+    const batchActive = !!product.batchActive;
+    let validatedBatches = null;
+
+    if (batchActive && type === 'entry' && item.batchId && (!item.batches || !Array.isArray(item.batches) || item.batches.length === 0)) {
       const batch = await InventoryBatch.findOne({
         where: {
           id: item.batchId,
@@ -100,8 +103,9 @@ export default async function validateMovementUpdate(req, res, next) {
       }
     }
 
-    let validatedBatches = null;
-    if (type === 'entry' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
+    if (!batchActive) {
+      validatedBatches = null;
+    } else if (type === 'entry' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
       let batchesSum = 0;
       validatedBatches = item.batches.map((b) => {
         const qty = parseFloat(b.quantity);
@@ -124,7 +128,7 @@ export default async function validateMovementUpdate(req, res, next) {
       }
     }
 
-    if (type === 'exit' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
+    if (batchActive && type === 'exit' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
       let exitBatchesSum = 0;
       validatedBatches = [];
       for (const b of item.batches) {
@@ -153,7 +157,7 @@ export default async function validateMovementUpdate(req, res, next) {
       if (Math.abs(exitBatchesSum - quantity) > 0.0001) {
         throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.sumMustEqualQuantity');
       }
-    } else if (type === 'exit' && item.batchId) {
+    } else if (batchActive && type === 'exit' && item.batchId) {
       const exitBatch = await InventoryBatch.findOne({
         where: {
           id: item.batchId,
@@ -170,7 +174,7 @@ export default async function validateMovementUpdate(req, res, next) {
       }
     }
 
-    if (type === 'transfer' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
+    if (batchActive && type === 'transfer' && item.batches && Array.isArray(item.batches) && item.batches.length > 0) {
       let exitBatchesSum = 0;
       validatedBatches = [];
       for (const b of item.batches) {
@@ -199,7 +203,7 @@ export default async function validateMovementUpdate(req, res, next) {
       if (Math.abs(exitBatchesSum - quantity) > 0.0001) {
         throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.batches.sumMustEqualQuantity');
       }
-    } else if (type === 'transfer' && item.batchId) {
+    } else if (batchActive && type === 'transfer' && item.batchId) {
       const exitBatch = await InventoryBatch.findOne({
         where: {
           id: item.batchId,
@@ -244,11 +248,11 @@ export default async function validateMovementUpdate(req, res, next) {
       reason: item.reason || null,
       metadata: item.metadata || null,
       targetEstablishmentId: type === 'transfer' ? item.targetEstablishmentId : null,
-      batchId: ((type === 'entry' && !validatedBatches && item.batchId) || (type === 'exit' && !validatedBatches && item.batchId) || (type === 'transfer' && !validatedBatches && item.batchId)) ? parseInt(item.batchId, 10) : null,
-      unitCost: (type === 'entry' && !validatedBatches && item.unitCost != null) ? parseFloat(item.unitCost) : null,
-      batchCode: (type === 'entry' && !validatedBatches && item.batchCode) ? String(item.batchCode).trim() : null,
-      manufacturingDate: (type === 'entry' && !validatedBatches && item.manufacturingDate) ? item.manufacturingDate : null,
-      expirationDate: (type === 'entry' && !validatedBatches && item.expirationDate) ? item.expirationDate : null,
+      batchId: (batchActive && ((type === 'entry' && !validatedBatches && item.batchId) || (type === 'exit' && !validatedBatches && item.batchId) || (type === 'transfer' && !validatedBatches && item.batchId))) ? parseInt(item.batchId, 10) : null,
+      unitCost: (batchActive && type === 'entry' && !validatedBatches && item.unitCost != null) ? parseFloat(item.unitCost) : null,
+      batchCode: (batchActive && type === 'entry' && !validatedBatches && item.batchCode) ? String(item.batchCode).trim() : null,
+      manufacturingDate: (batchActive && type === 'entry' && !validatedBatches && item.manufacturingDate) ? item.manufacturingDate : null,
+      expirationDate: (batchActive && type === 'entry' && !validatedBatches && item.expirationDate) ? item.expirationDate : null,
       batches: validatedBatches
     });
   }
