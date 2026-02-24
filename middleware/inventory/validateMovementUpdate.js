@@ -10,7 +10,7 @@ export default async function validateMovementUpdate(req, res, next) {
     throwError(HTTP_STATUS.BAD_REQUEST, 'validators.id.required');
   }
 
-  const { Movement, Establishment, InventoryProduct, InventoryStock, InventoryBatch } = modelsInstance.models;
+  const { Movement, Establishment, InventoryProduct, InventoryStock, InventoryBatch, Kardex } = modelsInstance.models;
 
   const movement = await Movement.findByPk(movementId, {
     include: [{ model: Establishment, as: 'establishment', attributes: ['id', 'organizationId'] }]
@@ -24,9 +24,35 @@ export default async function validateMovementUpdate(req, res, next) {
     throwError(HTTP_STATUS.BAD_REQUEST, 'validators.items.required');
   }
 
+  const establishmentId = movement.establishmentId;
+
+  const currentEntries = await Kardex.findAll({
+    where: {
+      movementId: movement.id,
+      isCurrent: true,
+      isReversal: false,
+      establishmentId
+    },
+    attributes: ['productId', 'type', 'quantity']
+  });
+
+  const productIdsInMovement = [...new Set(currentEntries.map((e) => e.productId))];
+  const stocksNow = await InventoryStock.findAll({
+    where: { establishmentId, productId: productIdsInMovement }
+  });
+  const currentStockByProduct = Object.fromEntries(
+    stocksNow.map((s) => [s.productId, parseFloat(s.currentStock)])
+  );
+  const stockAfterReversalByProduct = { ...currentStockByProduct };
+  for (const entry of currentEntries) {
+    const qty = parseFloat(entry.quantity);
+    const delta = entry.type === 'exit' || entry.type === 'transfer' ? qty : -qty;
+    const pid = entry.productId;
+    stockAfterReversalByProduct[pid] = (stockAfterReversalByProduct[pid] ?? 0) + delta;
+  }
+
   const movementType = movement.type || 'adjustment';
   const validatedItems = [];
-  const establishmentId = movement.establishmentId;
 
   for (let i = 0; i < data.items.length; i++) {
     const item = data.items[i];
@@ -55,8 +81,9 @@ export default async function validateMovementUpdate(req, res, next) {
         productId: item.productId
       }
     });
-
-    const previousStock = existingStock ? parseFloat(existingStock.currentStock) : 0;
+    const previousStock = item.productId in stockAfterReversalByProduct
+      ? stockAfterReversalByProduct[item.productId]
+      : (existingStock ? parseFloat(existingStock.currentStock) : 0);
     let newStock;
     let quantity;
 
