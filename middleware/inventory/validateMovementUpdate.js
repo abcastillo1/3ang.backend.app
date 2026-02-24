@@ -33,7 +33,7 @@ export default async function validateMovementUpdate(req, res, next) {
       isReversal: false,
       establishmentId
     },
-    attributes: ['productId', 'type', 'quantity']
+    attributes: ['productId', 'type', 'quantity', 'batchDetail']
   });
 
   const productIdsInMovement = [...new Set(currentEntries.map((e) => e.productId))];
@@ -49,6 +49,34 @@ export default async function validateMovementUpdate(req, res, next) {
     const delta = entry.type === 'exit' || entry.type === 'transfer' ? qty : -qty;
     const pid = entry.productId;
     stockAfterReversalByProduct[pid] = (stockAfterReversalByProduct[pid] ?? 0) + delta;
+  }
+
+  const batchIdsInMovement = [];
+  for (const entry of currentEntries) {
+    const raw = entry.getDataValue ? entry.getDataValue('batchDetail') : entry.batchDetail;
+    const arr = raw == null ? [] : (Array.isArray(raw) ? raw : (typeof raw === 'string' ? (() => { try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; } })() : []));
+    for (const d of arr) {
+      if (d && d.batchId) batchIdsInMovement.push(d.batchId);
+    }
+  }
+  const batchesNow = batchIdsInMovement.length > 0
+    ? await InventoryBatch.findAll({
+        where: { id: [...new Set(batchIdsInMovement)] },
+        attributes: ['id', 'currentQuantity']
+      })
+    : [];
+  const currentQtyByBatch = Object.fromEntries(batchesNow.map((b) => [b.id, parseFloat(b.currentQuantity)]));
+  const batchQtyAfterReversal = { ...currentQtyByBatch };
+  for (const entry of currentEntries) {
+    const raw = entry.getDataValue ? entry.getDataValue('batchDetail') : entry.batchDetail;
+    const arr = raw == null ? [] : (Array.isArray(raw) ? raw : (typeof raw === 'string' ? (() => { try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; } })() : []));
+    const delta = entry.type === 'exit' || entry.type === 'transfer' ? 1 : -1;
+    for (const d of arr) {
+      if (!d || d.batchId == null) continue;
+      const bid = d.batchId;
+      const q = parseFloat(d.quantity) || 0;
+      batchQtyAfterReversal[bid] = (batchQtyAfterReversal[bid] ?? 0) + delta * q;
+    }
   }
 
   const movementType = movement.type || 'adjustment';
@@ -175,7 +203,9 @@ export default async function validateMovementUpdate(req, res, next) {
         if (!exitBatch) {
           throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
         }
-        const batchQty = parseFloat(exitBatch.currentQuantity);
+        const batchQty = batchIdVal in batchQtyAfterReversal
+          ? batchQtyAfterReversal[batchIdVal]
+          : parseFloat(exitBatch.currentQuantity);
         if (batchQty < qty) {
           throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
         }
@@ -195,7 +225,10 @@ export default async function validateMovementUpdate(req, res, next) {
       if (!exitBatch) {
         throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
       }
-      const batchQty = parseFloat(exitBatch.currentQuantity);
+      const batchIdForMap = parseInt(item.batchId, 10);
+      const batchQty = batchIdForMap in batchQtyAfterReversal
+        ? batchQtyAfterReversal[batchIdForMap]
+        : parseFloat(exitBatch.currentQuantity);
       if (batchQty < quantity) {
         throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
       }
@@ -221,8 +254,10 @@ export default async function validateMovementUpdate(req, res, next) {
         if (!exitBatch) {
           throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
         }
-        const batchQty = parseFloat(exitBatch.currentQuantity);
-        if (batchQty < qty) {
+        const batchQtyTransfer = batchIdVal in batchQtyAfterReversal
+          ? batchQtyAfterReversal[batchIdVal]
+          : parseFloat(exitBatch.currentQuantity);
+        if (batchQtyTransfer < qty) {
           throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
         }
         validatedBatches.push({ batchId: batchIdVal, quantity: qty });
@@ -241,8 +276,10 @@ export default async function validateMovementUpdate(req, res, next) {
       if (!exitBatch) {
         throwError(HTTP_STATUS.NOT_FOUND, 'inventory.batches.notFound');
       }
-      const batchQty = parseFloat(exitBatch.currentQuantity);
-      if (batchQty < quantity) {
+      const batchQtyTransferSingle = item.batchId in batchQtyAfterReversal
+        ? batchQtyAfterReversal[item.batchId]
+        : parseFloat(exitBatch.currentQuantity);
+      if (batchQtyTransferSingle < quantity) {
         throwError(HTTP_STATUS.BAD_REQUEST, 'inventory.stock.insufficientStock');
       }
     }
