@@ -73,42 +73,6 @@ class Models {
     const auditLogModule = await import('./audit/auditLog.js');
     const AuditLogFactory = auditLogModule.default;
     this.models.AuditLog = AuditLogFactory(this.sequelize, Sequelize.DataTypes);
-
-    const productCategoryModule = await import('./inventory/productCategory.js');
-    const ProductCategoryFactory = productCategoryModule.default;
-    this.models.ProductCategory = ProductCategoryFactory(this.sequelize, Sequelize.DataTypes);
-
-    const inventoryProductModule = await import('./inventory/inventoryProduct.js');
-    const InventoryProductFactory = inventoryProductModule.default;
-    this.models.InventoryProduct = InventoryProductFactory(this.sequelize, Sequelize.DataTypes);
-
-    const establishmentModule = await import('./establishment/establishment.js');
-    const EstablishmentFactory = establishmentModule.default;
-    this.models.Establishment = EstablishmentFactory(this.sequelize, Sequelize.DataTypes);
-
-    const inventoryStockModule = await import('./inventory/inventoryStock.js');
-    const InventoryStockFactory = inventoryStockModule.default;
-    this.models.InventoryStock = InventoryStockFactory(this.sequelize, Sequelize.DataTypes);
-
-    const inventoryBatchModule = await import('./inventory/inventoryBatch.js');
-    const InventoryBatchFactory = inventoryBatchModule.default;
-    this.models.InventoryBatch = InventoryBatchFactory(this.sequelize, Sequelize.DataTypes);
-
-    const movementModule = await import('./inventory/movement.js');
-    const MovementFactory = movementModule.default;
-    this.models.Movement = MovementFactory(this.sequelize, Sequelize.DataTypes);
-
-    const kardexModule = await import('./inventory/kardex.js');
-    const KardexFactory = kardexModule.default;
-    this.models.Kardex = KardexFactory(this.sequelize, Sequelize.DataTypes);
-
-    const speciesModule = await import('./animals/species.js');
-    const SpeciesFactory = speciesModule.default;
-    this.models.Species = SpeciesFactory(this.sequelize, Sequelize.DataTypes);
-
-    const animalModule = await import('./animals/animal.js');
-    const AnimalFactory = animalModule.default;
-    this.models.Animal = AnimalFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {

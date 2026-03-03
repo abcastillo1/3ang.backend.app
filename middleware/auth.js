@@ -12,7 +12,7 @@ export default async function authenticate(req, res, next) {
   }
 
   const token = authHeader.substring(7);
-  const { UserSession, User, Organization, Establishment } = modelsInstance.models;
+  const { UserSession, User, Organization } = modelsInstance.models;
 
   let userModel = null;
 
@@ -31,11 +31,7 @@ export default async function authenticate(req, res, next) {
       userModel = await User.findByPk(decoded.id, {
         include: [{
           model: Organization,
-          as: 'organization',
-          include: [{
-            model: Establishment,
-            as: 'establishments'
-          }]
+          as: 'organization'
         }]
       });
 
@@ -51,11 +47,7 @@ export default async function authenticate(req, res, next) {
     userModel = await User.findByPk(userModel.id, {
       include: [{
         model: Organization,
-        as: 'organization',
-        include: [{
-          model: Establishment,
-          as: 'establishments'
-        }]
+        as: 'organization'
       }]
     });
   }
@@ -69,6 +61,5 @@ export default async function authenticate(req, res, next) {
 
   req.userModel = userModel;
   req.organization = userModel.organization;
-  req.establishment = userModel.organization.establishments[0];
   next();
 }

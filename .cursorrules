@@ -1,4 +1,29 @@
 # =====================================================
+# CONTEXTO DE LA PLATAFORMA
+# =====================================================
+
+Estamos desarrollando una plataforma de auditoría contable inteligente diseñada para firmas auditoras en Ecuador. El sistema gestiona el flujo completo de una auditoría, desde la carga segura de documentos hasta la emisión de hallazgos.
+
+Características clave:
+- Arquitectura: Frontend en React y Backend en Node.js (ES Modules), estructura modular estricta.
+- Seguridad de datos: Documentos (Excel, PDF) se suben directamente a Backblaze B2 mediante URLs firmadas; el servidor nunca procesa archivos pesados y la información está protegida.
+- Inteligencia artificial: Integración con Claude (Anthropic) para analizar evidencia documental, identificar riesgos y novedades según normativa local y NIIF.
+- Estándar senior: Código y base de datos (MySQL) con logging exhaustivo, internacionalización y lógica de negocio centralizada.
+
+La lógica de negocio del dominio de auditoría (flujos, entidades, reglas) está documentada en docs/business-logic.md.
+
+# =====================================================
+# ALCANCE DEL PRODUCTO — MÓDULOS FUERA DE ALCANCE
+# =====================================================
+
+Los siguientes dominios/modelos NO forman parte del alcance actual de la plataforma de auditoría contable. Son legacy o de otro producto; no deben usarse como referencia para nuevas funcionalidades ni documentación de negocio:
+- animals (species, animal)
+- establishment (establecimientos/granjas)
+- inventory (productos, categorías, stock, movimientos, kardex)
+
+Al implementar o documentar, priorizar siempre el dominio de auditoría: casos de auditoría, documentos, evidencia, hallazgos, análisis con IA, normativa/NIIF.
+
+# =====================================================
 # CONTEXTO GENERAL DEL PROYECTO
 # =====================================================
 
@@ -26,7 +51,8 @@ No son sugerencias.
 - Validación: express-validator (usando helpers propios)
 - Autenticación: JWT (jsonwebtoken)
 - Seguridad: helmet, bcryptjs
-- Manejo de archivos: Multer para multipart/form-data
+- Almacenamiento: Backblaze B2 (vía S3 API) con Presigned URLs
+- IA: Anthropic Claude API (Analista Experto)
 - Storage: Backblaze B2 (migrable a AWS S3)
 - Logging: sistema de logging a archivos locales
 - Internacionalización: sistema de traducciones con archivos JSON
@@ -338,63 +364,52 @@ ANTES de implementar o modificar funcionalidades, consultar este archivo para:
 Este archivo es la fuente de verdad para la lógica del dominio.
 
 # =====================================================
-# CARGA DE ARCHIVOS (FILE UPLOAD)
+# CARGA DE ARCHIVOS (FILE UPLOAD - PRESIGNED URLS)
 # =====================================================
 
-Arquitectura centralizada de carga de archivos:
+Arquitectura de carga descentralizada para máxima eficiencia y seguridad:
 
-1. STORAGE EXTERNO:
-   - Backblaze B2 como servicio principal (migrable a AWS S3)
-   - Todos los archivos se almacenan en buckets externos
-   - NO almacenar archivos en el servidor local
+1. STORAGE EXTERNO (BACKBLAZE B2 / S3):
+   - Uso de Backblaze B2 a través de la API de S3.
+   - El backend NO actúa como túnel de datos; el servidor NUNCA recibe el stream del archivo físico.
+   - Escalabilidad total: La carga directa al bucket evita el bloqueo del event loop en Node.js.
 
-2. ESTRUCTURA DE ALMACENAMIENTO:
-   - Path en bucket: {organizationId}/{category}/{filename}
-   - Categorías permitidas: profiles, documents, inventory, etc.
-   - Cada organización tiene su carpeta raíz
-   - Los archivos se organizan por categoría dentro de cada organización
+2. ESTRUCTURA DE ALMACENAMIENTO (HIERARCHY):
+   - Path: {organizationId}/{category}/{auditCaseId}/{uniqueFilename}
+   - Categorías permitidas: audit_evidences, fiscal_reports, company_docs, profiles.
+   - Aislamiento: Cada organización y caso de auditoría tiene su propio espacio lógico.
 
-3. MODELO DE DATOS:
-   - NO se crea tabla File en la base de datos
-   - NO almacenar el archivo físico en la base de datos
-   - Solo guardar la URL retornada directamente en las entidades que la necesiten (ej: users.profileImageUrl, inventory_products.imageUrl)
+3. MODELO DE DATOS Y PERSISTENCIA:
+   - Se utiliza la tabla 'audit_documents' para registrar la metadata del archivo.
+   - Campos obligatorios: originalName, storageKey, fileUrl, mimeType, size, uploaderId.
+   - Integración IA: El registro incluye el estado del análisis (pending, processing, completed, failed).
 
-4. FLUJO DE CARGA:
-   - Frontend envía archivo con categoría especificada
-   - API valida categoría, tamaño, tipo de archivo
-   - Archivo se sube al bucket (Backblaze/S3)
-   - Se retorna URL directamente (sin crear registro en BD)
-   - Frontend guarda la URL en la entidad correspondiente (usuario, producto, etc.)
+4. FLUJO DE CARGA (TICKET SYSTEM):
+   - Solicitud: Frontend envía metadata (name, type, size, category) al endpoint GET /api/v1/files/upload-url.
+   - Autorización: El API valida permisos del auditor sobre el caso específico.
+   - Firma: helpers/storage.js genera una 'Presigned URL' de tipo PUT.
+   - Subida: Frontend ejecuta el PUT directamente al bucket con el archivo binario.
+   - Registro: Tras éxito (HTTP 200), el Frontend notifica al API para persistir la URL y disparar el análisis de IA.
 
-5. VALIDACIONES:
-   - Categoría debe ser válida (profiles, documents, inventory, etc.)
-   - Tamaño máximo configurable por tipo de archivo
-   - Tipos MIME permitidos por categoría
-   - Usuario debe pertenecer a la organización
+5. VALIDACIONES Y SEGURIDAD:
+   - Expiración: La URL firmada caduca estrictamente en 5 minutos.
+   - Content-Type: La firma obliga a que el archivo subido coincida con el tipo MIME declarado.
+   - Tamaño: Validación de cuotas de almacenamiento por organización antes de firmar.
 
-6. PERMISOS:
-   - Requiere permiso específico para upload (files.upload)
-   - El propietario tiene acceso completo sin permisos específicos
+6. HELPER DE STORAGE (ABSTRACCIÓN):
+   - Ubicación: helpers/storage.js utilizando @aws-sdk/client-s3.
+   - Métodos core: 
+     - generateUploadUrl(key, contentType): Crea el ticket de subida.
+     - generateDownloadUrl(key): Crea acceso temporal para documentos privados.
+     - deleteObject(key): Eliminación física en el bucket.
 
-7. MIDDLEWARE:
-   - Multer para manejar multipart/form-data
-   - Validación de archivo antes de subir
-   - Limpieza de archivos temporales en caso de error
+7. ANÁLISIS AUTOMATIZADO (IA TRIGGER):
+   - Al confirmar la carga, el sistema encola una tarea para helpers/ai-analyst.js.
+   - La IA accede al documento vía URL firmada de lectura para extraer hallazgos contables.
 
-8. HELPER DE STORAGE:
-   - helpers/storage.js encapsula lógica de Backblaze/S3
-   - Métodos: uploadFile(), deleteFile(), getFileUrl()
-   - Abstracción permite migrar fácilmente entre servicios
-
-9. RESPUESTA:
-   - Retorna objeto con: url, path, category, originalName, fileName, mimeType, size
-   - URL es pública o firmada según configuración
-   - Frontend guarda la URL directamente en el campo correspondiente de la entidad (ej: profileImageUrl, imageUrl)
-
-10. MIGRACIÓN FUTURA:
-    - Código preparado para migrar a AWS S3
-    - Cambios solo en helpers/storage.js
-    - Resto del código permanece igual
+8. MIGRACIÓN Y COMPATIBILIDAD:
+   - El código debe ser agnóstico al proveedor (AWS S3, Backblaze, Cloudflare R2).
+   - El cambio de proveedor solo debe afectar a las variables de entorno y al endpoint en config/environment.js.
 
 # =====================================================
 # CONVENCIONES GENERALES

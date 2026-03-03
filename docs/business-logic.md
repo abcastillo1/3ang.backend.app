@@ -6,7 +6,7 @@ Este documento describe la lógica de negocio, reglas de dominio y flujos de tra
 
 ## Visión General del Sistema
 
-Este es un sistema multi-tenant de gestión de inventario diseñado para organizaciones (granjas/establecimientos) para gestionar sus productos, stock y usuarios.
+Este es un sistema multi-tenant diseñado para organizaciones (firmas auditoras) para gestionar usuarios, roles y el flujo de auditoría.
 
 ## Entidades Principales
 
@@ -14,7 +14,7 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - Cada organización es independiente y aislada
 - Una organización tiene un propietario (`ownerUserId`)
 - El propietario tiene acceso completo a todas las funcionalidades sin permisos explícitos (bypass)
-- Las organizaciones pueden tener múltiples usuarios, roles, productos y establecimientos
+- Las organizaciones pueden tener múltiples usuarios y roles
 
 ### Usuarios
 - Los usuarios pertenecen a una sola organización
@@ -27,13 +27,6 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - Los permisos son granulares y están organizados por módulo
 - Los roles del sistema no pueden ser modificados (no se pueden agregar/quitar permisos)
 - El propietario omite todas las verificaciones de permisos
-
-### Sistema de Inventario
-- Los productos pertenecen a una organización
-- Los productos pueden ser categorizados usando `ProductCategory` (específico de la organización)
-- Los establecimientos (granjas) pertenecen a una organización
-- El stock se rastrea por establecimiento y producto
-- Todos los movimientos de inventario se registran en la tabla `kardex` (Kardex). Las operaciones pueden agruparse en un movimiento (tabla `movements`, Movement) que actúa como transacción con secuencia por establecimiento.
 
 ## Reglas de Negocio
 
@@ -97,7 +90,7 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 ### Sistema de Permisos
 
 #### Estructura de Permisos
-- Los permisos están organizados por módulos (ej: `users`, `roles`, `inventory`)
+- Los permisos están organizados por módulos (ej: `users`, `roles`)
 - Los códigos de permisos siguen el patrón: `{module}.{action}`
 - Ejemplos:
   - `users.create` - Crear usuarios
@@ -118,61 +111,6 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - El propietario de la organización (`ownerUserId`) omite todas las verificaciones de permisos
 - Los usuarios deben tener el permiso requerido en su rol
 - Los permisos se verifican dinámicamente según qué campos se están actualizando
-
-### Gestión de Inventario
-
-#### Categorías de Productos
-- Las categorías son específicas de la organización
-- Las categorías permiten a las organizaciones personalizar sus tipos de productos
-- Las categorías pueden ser eliminadas lógicamente (soft delete)
-- Los productos pueden pertenecer opcionalmente a una categoría
-- Si se elimina una categoría, el `categoryId` de los productos se establece en `NULL` (SET NULL on delete)
-
-#### Productos (`InventoryProduct`)
-- Los productos pertenecen a una organización
-- Los productos pueden pertenecer opcionalmente a una categoría
-- Los productos tienen:
-  - Nombre (requerido)
-  - SKU (opcional, identificador único)
-  - Descripción (opcional)
-  - Unidad de medida (requerido, ej: "kg", "litros", "unidades")
-  - Estado activo (`isActive`, por defecto `true`)
-- Los productos usan borrado lógico (soft delete)
-- Los productos pueden tener stock en múltiples establecimientos
-
-#### Establecimientos
-- Los establecimientos (granjas) pertenecen a una organización
-- Cada establecimiento puede tener:
-  - Nombre (requerido)
-  - Código (identificador opcional)
-  - Dirección (opcional)
-  - Teléfono (opcional)
-  - Estado activo (`isActive`, por defecto `true`)
-- Los establecimientos usan borrado lógico (soft delete)
-- Cada establecimiento puede tener stock de múltiples productos
-
-#### Stock (`InventoryStock`)
-- El stock se rastrea por establecimiento y producto
-- Cada registro de stock tiene:
-  - Cantidad de stock actual (`currentStock`, decimal 12,4)
-  - Nivel mínimo de stock (`minStockLevel`, decimal 12,4, opcional)
-- Restricción única: un registro de stock por combinación (establecimiento, producto)
-- El stock se actualiza automáticamente cuando ocurren movimientos de inventario
-- La tabla de stock no usa borrado lógico (solo timestamp `updatedAt`)
-
-#### Movimientos (`Movement`) y Kardex (`Kardex`)
-- **Movimientos (tabla `movements`)**: Una transacción que agrupa **varios cambios de stock en un solo movimiento**: en el mismo movimiento se pueden hacer ingresos y/o egresos de **varios productos**. Cada movimiento tiene:
-  - Establecimiento, usuario, número de secuencia único por establecimiento (`sequence_number`), descripción opcional.
-  - La secuencia permite identificar orden y referencia (ej. MOV-0001, MOV-0002).
-- **Kardex (tabla `kardex`)**: Registra cada entrada/salida de producto (reemplaza al antiguo `inventory_logs`). Cada registro tiene:
-  - Establecimiento, producto, usuario, opcionalmente `movement_id` (si pertenece a un movimiento).
-  - Tipo: `entry`, `exit`, `transfer`, `adjustment`.
-  - Cantidad, stock anterior y stock nuevo, razón, metadatos.
-  - **`is_current`**: identifica los registros que representan el estado vigente. Al editar un movimiento, los registros antiguos se marcan como no vigentes y se crean reversiones y nuevos registros; solo los últimos son `is_current = true`.
-  - **`is_reversal`**: indica que el registro es una reversión (deshace un registro anterior).
-- Al **editar un movimiento**: primero se revierte el efecto actual (se crean registros de reversión con la misma cantidad en sentido inverso, **se restaura el stock** en `inventory_stock` y se marca `is_current = false` en los registros originales); luego se aplican los nuevos cambios como registros normales con `is_current = true`. **Todos los cambios (reversiones, ingresos, egresos) afectan siempre al stock.**
-- La lógica de crear/editar movimientos y aplicar reversiones está centralizada en el modelo `Movement` (`createWithItems`, `updateWithItems`); el stock se actualiza mediante `InventoryStock.updateStock` desde dichos métodos.
-- Los registros de kardex son inmutables en contenido (solo se actualiza `is_current` cuando se edita el movimiento); se usan para auditoría e historial de stock.
 
 ### Autenticación y Sesiones
 
@@ -223,24 +161,12 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 2. **Username**: Único globalmente en todas las organizaciones
 3. **Número de Documento**: Único por organización y tipo de documento
 4. **Nombre de Rol**: Único por organización
-5. **Stock**: Único por combinación (establecimiento, producto)
 
 ### Restricciones de Claves Foráneas
 
 - Usuarios → Organización (CASCADE on delete)
 - Usuarios → Rol (restringido)
 - Roles → Organización (CASCADE on delete)
-- Productos → Organización (CASCADE on delete)
-- Productos → Categoría (SET NULL on delete)
-- Establecimientos → Organización (CASCADE on delete)
-- Stock → Establecimiento (CASCADE on delete)
-- Stock → Producto (CASCADE on delete)
-- Kardex → Establecimiento (restringido)
-- Kardex → Producto (restringido)
-- Kardex → Usuario (restringido)
-- Kardex → Movement (SET NULL on delete, opcional)
-- Movement → Establecimiento (restringido)
-- Movement → Usuario (restringido)
 
 ### Comportamiento de Borrado Lógico
 
@@ -248,12 +174,9 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
   - User
   - Organization
   - Role
-  - ProductCategory
-  - InventoryProduct
-  - Establishment
 - Los registros eliminados lógicamente se marcan con el timestamp `deletedAt`
 - Los registros eliminados lógicamente se excluyen de las consultas por defecto
-- El borrado físico no se usa (excepto para logs y stock, que no usan borrado lógico)
+- El borrado físico no se usa (excepto para logs)
 
 ## Flujos de Trabajo
 
@@ -263,18 +186,6 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 3. El propietario crea roles y asigna permisos
 4. El propietario crea usuarios adicionales y asigna roles
 5. Los usuarios pueden entonces operar dentro de sus permisos
-
-### Flujo de Movimiento de Inventario
-- **Sin movimiento (actualización directa de stock)**: Igual que antes: se actualiza stock y se crea un registro en kardex con `movement_id` nulo y `is_current = true`.
-- **Con movimiento (agrupado)**:
-  1. Se crea un registro en `movements` con el siguiente `sequence_number` del establecimiento.
-  2. Por cada ítem (producto + tipo + cantidad): se calcula el nuevo stock, se actualiza `inventory_stock` y se crea un registro en `kardex` con `movement_id`, `is_current = true`, `is_reversal = false`.
-  3. Para transferencias se generan dos registros de kardex (salida en origen, entrada en destino), ambos ligados al mismo movimiento.
-- **Edición de un movimiento**:
-  1. Se marcan como no vigentes (`is_current = false`) todos los registros de kardex del movimiento con `is_current = true`.
-  2. Por cada uno se crea un registro de reversión (misma cantidad en tipo inverso, restauración del stock anterior) con `is_reversal = true`, `is_current = false`.
-  3. Se aplican los nuevos ítems del movimiento como en la creación (nuevos registros en kardex con `is_current = true`).
-- Cálculo de stock: Entrada `newStock = previousStock + quantity`; Salida/Transferencia origen `newStock = previousStock - quantity`; Ajuste `newStock` según valor indicado.
 
 ### Flujo de Validación de Permisos
 1. La petición llega con token JWT
@@ -297,40 +208,6 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 - `password`: Requerido en creación, hasheado antes de guardar
 - `isActive`: Boolean, por defecto `true`
 - `roleId`: Requerido, debe existir y pertenecer a la misma organización
-
-### Campos de Producto
-- `name`: Requerido, string (máx 255)
-- `sku`: Opcional, string (máx 100)
-- `description`: Opcional, text
-- `unitOfMeasure`: Requerido, string (máx 50)
-- `isActive`: Boolean, por defecto `true`
-- `categoryId`: Opcional, debe existir y pertenecer a la misma organización
-
-### Campos de Establecimiento
-- `name`: Requerido, string (máx 255)
-- `code`: Opcional, string (máx 50)
-- `address`: Opcional, text
-- `phone`: Opcional, string (máx 50)
-- `isActive`: Boolean, por defecto `true`
-
-### Campos de Stock
-- `currentStock`: Requerido, decimal(12,4), por defecto 0.0000
-- `minStockLevel`: Opcional, decimal(12,4), por defecto 0.0000
-
-### Campos de Movement
-- `establishmentId`, `userId`: Requeridos
-- `sequenceNumber`: Entero, único por establecimiento
-- `description`: Opcional, string (máx 255)
-
-### Campos de Kardex (ex Log de Inventario)
-- `type`: Requerido, enum: 'entry', 'exit', 'transfer', 'adjustment'
-- `quantity`: Requerido, decimal(12,4)
-- `previousStock`, `newStock`: Requeridos, decimal(12,4)
-- `reason`: Opcional, string (máx 255)
-- `metadata`: Opcional, JSON válido
-- `movement_id`: Opcional, FK a movements
-- `is_current`: Booleano, indica si el registro es el vigente para ese movimiento
-- `is_reversal`: Booleano, indica si el registro es una reversión
 
 ## Reglas de Seguridad
 
@@ -386,14 +263,8 @@ Este es un sistema multi-tenant de gestión de inventario diseñado para organiz
 1. **Siempre filtrar por organización**: Al consultar datos, siempre incluir filtro `organizationId`
 2. **Verificar bypass del propietario**: Antes de verificar permisos, verificar si el usuario es propietario
 3. **Usar borrado lógico**: Siempre usar métodos de borrado lógico, nunca borrado físico
-4. **Registrar movimientos de inventario**: Todos los cambios de stock deben crear entradas de log
-5. **Validar unicidad**: Verificar restricciones de unicidad antes de crear/actualizar
-6. **Usar transacciones**: Para operaciones complejas que involucren múltiples modelos, usar transacciones de base de datos
-7. **Traducir errores**: Todos los mensajes de error deben usar claves de traducción
-8. **Respetar permisos**: Siempre verificar permisos a menos que el usuario sea propietario
-9. **Rastrear cambios**: Usar `previousStock` y `newStock` en los logs de inventario
-10. **Mantener auditoría**: Registrar acciones importantes en los logs de auditoría
-
-### Cambios de base de datos (Kardex y Movements)
-- La tabla `inventory_logs` se renombró a `kardex`. Si ya existía `inventory_logs`, ejecutar: `RENAME TABLE inventory_logs TO kardex;` y agregar columnas `movement_id` (INT NULL), `is_current` (BOOLEAN DEFAULT TRUE), `is_reversal` (BOOLEAN DEFAULT FALSE).
-- Crear tabla `movements`: `id`, `establishment_id`, `user_id`, `sequence_number`, `description` (VARCHAR 255 NULL), `created_at`, `updated_at`; índice único en `(establishment_id, sequence_number)`.
+4. **Validar unicidad**: Verificar restricciones de unicidad antes de crear/actualizar
+5. **Usar transacciones**: Para operaciones complejas que involucren múltiples modelos, usar transacciones de base de datos
+6. **Traducir errores**: Todos los mensajes de error deben usar claves de traducción
+7. **Respetar permisos**: Siempre verificar permisos a menos que el usuario sea propietario
+8. **Mantener auditoría**: Registrar acciones importantes en los logs de auditoría

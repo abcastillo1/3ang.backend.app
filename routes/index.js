@@ -5,11 +5,8 @@ import rolesRoutes from './roles.js';
 import permissionsRoutes from './permissions.js';
 import systemRoutes from './system.js';
 import auditRoutes from './audit.js';
-import inventoryRoutes from './inventory.js';
-import establishmentRoutes from './establishments.js';
 import organizationRoutes from './organizations.js';
 import filesRoutes from './files.js';
-import animalsRoutes from './animals.js';
 
 const mainRouter = Router();
 mainRouter.use('/auth', authRoutes);
@@ -18,10 +15,7 @@ mainRouter.use('/roles', rolesRoutes);
 mainRouter.use('/permissions', permissionsRoutes);
 mainRouter.use('/system', systemRoutes);
 mainRouter.use('/audit', auditRoutes);
-mainRouter.use('/establishments', establishmentRoutes);
 mainRouter.use('/organizations', organizationRoutes);
-mainRouter.use('/inventory', inventoryRoutes);
 mainRouter.use('/files', filesRoutes);
-mainRouter.use('/animals', animalsRoutes);
 
 export default mainRouter;
