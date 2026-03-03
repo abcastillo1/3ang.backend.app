@@ -16,7 +16,7 @@ La lógica de negocio del dominio de auditoría (flujos, entidades, reglas) est�
 # ALCANCE DEL PRODUCTO — MÓDULOS FUERA DE ALCANCE
 # =====================================================
 
-Los siguientes dominios/modelos NO forman parte del alcance actual de la plataforma de auditoría contable. Son legacy o de otro producto; no deben usarse como referencia para nuevas funcionalidades ni documentación de negocio:
+Los siguientes dominios/modelos NO forman parte del alcance actual de la plataforma de auditoría contable. Su código ha sido eliminado del proyecto; no reintroducirlos:
 - animals (species, animal)
 - establishment (establecimientos/granjas)
 - inventory (productos, categorías, stock, movimientos, kardex)
@@ -92,14 +92,13 @@ La estructura del proyecto es obligatoria y no debe modificarse:
   - helpers/validator.js
   - helpers/controller-wrapper.js
   - helpers/logger.js
+  - helpers/storage.js → almacenamiento (Backblaze/S3)
 
 - logs/ → archivos de log locales
 - config/ → configuración del proyecto
   - config/environment.js
   - config/constants.js
 - assets/translations/ → archivos JSON de traducciones
-- helpers/ → utilidades reutilizables
-  - helpers/storage.js → servicio de almacenamiento (Backblaze/S3)
 - server.js → clase Server
 - index.js → punto de entrada principal
 - package.json → dependencias (ES Modules)
@@ -133,7 +132,7 @@ Reglas del handler:
 - NO manejar errores manualmente
 - NO usar res.status().json()
 - Usar SIEMPRE helpers/response
-- Importar modelos únicamente desde models/database.js
+- Importar modelos desde models/database.js (objeto de modelos) o desde models/index.js (propiedad .models)
 - Lanzar errores usando throw
 
 Ejemplo de exportación obligatoria:

@@ -1,5 +1,7 @@
 # Guía de Prueba de APIs
 
+**Nota:** Las APIs de inventario, establecimientos y animales han sido eliminadas del proyecto (plataforma de auditoría contable). Las secciones de este documento que mencionan `/inventory/*`, `/establishments/*` o `/animals/*` están obsoletas; solo son válidas las de auth, users, roles, permissions, organizations, audit y files.
+
 ## Importante: Todas las APIs usan POST
 
 ### 1. Login (NO requiere autenticación)

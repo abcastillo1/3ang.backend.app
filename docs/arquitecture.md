@@ -1,7 +1,10 @@
 # Prompt de Arquitectura para Generación de Estructura Base
 
 ## Contexto
-Necesito que generes la estructura base de un proyecto backend siguiendo esta arquitectura específica. El proyecto debe estar organizado de manera modular y escalable.
+
+Este backend es la API de la **plataforma de auditoría contable** para firmas auditoras en Ecuador. Los módulos de inventario, establecimientos y animales no forman parte del alcance (ver `.cursorrules` y `docs/business-logic.md`).
+
+Se debe generar la estructura base siguiendo esta arquitectura específica, de manera modular y escalable.
 
 **Importante:**
 - Todo el código del API debe estar en **inglés** (nombres de variables, funciones, archivos, carpetas, mensajes de error, etc.)
@@ -29,7 +32,7 @@ proyecto/
 │   │   │   └── route.js   # Handler principal de la ruta
 │   │   └── ...
 ├── models/                # Modelos de Sequelize organizados por dominio
-│   ├── [dominio]/         # Ej: users/, entities/, operations/
+│   ├── [dominio]/         # Ej: users/, organizations/, audit/
 │   │   └── [modelo].js    # Definición del modelo Sequelize
 │   ├── database.js        # Conexión a base de datos (exporta instancia de Models)
 │   └── index.js           # Clase principal Models que instancia todos los modelos
@@ -63,7 +66,7 @@ proyecto/
 ### 1. Organización de Rutas
 
 **Estructura de rutas en `routes/`:**
-- Cada módulo tiene su archivo router (ej: `routes/users.js`, `routes/entities.js`)
+- Cada módulo tiene su archivo router (ej: `routes/users.js`, `routes/organizations.js`)
 - Los routers importan y registran los controladores usando un helper
 - El router principal (`routes/index.js`) agrupa todos los módulos bajo `/api/v1`
 - Todo en inglés: nombres de archivos, rutas, funciones
@@ -86,12 +89,12 @@ export default router;
 ```javascript
 import { Router } from 'express';
 import Users from './users.js';
-import Entities from './entities.js';
+import Organizations from './organizations.js';
 
 const mainRouter = Router();
 
 mainRouter.use('/users', Users);
-mainRouter.use('/entities', Entities);
+mainRouter.use('/organizations', Organizations);
 
 export default mainRouter;
 ```
@@ -107,7 +110,7 @@ import validateRequest from '../../middleware/validation.js';
 import authenticate from '../../middleware/auth.js';
 import db from '../../models/database.js';
 
-const { User, Entity } = db;
+const { User, Organization } = db;
 
 export const validators = [
   validateField('data.name').isLength({ min: 2 }).withMessage('validators.name.minLength'),
@@ -275,10 +278,10 @@ export default (sequelize, DataTypes) => {
 ```javascript
 import db from './database.js';
 
-const { User, Entity } = db;
+const { User, Organization } = db;
 
 const user = await User.findOne({ where: { id: 1 } });
-const users = await User.findAll({ where: { active: true } });
+const users = await User.findAll({ where: { isActive: true } });
 ```
 
 ### 7. Middlewares
@@ -462,28 +465,31 @@ const message = req.translate('validators.email.invalid');
 
 ## Ejemplo de Módulo Completo
 
-Para un módulo de ejemplo (todo en inglés):
+Para un módulo de ejemplo (todo en inglés), alineado con el dominio de auditoría:
 
-**1. Modelo** (`models/products/product.js`):
+**1. Modelo** (`models/audit/auditLog.js` — ejemplo genérico):
 ```javascript
 export default (sequelize, DataTypes) => {
-  const Product = sequelize.define('Product', {
+  const AuditLog = sequelize.define('AuditLog', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    name: { type: DataTypes.STRING, allowNull: false },
-    price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    organizationId: { type: DataTypes.INTEGER, allowNull: false },
+    action: { type: DataTypes.STRING, allowNull: false },
   }, {
-    tableName: 'products',
-    paranoid: true,
+    tableName: 'audit_logs',
+    paranoid: false,
   });
 
-  Product.associate = function(models) {
+  AuditLog.associate = function(models) {
+    AuditLog.belongsTo(models.User, { foreignKey: 'userId' });
+    AuditLog.belongsTo(models.Organization, { foreignKey: 'organizationId' });
   };
 
-  return Product;
+  return AuditLog;
 };
 ```
 
-**2. Controlador** (`app/products/create/route.js`):
+**2. Controlador** (`app/[modulo]/[accion]/route.js` — ejemplo con `organizations`):
 ```javascript
 import { validateField } from '../../../helpers/validator.js';
 import apiResponse from '../../../helpers/response.js';
@@ -491,32 +497,30 @@ import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import db from '../../../models/database.js';
 
-const { Product } = db;
+const { Organization } = db;
 
 export const validators = [
-  validateField('data.name').isLength({ min: 3 }).withMessage('validators.product.name'),
-  validateField('data.price').isFloat({ min: 0 }).withMessage('validators.product.price'),
+  validateField('data.name').isLength({ min: 2 }).withMessage('validators.name.required'),
   validateRequest,
   authenticate,
 ];
 
 export default async function handler(req, res, next) {
   const { data } = req.body;
-  const product = await Product.create(data);
-  return apiResponse(res, req, next)(product);
+  const record = await Organization.create(data);
+  return apiResponse(res, req, next)(record);
 }
 ```
 
-**3. Router** (`routes/products.js`):
+**3. Router** (`routes/[modulo].js`):
 ```javascript
 import { Router } from 'express';
 import { registerRoute } from '../helpers/controller-wrapper.js';
 
 const router = Router();
 
-registerRoute(router, '/create', await import('../app/products/create/route.js'));
-registerRoute(router, '/list', await import('../app/products/list/route.js'));
-registerRoute(router, '/update', await import('../app/products/update/route.js'));
+registerRoute(router, '/create', await import('../app/organizations/create/route.js'));
+registerRoute(router, '/list', await import('../app/organizations/list/route.js'));
 
 export default router;
 ```
@@ -524,11 +528,11 @@ export default router;
 **4. Registro en router principal** (`routes/index.js`):
 ```javascript
 import { Router } from 'express';
-import Products from './products.js';
+import Organizations from './organizations.js';
 
 const mainRouter = Router();
 
-mainRouter.use('/products', Products);
+mainRouter.use('/organizations', Organizations);
 
 export default mainRouter;
 ```
