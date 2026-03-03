@@ -30,11 +30,18 @@ export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 export const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER || 'backblaze';
 export const STORAGE_BUCKET_PRIVATE = process.env.STORAGE_BUCKET_PRIVATE === 'true';
 export const STORAGE_SIGNED_URL_EXPIRY = parseInt(process.env.STORAGE_SIGNED_URL_EXPIRY) || 3600;
+/** Presigned upload URL expiry in seconds (default 5 minutes per .cursorrules) */
+export const PRESIGNED_UPLOAD_EXPIRY_SECONDS = parseInt(process.env.PRESIGNED_UPLOAD_EXPIRY_SECONDS) || 300;
 
 export const B2_APPLICATION_KEY_ID = process.env.B2_APPLICATION_KEY_ID;
 export const B2_APPLICATION_KEY = process.env.B2_APPLICATION_KEY;
 export const B2_BUCKET_ID = process.env.B2_BUCKET_ID;
 export const B2_BUCKET_NAME = process.env.B2_BUCKET_NAME;
+/** Region for B2 S3-compatible API (e.g. us-west-004). See bucket region in B2 dashboard. */
+export const B2_S3_REGION = process.env.B2_S3_REGION || 'us-west-004';
+/** S3-compatible API endpoint for B2. If not set, built from B2_S3_REGION. */
+export const B2_S3_ENDPOINT =
+  process.env.B2_S3_ENDPOINT || `https://s3.${B2_S3_REGION}.backblazeb2.com`;
 
 export const AWS_S3_REGION = process.env.AWS_S3_REGION;
 export const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;

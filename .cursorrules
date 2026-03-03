@@ -384,11 +384,11 @@ Arquitectura de carga descentralizada para máxima eficiencia y seguridad:
    - Integración IA: El registro incluye el estado del análisis (pending, processing, completed, failed).
 
 4. FLUJO DE CARGA (TICKET SYSTEM):
-   - Solicitud: Frontend envía metadata (name, type, size, category) al endpoint GET /api/v1/files/upload-url.
-   - Autorización: El API valida permisos del auditor sobre el caso específico.
-   - Firma: helpers/storage.js genera una 'Presigned URL' de tipo PUT.
-   - Subida: Frontend ejecuta el PUT directamente al bucket con el archivo binario.
-   - Registro: Tras éxito (HTTP 200), el Frontend notifica al API para persistir la URL y disparar el análisis de IA.
+   - Solicitud: Frontend envía metadata (name, mimeType, size, category, auditCaseId opcional) al endpoint POST /api/v1/files/upload-url (body: { data: { ... } }).
+   - Autorización: El API valida permisos (files.upload) y que la categoría sea audit_evidences, fiscal_reports, company_docs o profiles.
+   - Firma: helpers/storage.js genera una Presigned URL de tipo PUT (generateUploadUrl(key, contentType)).
+   - Subida: Frontend ejecuta el PUT directamente al bucket con el archivo binario y el Content-Type declarado.
+   - Registro: Tras éxito (HTTP 200 del PUT), el Frontend notifica al API con POST /api/v1/files/confirm (body: { data: { key, originalName, mimeType, size, category, auditCaseId? } }) para persistir metadata y, en el futuro, disparar el análisis de IA.
 
 5. VALIDACIONES Y SEGURIDAD:
    - Expiración: La URL firmada caduca estrictamente en 5 minutos.

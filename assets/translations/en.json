@@ -270,7 +270,10 @@
   "files": {
     "category": {
       "required": "File category is required",
-      "invalid": "File category is not valid. Allowed categories: profiles, documents, inventory, establishments"
+      "invalid": "File category is not valid. Allowed categories: audit_evidences, fiscal_reports, company_docs, profiles"
+    },
+    "confirm": {
+      "forbidden": "The file does not belong to your organization"
     },
     "file": {
       "required": "File is required"

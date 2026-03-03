@@ -3,15 +3,20 @@ import {
   STORAGE_PROVIDER,
   STORAGE_BUCKET_PRIVATE,
   STORAGE_SIGNED_URL_EXPIRY,
+  PRESIGNED_UPLOAD_EXPIRY_SECONDS,
   B2_APPLICATION_KEY_ID,
   B2_APPLICATION_KEY,
   B2_BUCKET_ID,
   B2_BUCKET_NAME,
+  B2_S3_ENDPOINT,
+  B2_S3_REGION,
   AWS_S3_REGION,
   AWS_S3_BUCKET_NAME,
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY
 } from '../config/environment.js';
+
+const PRESIGNED_UPLOAD_EXPIRY = PRESIGNED_UPLOAD_EXPIRY_SECONDS || 300;
 
 class StorageService {
   constructor() {
@@ -20,9 +25,103 @@ class StorageService {
     this.signedUrlExpiry = STORAGE_SIGNED_URL_EXPIRY || 3600;
     this.b2Client = null;
     this.s3Client = null;
+    this.s3Presigner = null;
     this.B2 = null;
     this.initialized = false;
+    this.s3Initialized = false;
     this.b2AuthData = null;
+  }
+
+  /**
+   * Get S3-compatible client for presigned URLs (B2 or AWS).
+   * Used so the server never receives file bytes; client uploads directly to bucket.
+   */
+  async getS3Client() {
+    if (this.s3Client) return this.s3Client;
+    const b2Endpoint = B2_S3_ENDPOINT;
+    if (this.provider === 'backblaze' && b2Endpoint && B2_APPLICATION_KEY_ID && B2_APPLICATION_KEY && B2_BUCKET_NAME) {
+      const { S3Client } = await import('@aws-sdk/client-s3');
+      this.s3Client = new S3Client({
+        region: B2_S3_REGION,
+        endpoint: b2Endpoint,
+        credentials: {
+          accessKeyId: B2_APPLICATION_KEY_ID,
+          secretAccessKey: B2_APPLICATION_KEY
+        },
+        forcePathStyle: true
+      });
+      this.s3Initialized = true;
+      return this.s3Client;
+    }
+    if (this.provider === 's3' && AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY) {
+      const { S3Client } = await import('@aws-sdk/client-s3');
+      this.s3Client = new S3Client({
+        region: AWS_S3_REGION,
+        credentials: {
+          accessKeyId: AWS_ACCESS_KEY_ID,
+          secretAccessKey: AWS_SECRET_ACCESS_KEY
+        }
+      });
+      this.s3Initialized = true;
+      return this.s3Client;
+    }
+    return null;
+  }
+
+  /**
+   * Generate a presigned PUT URL for direct client upload.
+   * @param {string} key - Storage key (path) e.g. orgId/category/caseId/filename
+   * @param {string} contentType - MIME type (enforced in signed URL)
+   * @returns {{ uploadUrl: string, key: string, expiresIn: number }}
+   */
+  async generateUploadUrl(key, contentType) {
+    const client = await this.getS3Client();
+    const bucket = this.provider === 'backblaze' ? B2_BUCKET_NAME : AWS_S3_BUCKET_NAME;
+    if (!client || !bucket) {
+      throw new Error('S3 client or bucket not configured for presigned uploads. Set B2_S3_ENDPOINT (and B2 credentials) or AWS S3 credentials.');
+    }
+    const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+    const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+    const command = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType
+    });
+    const uploadUrl = await getSignedUrl(client, command, { expiresIn: PRESIGNED_UPLOAD_EXPIRY });
+    return { uploadUrl, key, expiresIn: PRESIGNED_UPLOAD_EXPIRY };
+  }
+
+  /**
+   * Generate a presigned GET URL for temporary download.
+   * @param {string} key - Storage key (path)
+   * @returns {Promise<string>}
+   */
+  async generateDownloadUrl(key) {
+    const client = await this.getS3Client();
+    const bucket = this.provider === 'backblaze' ? B2_BUCKET_NAME : AWS_S3_BUCKET_NAME;
+    if (!client || !bucket) {
+      throw new Error('S3 client or bucket not configured for presigned download.');
+    }
+    const { GetObjectCommand } = await import('@aws-sdk/client-s3');
+    const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+    return getSignedUrl(client, command, { expiresIn: this.signedUrlExpiry });
+  }
+
+  /**
+   * Delete object from bucket by key (S3 API).
+   * @param {string} key - Storage key (path)
+   */
+  async deleteObject(key) {
+    const client = await this.getS3Client();
+    const bucket = this.provider === 'backblaze' ? B2_BUCKET_NAME : AWS_S3_BUCKET_NAME;
+    if (!client || !bucket) {
+      throw new Error('S3 client or bucket not configured for delete.');
+    }
+    const { DeleteObjectCommand } = await import('@aws-sdk/client-s3');
+    const command = new DeleteObjectCommand({ Bucket: bucket, Key: key });
+    await client.send(command);
+    logger.info(`Object deleted from storage: ${key}`);
   }
 
   async initialize() {
@@ -41,7 +140,6 @@ class StorageService {
           applicationKeyId: B2_APPLICATION_KEY_ID,
           applicationKey: B2_APPLICATION_KEY
         });
-        // Authorize and store auth data for signed URLs
         if (this.bucketPrivate) {
           const authResponse = await this.b2Client.authorize();
           this.b2AuthData = authResponse.data;
@@ -52,15 +150,6 @@ class StorageService {
         this.initialized = true;
       }
     } else if (this.provider === 's3') {
-      // TODO: Initialize AWS S3 client when migrating
-      // import { S3Client } from '@aws-sdk/client-s3';
-      // this.s3Client = new S3Client({
-      //   region: AWS_S3_REGION,
-      //   credentials: {
-      //     accessKeyId: AWS_ACCESS_KEY_ID,
-      //     secretAccessKey: AWS_SECRET_ACCESS_KEY
-      //   }
-      // });
       this.initialized = true;
     }
   }

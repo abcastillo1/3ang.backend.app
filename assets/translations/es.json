@@ -334,7 +334,10 @@
   "files": {
     "category": {
       "required": "La categoría del archivo es requerida",
-      "invalid": "La categoría del archivo no es válida. Categorías permitidas: profiles, documents, inventory, establishments"
+      "invalid": "La categoría del archivo no es válida. Categorías permitidas: audit_evidences, fiscal_reports, company_docs, profiles"
+    },
+    "confirm": {
+      "forbidden": "El archivo no pertenece a tu organización"
     },
     "file": {
       "required": "El archivo es requerido"
