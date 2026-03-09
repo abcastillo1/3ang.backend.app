@@ -8,8 +8,7 @@ import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
 
-const ALLOWED_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs', 'profiles'];
-const PERSIST_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs'];
+const ALLOWED_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs'];
 
 export const validators = [
   validateField('data.key')
@@ -51,11 +50,6 @@ export const validators = [
   requirePermission('files.upload')
 ];
 
-/**
- * Confirms that a file was uploaded to the presigned URL and persists
- * metadata in audit_documents. Key must belong to user's organization.
- * auditProjectId (or auditCaseId) and nodeId are optional and link the document to project/tree.
- */
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
@@ -67,19 +61,6 @@ async function handler(req, res, next) {
   }
 
   const downloadUrl = await storageService.generateDownloadUrl(key);
-
-  if (!PERSIST_CATEGORIES.includes(data.category)) {
-    return apiResponse(res, req, next)({
-      document: {
-        key,
-        originalName: data.originalName,
-        mimeType: data.mimeType,
-        size: data.size,
-        category: data.category,
-        downloadUrl
-      }
-    });
-  }
 
   const auditProjectId = data.auditProjectId ?? data.auditCaseId ?? null;
   const nodeId = data.nodeId ?? null;

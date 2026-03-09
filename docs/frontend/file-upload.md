@@ -116,7 +116,9 @@ Body: <binario del archivo>
 
 ---
 
-## Paso 3 — Confirmar subida
+## Paso 3 — Confirmar subida (solo archivos de auditoría)
+
+Este paso **solo aplica** para categorías de auditoría (`audit_evidences`, `fiscal_reports`, `company_docs`). Para `profiles` NO se usa (ver sección "Archivos sin relación a auditoría" más abajo).
 
 ```
 POST /api/v1/files/confirm
@@ -146,11 +148,11 @@ Requiere permiso: files.upload
 | `originalName` | string | Sí | Nombre original del archivo |
 | `mimeType` | string | Sí | Tipo MIME |
 | `size` | int | Sí | Tamaño en bytes |
-| `category` | string | Sí | Misma categoría del paso 1 |
-| `auditProjectId` | int | No | Vincular al proyecto de auditoría (solo para categorías de auditoría) |
+| `category` | string | Sí | `audit_evidences`, `fiscal_reports` o `company_docs` |
+| `auditProjectId` | int | No | Vincular al proyecto de auditoría |
 | `nodeId` | int | No | Vincular al nodo del árbol del proyecto |
 
-### Response para categoría de auditoría (`audit_evidences`, `fiscal_reports`, `company_docs`)
+### Response (200)
 
 ```json
 {
@@ -174,25 +176,6 @@ Requiere permiso: files.upload
 ```
 
 **`document.id` es el dato clave** — se usa después para vincular el documento a entidades (proyectos, nodos).
-
-### Response para categoría `profiles`
-
-```json
-{
-  "data": {
-    "document": {
-      "key": "1/profiles/general/uuid.jpg",
-      "originalName": "avatar.jpg",
-      "mimeType": "image/jpeg",
-      "size": 150000,
-      "category": "profiles",
-      "downloadUrl": "https://s3.../signed-url..."
-    }
-  }
-}
-```
-
-No se crea registro en BD. El `key` se guarda directamente en el campo correspondiente del usuario o cliente (ej: al hacer `/users/update` con `profileImage: document.key`).
 
 ---
 
@@ -271,9 +254,38 @@ Requiere permiso: files.upload
 3. `POST /files/confirm` → confirmar y obtener `document.id`
 4. Usar `document.id` en la creación de la entidad (`documentIds: [...]`) o en `POST /files/link`
 
-### Fotos de perfil
+### Archivos sin relación a auditoría (fotos de perfil, logos, etc.)
 
-1. `POST /files/upload-url` con `category: "profiles"` → obtener URL firmada
+Para archivos con `category: "profiles"` el backend **no crea registro** en la tabla `audit_documents`. Por lo tanto el paso 3 (`/files/confirm`) se omite — no aporta nada porque no persiste datos.
+
+El flujo se reduce a 2 pasos + guardado:
+
+1. `POST /files/upload-url` con `category: "profiles"` → obtener URL firmada y `key`
 2. `PUT <uploadUrl>` → subir binario al storage
-3. `POST /files/confirm` → obtener `document.key` y `downloadUrl`
-4. Guardar `document.key` en la entidad correspondiente (ej: `POST /users/update` con `profileImage`)
+3. Guardar el `key` (obtenido en el paso 1) en la entidad correspondiente (ej: `POST /users/update` con `profileImage: key`)
+
+Cuando se necesite **mostrar la imagen**, usar `POST /files/download-url` enviando el `key` para obtener una URL firmada de descarga temporal.
+
+```
+POST /api/v1/files/download-url
+Authorization: Bearer <token>
+```
+
+```json
+{
+  "data": {
+    "key": "1/profiles/general/uuid.jpg"
+  }
+}
+```
+
+```json
+{
+  "data": {
+    "downloadUrl": "https://s3.../signed-url...",
+    "expiresIn": 3600
+  }
+}
+```
+
+> **Nota:** El endpoint `/files/download-url` también se usa para regenerar URLs de descarga de cualquier archivo cuya URL haya expirado (auditoría o no).

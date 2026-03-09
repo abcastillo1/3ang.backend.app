@@ -13,7 +13,7 @@ Este documento describe cómo funciona la subida de archivos en la plataforma: e
 3. **Frontend** hace **PUT** del archivo directamente a `uploadUrl` (contra Backblaze B2).
 4. Si el PUT responde **200**:
    - **Documentos de auditoría** (`audit_evidences`, `fiscal_reports`, `company_docs`): Frontend llama a POST `/api/v1/files/confirm` → se crea registro en `audit_documents` y se obtiene URL de descarga.
-   - **Imágenes de perfil/entidades** (`profiles`): Frontend llama a POST `/api/v1/files/confirm` → solo retorna `key` + URL de descarga (sin registro en `audit_documents`). El `key` se guarda en el campo de la entidad (ej. `user.image`, `client.logo`).
+   - **Imágenes de perfil/entidades** (`profiles`): **No se llama a `confirm`**. El `key` (obtenido en el paso 2) se guarda directamente en el campo de la entidad (ej. `user.image`, `client.logo`). Cuando se necesite mostrar la imagen, se usa POST `/api/v1/files/download-url` para obtener una URL de descarga temporal.
 
 **No existe upload multipart al API.** Todo pasa por URLs prefirmadas.
 
@@ -76,9 +76,44 @@ Solicita una URL prefirmada para subir un archivo.
 
 ---
 
+### POST `/api/v1/files/download-url`
+
+Genera una URL prefirmada de descarga para cualquier archivo existente en el bucket. Útil para: mostrar imágenes de perfil, regenerar URLs expiradas, etc.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Body:**
+```json
+{
+  "data": {
+    "key": "1/profiles/general/uuid.jpg"
+  }
+}
+```
+
+| Campo | Tipo   | Obligatorio | Descripción |
+|-------|--------|-------------|-------------|
+| `key` | string | Sí          | Storage key del archivo. Debe pertenecer a la organización del usuario. |
+
+**Respuesta exitosa (200):**
+```json
+{
+  "statusCode": 200,
+  "message": "...",
+  "data": {
+    "downloadUrl": "https://s3.us-west-004.backblazeb2.com/...?X-Amz-...",
+    "expiresIn": 3600
+  }
+}
+```
+
+No requiere permiso especial, solo autenticación. El key debe iniciar con el `organizationId` del usuario.
+
+---
+
 ### POST `/api/v1/files/confirm`
 
-Registra que el archivo ya fue subido, **persiste la metadata en la tabla `audit_documents`** y devuelve la URL de descarga (prefirmada).
+Registra que el archivo ya fue subido, **persiste la metadata en la tabla `audit_documents`** y devuelve la URL de descarga (prefirmada). **Solo para categorías de auditoría** (`audit_evidences`, `fiscal_reports`, `company_docs`). No acepta `profiles`.
 
 **Headers:** `Authorization: Bearer <token>`
 
@@ -248,20 +283,23 @@ const { data: { project } } = await api.post('/api/v1/projects/create', {
 ### 4c. Imagen de perfil / logo (no es documento de auditoría)
 
 ```javascript
-// 1-2. Igual: upload-url → PUT
-// 3. Confirmar con category 'profiles' → NO crea registro en audit_documents
-const { data: { document } } = await api.post('/api/v1/files/confirm', {
-  data: { key, originalName: file.name, mimeType: file.type, size: file.size,
-          category: 'profiles' }
+// 1. Obtener URL prefirmada
+const { data: { uploadUrl, key, contentType } } = await api.post('/api/v1/files/upload-url', {
+  data: { name: file.name, mimeType: file.type, size: file.size, category: 'profiles' }
 });
-// document.key = "1/profiles/general/uuid.jpg"
-// document.downloadUrl = URL temporal
 
-// 4. Guardar el key en la entidad correspondiente
+// 2. Subir a B2
+await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': contentType } });
+
+// 3. NO se llama a /confirm. Guardar el key en la entidad directamente.
 await api.post('/api/v1/users/update', {
-  data: { image: document.key }
+  data: { image: key }
 });
-// Al consultar el usuario, el API genera downloadUrl desde el key almacenado
+
+// 4. Cuando se necesite mostrar la imagen, obtener URL de descarga:
+const { data: { downloadUrl } } = await api.post('/api/v1/files/download-url', {
+  data: { key }
+});
 ```
 
 ---

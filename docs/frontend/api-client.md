@@ -106,8 +106,9 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/organizations/view` | Ver organización | Sí | — |
 | | `/organizations/update` | Actualizar organización | Sí | — |
 | **Files** | `/files/upload-url` | Obtener URL firmada para subir archivo | Sí | `files.upload` |
-| | `/files/confirm` | Confirmar subida y registrar documento | Sí | `files.upload` |
+| | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
+| | `/files/download-url` | Obtener URL firmada de descarga para un archivo existente | Sí | — |
 | **Audit** | `/audit/my-activity` | Ver actividad del usuario | Sí | — |
 | **System** | `/system/health` | Health check | No | — |
 
