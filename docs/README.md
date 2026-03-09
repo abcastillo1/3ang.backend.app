@@ -46,7 +46,15 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 
 ---
 
-## 4. Configuración del proyecto (raíz)
+## 4. Roadmap y avance
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`ROADMAP.md`](ROADMAP.md) | **Lista completa de tareas** por fase (0–11), con estado (hecho/pendiente), porcentaje de avance por fase y avance global. Actualizar conforme se implemente. |
+
+---
+
+## 5. Configuración del proyecto (raíz)
 
 | Archivo | Ubicación | Contenido |
 |---------|-----------|-----------|
