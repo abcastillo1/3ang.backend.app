@@ -114,6 +114,14 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/clients/view` | Ver detalle de un cliente (con proyectos) | Sí | `clients.view` |
 | | `/clients/update` | Actualizar cliente | Sí | `clients.update` |
 | | `/clients/delete` | Eliminar cliente (soft delete) | Sí | `clients.delete` |
+| **Projects** | `/projects/create` | Crear proyecto de auditoría | Sí | `projects.create` |
+| | `/projects/list` | Listar proyectos (filtros: cliente, estado, búsqueda) | Sí | `projects.view` |
+| | `/projects/view` | Ver detalle del proyecto (equipo, cliente, docs) | Sí | `projects.view` |
+| | `/projects/update` | Actualizar proyecto (transición de estados) | Sí | `projects.update` |
+| | `/projects/delete` | Eliminar proyecto (solo draft) | Sí | `projects.delete` |
+| | `/projects/assignments/add` | Asignar usuario al proyecto | Sí | `projects.assignments.manage` |
+| | `/projects/assignments/remove` | Quitar usuario del proyecto | Sí | `projects.assignments.manage` |
+| | `/projects/assignments/list` | Listar miembros del proyecto | Sí | `projects.view` |
 | **Audit** | `/audit/my-activity` | Ver actividad del usuario | Sí | — |
 | **System** | `/system/health` | Health check | No | — |
 

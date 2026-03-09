@@ -59,6 +59,7 @@ Contratos de API para el frontend: endpoints, requests, responses y reglas de ne
 | [`frontend/users-roles.md`](frontend/users-roles.md) | CRUD de usuarios, roles, permisos. Campos, validaciones, responses. |
 | [`frontend/organizations.md`](frontend/organizations.md) | Datos de organización, OrganizationSetting (límites y configuración). |
 | [`frontend/clients.md`](frontend/clients.md) | CRUD de clientes: crear, listar, ver detalle, actualizar, eliminar. |
+| [`frontend/projects.md`](frontend/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignaciones de equipo. |
 
 **Cuándo leer:** Al integrar el frontend con cualquier endpoint del backend.
 

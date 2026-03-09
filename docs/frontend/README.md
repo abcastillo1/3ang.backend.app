@@ -10,6 +10,7 @@ Documentación de contratos de API para integrar el frontend con el backend. Cad
 | [`users-roles.md`](users-roles.md) | CRUD de usuarios, roles, permisos. Campos obligatorios/opcionales, respuestas, asignación de permisos. |
 | [`organizations.md`](organizations.md) | Datos de la organización, OrganizationSetting (límites y configuración). |
 | [`clients.md`](clients.md) | CRUD de clientes (auditados): crear, listar, ver detalle, actualizar, eliminar. |
+| [`projects.md`](projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignación de equipo (partner/manager/member). |
 
 ---
 

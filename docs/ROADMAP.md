@@ -62,7 +62,7 @@ Carga directa a B2/S3 vía URLs prefirmadas; el API nunca recibe el archivo. Apl
 
 ---
 
-## FASE 2 — Entidades base del dominio de auditoría `55%`
+## FASE 2 — Entidades base del dominio de auditoría `100%`
 
 Clientes, proyectos de auditoría y asignaciones de equipo.
 
@@ -79,29 +79,29 @@ Clientes, proyectos de auditoría y asignaciones de equipo.
 - [x] Router routes/clients.js y registro en routes/index.js
 - [x] Permisos: clients.create, clients.view, clients.update, clients.delete (migración 0010)
 
-### 2.2 Proyectos de auditoría (AuditProject) `15%`
+### 2.2 Proyectos de auditoría (AuditProject) `100%`
 
 - [x] Modelo AuditProject (name, auditType, periodStart, periodEnd, status, sourceAuditProjectId)
 - [x] Asociaciones (Organization, Client, ProjectAssignment, AuditDocument)
 - [x] Migración SQL para tabla audit_projects
-- [ ] API POST /projects/create — crear proyecto (validar allowed_audit_types y max_audit_projects desde OrganizationSetting; acepta documentIds para vincular documentos en la misma operación)
-- [ ] API POST /projects/list — listar proyectos (filtros: clientId, status, paginación)
-- [ ] API POST /projects/view — ver detalle con asignaciones e info del cliente
-- [ ] API POST /projects/update — actualizar proyecto (nombre, tipo, período, status)
-- [ ] API POST /projects/delete — soft delete (solo si status = draft)
-- [ ] Router routes/projects.js y registro en routes/index.js
-- [ ] Permisos: projects.create, projects.view, projects.update, projects.delete
-- [ ] Lógica de transición de estados (draft → planning → in_progress → review → closed)
+- [x] API POST /projects/create — crear proyecto (valida allowed_audit_types y max_audit_projects desde OrganizationSetting; acepta documentIds)
+- [x] API POST /projects/list — listar proyectos (filtros: clientId, status, search, paginación)
+- [x] API POST /projects/view — ver detalle con asignaciones, cliente y documentos
+- [x] API POST /projects/update — actualizar proyecto (nombre, tipo, período, status con transición validada)
+- [x] API POST /projects/delete — soft delete (solo si status = draft)
+- [x] Router routes/projects.js y registro en routes/index.js
+- [x] Permisos: projects.create, projects.view, projects.update, projects.delete (migración 0011)
+- [x] Lógica de transición de estados (draft → planning → in_progress → review → closed)
 
-### 2.3 Asignaciones al proyecto (ProjectAssignment) `10%`
+### 2.3 Asignaciones al proyecto (ProjectAssignment) `100%`
 
 - [x] Modelo ProjectAssignment (auditProjectId, userId, role: partner/manager/member)
 - [x] Migración SQL para tabla project_assignments
-- [ ] API POST /projects/assignments/add — asignar usuario al proyecto
-- [ ] API POST /projects/assignments/remove — quitar asignación
-- [ ] API POST /projects/assignments/list — listar miembros del proyecto
-- [ ] Validación: usuario pertenece a la misma organización
-- [ ] Permisos: projects.assignments.manage
+- [x] API POST /projects/assignments/add — asignar usuario al proyecto (valida misma organización y usuario activo)
+- [x] API POST /projects/assignments/remove — quitar asignación
+- [x] API POST /projects/assignments/list — listar miembros del proyecto
+- [x] Validación: usuario pertenece a la misma organización
+- [x] Permisos: projects.assignments.manage (migración 0011)
 
 ---
 
@@ -308,7 +308,7 @@ Vistas agregadas para monitorear el avance de los proyectos.
 |------|--------|--------|
 | 0 | Infraestructura y base | **100%** |
 | 1 | Carga de archivos | **100%** |
-| 2 | Entidades base (Client, Project, Assignment) | **55%** |
+| 2 | Entidades base (Client, Project, Assignment) | **100%** |
 | 3 | Jerarquía del proyecto (árbol) | **0%** |
 | 4 | Archivo Permanente | **0%** |
 | 5 | Planificación (cronograma, cuestionarios) | **0%** |
@@ -318,7 +318,7 @@ Vistas agregadas para monitorear el avance de los proyectos.
 | 9 | Réplica de proyecto | **0%** |
 | 10 | Inteligencia Artificial | **0%** |
 | 11 | Dashboard y analítica | **0%** |
-| | **TOTAL ESTIMADO** | **~22%** |
+| | **TOTAL ESTIMADO** | **~27%** |
 
 ---
 
@@ -326,4 +326,4 @@ Vistas agregadas para monitorear el avance de los proyectos.
 
 Seguir el orden de fases (0 → 11). Dentro de cada fase, completar modelos + migraciones → APIs → validaciones → seeds/plantillas. La Fase 10 (IA) puede implementarse en cualquier momento después de la Fase 1 (archivos) y la Fase 7 (hallazgos), ya que es independiente del flujo principal.
 
-**Próximo paso inmediato:** Fase 2 — APIs de Clientes y Proyectos de auditoría.
+**Próximo paso inmediato:** Fase 3 — Jerarquía del proyecto (árbol de nodos).

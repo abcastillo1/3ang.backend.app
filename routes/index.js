@@ -8,6 +8,7 @@ import auditRoutes from './audit.js';
 import organizationRoutes from './organizations.js';
 import filesRoutes from './files.js';
 import clientsRoutes from './clients.js';
+import projectsRoutes from './projects.js';
 
 const mainRouter = Router();
 mainRouter.use('/auth', authRoutes);
@@ -19,5 +20,6 @@ mainRouter.use('/audit', auditRoutes);
 mainRouter.use('/organizations', organizationRoutes);
 mainRouter.use('/files', filesRoutes);
 mainRouter.use('/clients', clientsRoutes);
+mainRouter.use('/projects', projectsRoutes);
 
 export default mainRouter;
