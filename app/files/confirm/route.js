@@ -6,6 +6,7 @@ import apiResponse from '../../../helpers/response.js';
 import { storageService } from '../../../helpers/storage.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
+import modelsInstance from '../../../models/index.js';
 
 const ALLOWED_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs', 'profiles'];
 
@@ -36,14 +37,23 @@ export const validators = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('validators.auditCaseId.invalid'),
+  validateField('data.auditProjectId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.auditProjectId.invalid'),
+  validateField('data.nodeId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.nodeId.invalid'),
   validateRequest,
   authenticate,
   requirePermission('files.upload')
 ];
 
 /**
- * Confirms that a file was uploaded to the presigned URL and optionally
- * persists metadata (e.g. audit_documents). Key must belong to user's organization.
+ * Confirms that a file was uploaded to the presigned URL and persists
+ * metadata in audit_documents. Key must belong to user's organization.
+ * auditProjectId (or auditCaseId) and nodeId are optional and link the document to project/tree.
  */
 async function handler(req, res, next) {
   const { data } = req.body;
@@ -55,27 +65,60 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.FORBIDDEN, 'files.confirm.forbidden');
   }
 
+  const auditProjectId = data.auditProjectId ?? data.auditCaseId ?? null;
+  const nodeId = data.nodeId ?? null;
+
   const downloadUrl = await storageService.generateDownloadUrl(key);
 
-  const document = {
-    key,
+  const { AuditDocument, AuditProject } = modelsInstance.models;
+
+  const docPayload = {
+    organizationId: user.organizationId,
+    auditProjectId,
+    nodeId,
+    storageKey: key,
     originalName: data.originalName,
     mimeType: data.mimeType,
     size: data.size,
     category: data.category,
-    auditCaseId: data.auditCaseId || null,
     uploaderId: user.id,
-    organizationId: user.organizationId,
-    downloadUrl,
     analysisStatus: 'pending'
   };
 
-  // TODO: persist to audit_documents when model/table exists; enqueue IA via helpers/ai-analyst.js
-  const response = {
-    document
+  if (auditProjectId) {
+    const project = await AuditProject.findOne({
+      where: { id: auditProjectId, organizationId: user.organizationId }
+    });
+    if (!project) {
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.confirm.projectNotFound');
+    }
+  }
+
+  const record = await AuditDocument.create(docPayload);
+
+  const document = {
+    id: record.id,
+    key: record.storageKey,
+    originalName: record.originalName,
+    mimeType: record.mimeType,
+    size: record.size,
+    category: record.category,
+    auditProjectId: record.auditProjectId,
+    nodeId: record.nodeId,
+    uploaderId: record.uploaderId,
+    organizationId: record.organizationId,
+    downloadUrl,
+    analysisStatus: record.analysisStatus
   };
 
-  return apiResponse(res, req, next)(response);
+  return apiResponse(res, req, next)({ document });
 }
 
-export default handler;
+const confirmRoute = {
+  validators,
+  default: handler,
+  action: 'confirm',
+  entity: 'files'
+};
+
+export default confirmRoute;

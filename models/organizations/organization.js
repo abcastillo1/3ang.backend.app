@@ -1,3 +1,7 @@
+/**
+ * Organization = audit firm (empresa de auditoría) that uses the platform
+ * to manage accounting audit projects. Settings go in OrganizationSetting (key-value).
+ */
 export default function (sequelize, DataTypes) {
   const Organization = sequelize.define(
     'Organization',
@@ -14,11 +18,55 @@ export default function (sequelize, DataTypes) {
       },
       name: {
         type: DataTypes.STRING(255),
-        allowNull: false
+        allowNull: false,
+        comment: 'Display name of the audit firm'
+      },
+      legalName: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        field: 'legal_name',
+        comment: 'Legal / registered name'
+      },
+      ruc: {
+        type: DataTypes.STRING(13),
+        allowNull: true,
+        comment: 'RUC (Ecuador). Unique per organization'
+      },
+      sriRegimen: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: 'sri_regimen',
+        comment: 'SRI tax regime (Ecuador)'
+      },
+      email: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      phone: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+      },
+      address: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
+      country: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        defaultValue: 'Ecuador'
+      },
+      city: {
+        type: DataTypes.STRING(100),
+        allowNull: true
+      },
+      website: {
+        type: DataTypes.STRING(255),
+        allowNull: true
       },
       image: {
         type: DataTypes.TEXT,
         allowNull: true,
+        comment: 'Logo: path or JSON { path, url }',
         get() {
           const value = this.getDataValue('image');
           if (!value) return null;
@@ -32,66 +80,59 @@ export default function (sequelize, DataTypes) {
           this.setDataValue('image', value ? JSON.stringify(value) : null);
         }
       },
-      legalName: {
-        type: DataTypes.STRING(255),
-        field: 'legal_name'
-      },
-      taxId: {
-        type: DataTypes.STRING(50),
-        unique: true,
-        field: 'tax_id'
-      },
-      ruc: {
-        type: DataTypes.STRING(13),
-        allowNull: true
-      },
-      sriRegimen: {
-        type: DataTypes.STRING(100),
-        field: 'sri_regimen'
-      },
-      email: {
-        type: DataTypes.STRING(255)
-      },
-      phone: {
-        type: DataTypes.STRING(50)
-      },
-      address: {
-        type: DataTypes.TEXT
-      },
-      country: {
-        type: DataTypes.STRING(100)
-      },
-      city: {
-        type: DataTypes.STRING(100)
-      },
       isActive: {
         type: DataTypes.BOOLEAN,
         defaultValue: true,
         field: 'is_active'
       },
-      isAccountingRequired: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false,
-        field: 'is_accounting_required'
+      defaultCurrency: {
+        type: DataTypes.STRING(3),
+        allowNull: true,
+        defaultValue: 'USD',
+        field: 'default_currency'
+      },
+      timezone: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        defaultValue: 'America/Guayaquil',
+        comment: 'IANA timezone for reports and dates'
+      },
+      locale: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+        defaultValue: 'es-EC',
+        comment: 'Default locale for reports'
+      },
+      registrationNumber: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+        field: 'registration_number',
+        comment: 'Professional body / supervisory registration (e.g. Superintendencia)'
       },
       environment: {
         type: DataTypes.ENUM('pruebas', 'produccion'),
-        defaultValue: 'pruebas'
+        defaultValue: 'pruebas',
+        comment: 'SRI / production environment'
       },
       signaturePath: {
         type: DataTypes.STRING(255),
-        field: 'signature_path'
+        allowNull: true,
+        field: 'signature_path',
+        comment: 'Electronic signature for signing audit reports'
       },
       signaturePassword: {
         type: DataTypes.STRING(255),
+        allowNull: true,
         field: 'signature_password'
       },
       signatureExpiry: {
         type: DataTypes.DATEONLY,
+        allowNull: true,
         field: 'signature_expiry'
       },
       signatureProvider: {
         type: DataTypes.STRING(100),
+        allowNull: true,
         field: 'signature_provider'
       },
       createdAt: {
@@ -111,7 +152,10 @@ export default function (sequelize, DataTypes) {
       tableName: 'organizations',
       paranoid: true,
       timestamps: true,
-      underscored: true
+      underscored: true,
+      indexes: [
+        { unique: true, fields: ['ruc'], name: 'organizations_ruc_unique' }
+      ]
     }
   );
 
@@ -139,6 +183,10 @@ export default function (sequelize, DataTypes) {
     Organization.hasMany(models.AuditLog, {
       foreignKey: 'organization_id',
       as: 'auditLogs'
+    });
+    Organization.hasMany(models.Client, {
+      foreignKey: 'organization_id',
+      as: 'clients'
     });
   };
 

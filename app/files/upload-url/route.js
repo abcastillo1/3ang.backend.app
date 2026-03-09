@@ -72,4 +72,11 @@ async function handler(req, res, next) {
   return apiResponse(res, req, next)(response);
 }
 
-export default handler;
+const uploadUrlRoute = {
+  validators,
+  default: handler,
+  action: 'upload-url',
+  entity: 'files'
+};
+
+export default uploadUrlRoute;

@@ -10,7 +10,7 @@ Características clave:
 - Inteligencia artificial: Integración con Claude (Anthropic) para analizar evidencia documental, identificar riesgos y novedades según normativa local y NIIF.
 - Estándar senior: Código y base de datos (MySQL) con logging exhaustivo, internacionalización y lógica de negocio centralizada.
 
-La lógica de negocio del dominio de auditoría (flujos, entidades, reglas) está documentada en docs/business-logic.md.
+La lógica de negocio del dominio de auditoría (flujos, entidades, reglas) está documentada en docs/design/business-logic.md. Ver docs/README.md para el índice completo.
 
 # =====================================================
 # ALCANCE DEL PRODUCTO — MÓDULOS FUERA DE ALCANCE
@@ -351,9 +351,14 @@ const isValidPassword = await usuario.verifyPassword(password);
 # =====================================================
 
 La lógica de negocio, reglas de dominio y flujos de trabajo están documentados en:
-- docs/business-logic.md
+- docs/design/business-logic.md
 
-ANTES de implementar o modificar funcionalidades, consultar este archivo para:
+Documentación completa categorizada en docs/README.md:
+- docs/domain/ → conocimiento del negocio (proceso real del cliente)
+- docs/design/ → diseño de plataforma (entidades, flujos, reglas)
+- docs/technical/ → arquitectura, APIs, infraestructura
+
+ANTES de implementar o modificar funcionalidades, consultar estos archivos para:
 - Entender las reglas de negocio
 - Verificar validaciones requeridas
 - Conocer las relaciones entre entidades

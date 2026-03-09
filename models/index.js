@@ -73,6 +73,22 @@ class Models {
     const auditLogModule = await import('./audit/auditLog.js');
     const AuditLogFactory = auditLogModule.default;
     this.models.AuditLog = AuditLogFactory(this.sequelize, Sequelize.DataTypes);
+
+    const clientModule = await import('./audit/client.js');
+    const ClientFactory = clientModule.default;
+    this.models.Client = ClientFactory(this.sequelize, Sequelize.DataTypes);
+
+    const auditProjectModule = await import('./audit/auditProject.js');
+    const AuditProjectFactory = auditProjectModule.default;
+    this.models.AuditProject = AuditProjectFactory(this.sequelize, Sequelize.DataTypes);
+
+    const projectAssignmentModule = await import('./audit/projectAssignment.js');
+    const ProjectAssignmentFactory = projectAssignmentModule.default;
+    this.models.ProjectAssignment = ProjectAssignmentFactory(this.sequelize, Sequelize.DataTypes);
+
+    const auditDocumentModule = await import('./audit/auditDocument.js');
+    const AuditDocumentFactory = auditDocumentModule.default;
+    this.models.AuditDocument = AuditDocumentFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {
