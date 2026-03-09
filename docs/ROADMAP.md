@@ -105,20 +105,24 @@ Clientes, proyectos de auditoría y asignaciones de equipo.
 
 ---
 
-## FASE 3 — Jerarquía del proyecto (árbol de nodos) `0%`
+## FASE 3 — Jerarquía del proyecto (árbol de nodos) `100%`
 
 Estructura tipo árbol para organizar secciones, carpetas y bloques dentro de un proyecto.
 
-- [ ] Modelo AuditTreeNode (auditProjectId, parentId, path, depth, type, name, order, refId)
-- [ ] Migración SQL para tabla audit_tree_nodes
-- [ ] API POST /projects/:id/tree/create — crear nodo (validar profundidad máxima)
-- [ ] API POST /projects/:id/tree/list — listar hijos de un nodo (o raíz)
-- [ ] API POST /projects/:id/tree/move — mover nodo (actualizar path de descendientes)
-- [ ] API POST /projects/:id/tree/reorder — reordenar nodos dentro del mismo padre
-- [ ] API POST /projects/:id/tree/delete — eliminar nodo y subárbol
-- [ ] Breadcrumb: obtener ruta de un nodo a la raíz
-- [ ] Vincular AuditDocument.nodeId a audit_tree_nodes
-- [ ] Creación automática de estructura base al crear proyecto (nodos raíz: Archivo Permanente, Planificación, Programas, Hallazgos, Informes)
+- [x] Modelo AuditTreeNode (auditProjectId, parentId, path, depth, type, name, order, refId, isSystemNode)
+- [x] Migración SQL para tabla audit_tree_nodes (0012) + FK audit_documents.node_id
+- [x] API POST /projects/tree/create — crear nodo (validar profundidad máxima 6)
+- [x] API POST /projects/tree/list — listar hijos de un nodo (o raíz) con childrenCount y documentos
+- [x] API POST /projects/tree/move — mover nodo (actualizar path/depth de descendientes en transacción)
+- [x] API POST /projects/tree/reorder — reordenar nodos dentro del mismo padre
+- [x] API POST /projects/tree/delete — eliminar nodo y subárbol (desvincula documentos)
+- [x] API POST /projects/tree/breadcrumb — obtener ruta de un nodo a la raíz
+- [x] Vincular AuditDocument.nodeId a audit_tree_nodes (asociación belongsTo + FK en migración)
+- [x] Creación automática de estructura base al crear proyecto (5 nodos raíz: Archivo Permanente, Planificación, Programas, Hallazgos, Informes) — helper tree-seed.js
+- [x] Nodos de sistema (isSystemNode) no se pueden eliminar ni mover
+- [x] Permisos: projects.tree.manage (migración 0013)
+- [x] Router: rutas tree registradas en routes/projects.js
+- [x] Documentación frontend: docs/frontend/api/tree.md
 
 ---
 
@@ -309,7 +313,7 @@ Vistas agregadas para monitorear el avance de los proyectos.
 | 0 | Infraestructura y base | **100%** |
 | 1 | Carga de archivos | **100%** |
 | 2 | Entidades base (Client, Project, Assignment) | **100%** |
-| 3 | Jerarquía del proyecto (árbol) | **0%** |
+| 3 | Jerarquía del proyecto (árbol) | **100%** |
 | 4 | Archivo Permanente | **0%** |
 | 5 | Planificación (cronograma, cuestionarios) | **0%** |
 | 6 | Programas de auditoría y ejecución | **0%** |
@@ -318,7 +322,7 @@ Vistas agregadas para monitorear el avance de los proyectos.
 | 9 | Réplica de proyecto | **0%** |
 | 10 | Inteligencia Artificial | **0%** |
 | 11 | Dashboard y analítica | **0%** |
-| | **TOTAL ESTIMADO** | **~27%** |
+| | **TOTAL ESTIMADO** | **~33%** |
 
 ---
 
@@ -326,4 +330,4 @@ Vistas agregadas para monitorear el avance de los proyectos.
 
 Seguir el orden de fases (0 → 11). Dentro de cada fase, completar modelos + migraciones → APIs → validaciones → seeds/plantillas. La Fase 10 (IA) puede implementarse en cualquier momento después de la Fase 1 (archivos) y la Fase 7 (hallazgos), ya que es independiente del flujo principal.
 
-**Próximo paso inmediato:** Fase 3 — Jerarquía del proyecto (árbol de nodos).
+**Próximo paso inmediato: Fase 4 — Archivo Permanente (secciones, checklist, matriz de riesgos).**

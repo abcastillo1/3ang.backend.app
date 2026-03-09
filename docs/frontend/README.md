@@ -17,6 +17,7 @@ Documentación de contratos de API y flujos de integración para el frontend. Or
 | [`api/clients.md`](api/clients.md) | CRUD de clientes (auditados): crear, listar, ver detalle, actualizar, eliminar. |
 | [`api/projects.md`](api/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignación de equipo (partner/manager/member). |
 | [`api/files.md`](api/files.md) | Endpoints de archivos: listar, eliminar, vincular a proyectos, obtener URL de descarga. |
+| [`api/tree.md`](api/tree.md) | Árbol del proyecto: crear nodos, listar hijos, breadcrumb, mover, reordenar, eliminar. |
 
 ## Flujos y comportamientos
 

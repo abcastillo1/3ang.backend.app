@@ -100,6 +100,10 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'uploader_id',
       as: 'uploader'
     });
+    AuditDocument.belongsTo(models.AuditTreeNode, {
+      foreignKey: 'node_id',
+      as: 'treeNode'
+    });
   };
 
   return AuditDocument;

@@ -60,6 +60,7 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 | [`frontend/api/clients.md`](frontend/api/clients.md) | CRUD de clientes: crear, listar, ver detalle, actualizar, eliminar. |
 | [`frontend/api/projects.md`](frontend/api/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignaciones de equipo. |
 | [`frontend/api/files.md`](frontend/api/files.md) | Endpoints de archivos: listar, eliminar, vincular, descargar. |
+| [`frontend/api/tree.md`](frontend/api/tree.md) | Árbol del proyecto: crear, listar, breadcrumb, mover, reordenar, eliminar nodos. |
 
 ### `frontend/flows/` — Flujos y comportamientos
 

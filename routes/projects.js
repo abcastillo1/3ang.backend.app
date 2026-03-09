@@ -8,6 +8,13 @@ import deleteRoute from '../app/projects/delete/route.js';
 import assignmentsAddRoute from '../app/projects/assignments/add/route.js';
 import assignmentsRemoveRoute from '../app/projects/assignments/remove/route.js';
 import assignmentsListRoute from '../app/projects/assignments/list/route.js';
+import treeCreateRoute from '../app/projects/tree/create/route.js';
+import treeListRoute from '../app/projects/tree/list/route.js';
+import treeBreadcrumbRoute from '../app/projects/tree/breadcrumb/route.js';
+import treeMoveRoute from '../app/projects/tree/move/route.js';
+import treeReorderRoute from '../app/projects/tree/reorder/route.js';
+import treeDeleteRoute from '../app/projects/tree/delete/route.js';
+import treeFullRoute from '../app/projects/tree/full/route.js';
 
 const router = Router();
 
@@ -19,5 +26,12 @@ registerRoute(router, '/delete', deleteRoute, 'post');
 registerRoute(router, '/assignments/add', assignmentsAddRoute, 'post');
 registerRoute(router, '/assignments/remove', assignmentsRemoveRoute, 'post');
 registerRoute(router, '/assignments/list', assignmentsListRoute, 'post');
+registerRoute(router, '/tree/create', treeCreateRoute, 'post');
+registerRoute(router, '/tree/list', treeListRoute, 'post');
+registerRoute(router, '/tree/breadcrumb', treeBreadcrumbRoute, 'post');
+registerRoute(router, '/tree/move', treeMoveRoute, 'post');
+registerRoute(router, '/tree/reorder', treeReorderRoute, 'post');
+registerRoute(router, '/tree/delete', treeDeleteRoute, 'post');
+registerRoute(router, '/tree/full', treeFullRoute, 'post');
 
 export default router;

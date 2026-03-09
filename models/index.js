@@ -89,6 +89,10 @@ class Models {
     const auditDocumentModule = await import('./audit/auditDocument.js');
     const AuditDocumentFactory = auditDocumentModule.default;
     this.models.AuditDocument = AuditDocumentFactory(this.sequelize, Sequelize.DataTypes);
+
+    const auditTreeNodeModule = await import('./audit/auditTreeNode.js');
+    const AuditTreeNodeFactory = auditTreeNodeModule.default;
+    this.models.AuditTreeNode = AuditTreeNodeFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {

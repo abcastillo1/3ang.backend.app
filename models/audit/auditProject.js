@@ -105,6 +105,10 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'audit_project_id',
       as: 'documents'
     });
+    AuditProject.hasMany(models.AuditTreeNode, {
+      foreignKey: 'audit_project_id',
+      as: 'treeNodes'
+    });
   };
 
   return AuditProject;

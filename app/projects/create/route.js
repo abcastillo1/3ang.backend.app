@@ -6,6 +6,7 @@ import apiResponse from '../../../helpers/response.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
+import { createDefaultTreeStructure } from '../../../helpers/tree-seed.js';
 
 const validators = [
   validateField('data.name')
@@ -103,6 +104,8 @@ async function handler(req, res, next) {
       { where: { id: data.documentIds, organizationId: user.organizationId, auditProjectId: null } }
     );
   }
+
+  await createDefaultTreeStructure(project.id, user.organizationId);
 
   const result = await AuditProject.findByPk(project.id, {
     include: [{ model: modelsInstance.models.Client, as: 'client', attributes: ['id', 'name', 'ruc'] }]

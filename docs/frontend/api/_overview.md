@@ -105,6 +105,9 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/organizations/list` | Listar organizaciones | Sí | — |
 | | `/organizations/view` | Ver organización | Sí | — |
 | | `/organizations/update` | Actualizar organización | Sí | — |
+| | `/organizations/tree-template/view` | Ver plantilla de árbol de la organización | Sí | — |
+| | `/organizations/tree-template/update` | Personalizar plantilla de árbol (solo owner) | Sí | — |
+| | `/organizations/tree-template/reset` | Restaurar plantilla por defecto (solo owner) | Sí | — |
 | **Files** | `/files/upload-url` | Obtener URL firmada para subir archivo | Sí | `files.upload` |
 | | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
@@ -124,6 +127,13 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/projects/assignments/add` | Asignar usuario al proyecto | Sí | `projects.assignments.manage` |
 | | `/projects/assignments/remove` | Quitar usuario del proyecto | Sí | `projects.assignments.manage` |
 | | `/projects/assignments/list` | Listar miembros del proyecto | Sí | `projects.view` |
+| | `/projects/tree/create` | Crear nodo en el árbol del proyecto | Sí | `projects.tree.manage` |
+| | `/projects/tree/list` | Listar hijos de un nodo (o raíz) | Sí | `projects.view` |
+| | `/projects/tree/breadcrumb` | Ruta de un nodo a la raíz | Sí | `projects.view` |
+| | `/projects/tree/move` | Mover nodo (y descendientes) | Sí | `projects.tree.manage` |
+| | `/projects/tree/reorder` | Reordenar nodos dentro del mismo padre | Sí | `projects.tree.manage` |
+| | `/projects/tree/delete` | Eliminar nodo y subárbol | Sí | `projects.tree.manage` |
+| | `/projects/tree/full` | Obtener árbol completo del proyecto (1 query) | Sí | `projects.view` |
 | **Audit** | `/audit/my-activity` | Ver actividad del usuario | Sí | — |
 | **System** | `/system/health` | Health check | No | — |
 
