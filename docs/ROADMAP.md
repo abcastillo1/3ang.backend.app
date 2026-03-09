@@ -42,22 +42,28 @@ Todo lo necesario para que el backend funcione: servidor, BD, auth, usuarios, ro
 
 ---
 
-## FASE 1 — Carga de archivos y almacenamiento `85%`
+## FASE 1 — Carga de archivos y almacenamiento `90%`
 
-Carga directa a B2/S3 vía URLs prefirmadas; el API nunca recibe el archivo.
+Carga directa a B2/S3 vía URLs prefirmadas; el API nunca recibe el archivo. Aplica a todo: documentos de auditoría, imágenes de perfil, logos, etc.
 
 - [x] Helper de storage (helpers/storage.js) — S3 client, generateUploadUrl, generateDownloadUrl, deleteObject
-- [x] Endpoint POST /files/upload-url (genera URL prefirmada)
-- [x] Endpoint POST /files/confirm (persiste metadata en audit_documents)
+- [x] Endpoint POST /files/upload-url (genera URL prefirmada para cualquier categoría)
+- [x] Endpoint POST /files/confirm — comportamiento según categoría:
+  - audit_evidences, fiscal_reports, company_docs → crea registro en audit_documents
+  - profiles → solo retorna key + downloadUrl (sin registro en BD)
+- [x] Endpoint POST /files/link — vincular documentos huérfanos a un proyecto después de crearlo
 - [x] Modelo AuditDocument (storageKey, originalName, mimeType, size, category, auditProjectId, nodeId)
 - [x] Migración SQL para tabla audit_documents
 - [x] Validación de que el key pertenece a la organización del usuario
 - [x] Soporte para auditProjectId y nodeId opcionales en confirm
-- [x] Documentación del flujo (docs/technical/file-upload.md)
-- [ ] API para listar documentos de un proyecto (GET/POST /files/list con filtros por proyecto, categoría, nodo)
+- [x] Retirado endpoint legacy de upload multipart (ya no existe /files/upload)
+- [x] Documentación del flujo con 3 escenarios (docs/technical/file-upload.md)
+- [ ] API para listar documentos de un proyecto (POST /files/list con filtros por proyecto, categoría, nodo)
 - [ ] API para obtener URL de descarga (regenerar downloadUrl para un documento existente)
 - [ ] API para eliminar documento (soft delete + deleteObject en B2)
-- [ ] Retirar o deprecar endpoint legacy de upload multipart (app/files/upload/route.js)
+- [ ] API para listar documentos de un proyecto (POST /files/list con filtros por proyecto, categoría, nodo)
+- [ ] API para obtener URL de descarga (regenerar downloadUrl para un documento existente)
+- [ ] API para eliminar documento (soft delete + deleteObject en B2)
 
 ---
 
@@ -83,7 +89,7 @@ Clientes, proyectos de auditoría y asignaciones de equipo.
 - [x] Modelo AuditProject (name, auditType, periodStart, periodEnd, status, sourceAuditProjectId)
 - [x] Asociaciones (Organization, Client, ProjectAssignment, AuditDocument)
 - [x] Migración SQL para tabla audit_projects
-- [ ] API POST /projects/create — crear proyecto (validar allowed_audit_types y max_audit_projects desde OrganizationSetting)
+- [ ] API POST /projects/create — crear proyecto (validar allowed_audit_types y max_audit_projects desde OrganizationSetting; acepta documentIds para vincular documentos en la misma operación)
 - [ ] API POST /projects/list — listar proyectos (filtros: clientId, status, paginación)
 - [ ] API POST /projects/view — ver detalle con asignaciones e info del cliente
 - [ ] API POST /projects/update — actualizar proyecto (nombre, tipo, período, status)
@@ -131,7 +137,7 @@ Expediente del cliente: secciones, checklist de ítems, matriz de riesgos, dashb
 - [ ] Modelo ChecklistItem (sectionId, code, description, isRequired, ref, status, documentId)
 - [ ] Migraciones SQL
 - [ ] API CRUD para secciones del archivo permanente
-- [ ] API CRUD para ítems del checklist (crear, listar, actualizar estado, vincular documento)
+- [ ] API CRUD para ítems del checklist (crear, listar, actualizar estado; acepta documentIds para vincular documentos)
 - [ ] Estados del ítem: pending, in_review, compliant, not_applicable
 - [ ] Seed/plantilla: crear secciones e ítems estándar al iniciar archivo permanente (A: Historia del negocio, B: Organización societaria, etc.)
 
@@ -199,7 +205,7 @@ Programas por área contable, procedimientos, papeles de trabajo.
 
 - [ ] Modelo WorkingPaper (procedureId, projectId, title, content, documentId, createdByUserId)
 - [ ] Migración SQL
-- [ ] API CRUD para papeles de trabajo
+- [ ] API CRUD para papeles de trabajo (acepta documentIds para vincular documentos)
 - [ ] Vincular a procedimiento y/o a hallazgo
 - [ ] Marcas de auditoría (√, =, X, Ø, ?, ∑, €, etc.) — soporte en el modelo o en contenido libre
 
@@ -211,7 +217,7 @@ Registro de hallazgos con estructura Condición-Criterio-Causa-Efecto-Recomendac
 
 - [ ] Modelo Finding (projectId, number, workingPaperId, areaCode, support, observation, condition, criteria, cause, effect, recommendation, status)
 - [ ] Migración SQL
-- [ ] API CRUD para hallazgos
+- [ ] API CRUD para hallazgos (acepta documentIds para vincular evidencia)
 - [ ] Vincular a papel de trabajo y área del programa
 - [ ] Estados: draft, in_review, approved, rejected
 - [ ] Listado y filtros por proyecto, área, estado
@@ -303,7 +309,7 @@ Vistas agregadas para monitorear el avance de los proyectos.
 
 ## Resumen de avance global
 
-| Fase | Nombre | Avance |
+| 1 | Carga de archivos | **90%** |
 |------|--------|--------|
 | 0 | Infraestructura y base | **100%** |
 | 1 | Carga de archivos | **85%** |

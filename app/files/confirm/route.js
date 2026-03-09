@@ -9,6 +9,7 @@ import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
 
 const ALLOWED_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs', 'profiles'];
+const PERSIST_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs'];
 
 export const validators = [
   validateField('data.key')
@@ -65,25 +66,25 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.FORBIDDEN, 'files.confirm.forbidden');
   }
 
+  const downloadUrl = await storageService.generateDownloadUrl(key);
+
+  if (!PERSIST_CATEGORIES.includes(data.category)) {
+    return apiResponse(res, req, next)({
+      document: {
+        key,
+        originalName: data.originalName,
+        mimeType: data.mimeType,
+        size: data.size,
+        category: data.category,
+        downloadUrl
+      }
+    });
+  }
+
   const auditProjectId = data.auditProjectId ?? data.auditCaseId ?? null;
   const nodeId = data.nodeId ?? null;
 
-  const downloadUrl = await storageService.generateDownloadUrl(key);
-
   const { AuditDocument, AuditProject } = modelsInstance.models;
-
-  const docPayload = {
-    organizationId: user.organizationId,
-    auditProjectId,
-    nodeId,
-    storageKey: key,
-    originalName: data.originalName,
-    mimeType: data.mimeType,
-    size: data.size,
-    category: data.category,
-    uploaderId: user.id,
-    analysisStatus: 'pending'
-  };
 
   if (auditProjectId) {
     const project = await AuditProject.findOne({
@@ -94,7 +95,18 @@ async function handler(req, res, next) {
     }
   }
 
-  const record = await AuditDocument.create(docPayload);
+  const record = await AuditDocument.create({
+    organizationId: user.organizationId,
+    auditProjectId,
+    nodeId,
+    storageKey: key,
+    originalName: data.originalName,
+    mimeType: data.mimeType,
+    size: data.size,
+    category: data.category,
+    uploaderId: user.id,
+    analysisStatus: 'pending'
+  });
 
   const document = {
     id: record.id,

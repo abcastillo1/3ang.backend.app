@@ -1,15 +1,29 @@
 # Carga de archivos (URLs prefirmadas — Backblaze B2)
 
-Este documento describe cómo funciona la subida de archivos en la plataforma: el servidor **nunca recibe el archivo**; el frontend sube directamente al bucket usando una URL prefirmada.
+Este documento describe cómo funciona la subida de archivos en la plataforma: el servidor **nunca recibe el archivo**; el frontend sube directamente al bucket usando una URL prefirmada. Esto aplica a **todo tipo de archivo**: documentos de auditoría, imágenes de perfil, logos de clientes, etc.
 
 ---
 
 ## 1. Resumen del flujo
 
+**Todo archivo** (documento de auditoría, imagen de perfil, logo, etc.) se sube así:
+
 1. **Frontend** pide al API una URL prefirmada (POST `/api/v1/files/upload-url`) con metadata del archivo.
 2. **Backend** valida permisos, genera la URL (PUT) y devuelve `uploadUrl` + `key`.
 3. **Frontend** hace **PUT** del archivo directamente a `uploadUrl` (contra Backblaze B2).
-4. Si el PUT responde **200**, el **Frontend** llama a POST `/api/v1/files/confirm` con el `key` y metadata para registrar el documento y obtener la URL de descarga.
+4. Si el PUT responde **200**:
+   - **Documentos de auditoría** (`audit_evidences`, `fiscal_reports`, `company_docs`): Frontend llama a POST `/api/v1/files/confirm` → se crea registro en `audit_documents` y se obtiene URL de descarga.
+   - **Imágenes de perfil/entidades** (`profiles`): Frontend llama a POST `/api/v1/files/confirm` → solo retorna `key` + URL de descarga (sin registro en `audit_documents`). El `key` se guarda en el campo de la entidad (ej. `user.image`, `client.logo`).
+
+**No existe upload multipart al API.** Todo pasa por URLs prefirmadas.
+
+### Documentos sin proyecto asignado
+
+Cuando se crean documentos de auditoría y aún **no existe el proyecto** (ej. el usuario sube archivos mientras llena el formulario de creación), el flujo es:
+
+1. Subir con `confirm` sin enviar `auditProjectId` → se crea el `AuditDocument` como "huérfano" (sin proyecto).
+2. Crear el proyecto y obtener su ID.
+3. Vincular los documentos al proyecto con POST `/api/v1/files/link`.
 
 ---
 
@@ -124,6 +138,46 @@ Registra que el archivo ya fue subido, **persiste la metadata en la tabla `audit
 
 ---
 
+### POST `/api/v1/files/link`
+
+Vincula documentos ya subidos (sin proyecto) a un proyecto de auditoría. Útil cuando el usuario sube archivos antes de crear el proyecto.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Body:**
+```json
+{
+  "data": {
+    "documentIds": [1, 2, 3],
+    "auditProjectId": 5,
+    "nodeId": 12
+  }
+}
+```
+
+| Campo           | Tipo     | Obligatorio | Descripción |
+|----------------|----------|-------------|-------------|
+| `documentIds`  | number[] | Sí          | IDs de documentos a vincular (deben estar sin proyecto asignado y pertenecer a la organización). |
+| `auditProjectId` | number | Sí          | ID del proyecto al que vincular. |
+| `nodeId`       | number   | No          | Nodo/carpeta del árbol (cuando exista). |
+
+**Respuesta exitosa (200):**
+```json
+{
+  "statusCode": 200,
+  "message": "...",
+  "data": {
+    "linked": [1, 2, 3],
+    "auditProjectId": 5,
+    "count": 3
+  }
+}
+```
+
+Solo se vinculan documentos que cumplan: pertenecen a la organización del usuario Y no tienen proyecto asignado (`auditProjectId IS NULL`). Documentos ya vinculados a otro proyecto se ignoran silenciosamente.
+
+---
+
 ## 3. Qué retorna Backblaze B2 al hacer el PUT
 
 Cuando el **frontend** hace **PUT** del archivo a la **uploadUrl** (contra `https://s3.us-west-004.backblazeb2.com/...`):
@@ -143,46 +197,71 @@ Cuando el **frontend** hace **PUT** del archivo a la **uploadUrl** (contra `http
 
 ---
 
-## 4. Flujo recomendado en el frontend
+## 4. Flujos recomendados en el frontend
+
+### 4a. Documento de auditoría (con proyecto conocido)
 
 ```javascript
 // 1. Obtener URL prefirmada
 const { data: { uploadUrl, key, contentType } } = await api.post('/api/v1/files/upload-url', {
-  data: {
-    name: file.name,
-    mimeType: file.type,
-    size: file.size,
-    category: 'audit_evidences',
-    auditCaseId: caseId || undefined
-  }
+  data: { name: file.name, mimeType: file.type, size: file.size, category: 'audit_evidences' }
 });
 
-// 2. Subir directamente a B2 (PUT)
-const putResponse = await fetch(uploadUrl, {
-  method: 'PUT',
-  body: file,
-  headers: {
-    'Content-Type': contentType   // debe coincidir con el mimeType enviado en upload-url
-  }
-});
+// 2. Subir a B2
+await fetch(uploadUrl, { method: 'PUT', body: file, headers: { 'Content-Type': contentType } });
 
-if (!putResponse.ok) {
-  throw new Error(`Upload failed: ${putResponse.status}`);
-}
-
-// 3. Confirmar en nuestro API (solo si PUT fue 200)
+// 3. Confirmar → crea registro en audit_documents
 const { data: { document } } = await api.post('/api/v1/files/confirm', {
+  data: { key, originalName: file.name, mimeType: file.type, size: file.size,
+          category: 'audit_evidences', auditProjectId: projectId }
+});
+// document.id, document.downloadUrl disponibles
+```
+
+### 4b. Documento de auditoría (proyecto aún no existe)
+
+```javascript
+// 1-2. Igual: upload-url → PUT
+// 3. Confirmar SIN proyecto → documento "huérfano"
+const { data: { document } } = await api.post('/api/v1/files/confirm', {
+  data: { key, originalName: file.name, mimeType: file.type, size: file.size,
+          category: 'audit_evidences' }
+});
+orphanDocIds.push(document.id);
+
+// ... el usuario llena el formulario y crea el proyecto CON los documentIds ...
+const { data: { project } } = await api.post('/api/v1/projects/create', {
   data: {
-    key,
-    originalName: file.name,
-    mimeType: file.type,
-    size: file.size,
-    category: 'audit_evidences',
-    auditCaseId: caseId || undefined
+    name: 'Auditoría 2025 - Cliente XYZ',
+    clientId: 1,
+    auditType: 'financial',
+    periodStart: '2025-01-01',
+    periodEnd: '2025-12-31',
+    documentIds: orphanDocIds   // ← vincula documentos en la misma creación
   }
 });
+// proyecto creado + documentos ya vinculados, sin llamada extra
+```
 
-// document.downloadUrl es la URL para leer el archivo (temporal)
+**Patrón general:** Las APIs de creación/actualización de entidades aceptan `documentIds` (array opcional) para vincular documentos en la misma operación. Esto aplica a: proyectos, ítems de checklist, procedimientos, hallazgos, etc. El endpoint `/files/link` sigue disponible para vincular documentos a entidades que ya existen.
+
+### 4c. Imagen de perfil / logo (no es documento de auditoría)
+
+```javascript
+// 1-2. Igual: upload-url → PUT
+// 3. Confirmar con category 'profiles' → NO crea registro en audit_documents
+const { data: { document } } = await api.post('/api/v1/files/confirm', {
+  data: { key, originalName: file.name, mimeType: file.type, size: file.size,
+          category: 'profiles' }
+});
+// document.key = "1/profiles/general/uuid.jpg"
+// document.downloadUrl = URL temporal
+
+// 4. Guardar el key en la entidad correspondiente
+await api.post('/api/v1/users/update', {
+  data: { image: document.key }
+});
+// Al consultar el usuario, el API genera downloadUrl desde el key almacenado
 ```
 
 ---

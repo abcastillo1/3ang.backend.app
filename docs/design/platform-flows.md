@@ -24,6 +24,12 @@ Este documento define: (1) que **toda** la carga de documentos sea por **URL dir
 
 Ningún flujo de "carga de documentos" debe usar **multipart al API** para el contenido del archivo; el API solo emite URLs y persiste metadata.
 
+### Vincular documentos a entidades
+
+- **Al crear/actualizar** una entidad (proyecto, ítem de checklist, procedimiento, hallazgo, etc.), el frontend puede enviar `documentIds: [1, 2, 3]` en el body. La API vincula esos documentos a la entidad en la misma transacción. Esto evita llamadas extra y es atómico.
+- **Después de crear**, se puede usar `POST /api/v1/files/link` para vincular documentos adicionales a un proyecto existente.
+- **Imágenes de perfil/logos** (categoría `profiles`): no crean registro en `audit_documents`. El `confirm` retorna solo `key` + `downloadUrl`; el frontend guarda el `key` en el campo de la entidad (ej. `user.image`, `client.logo`).
+
 ---
 
 ## 2. IA: solo como extra; flujo principal sin dependencia de IA
