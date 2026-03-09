@@ -1,4 +1,4 @@
-# Subida de Archivos — Guía Frontend
+# Subida de Archivos — Contratos de API
 
 La subida de archivos usa **URLs firmadas** (presigned URLs). El archivo va directo del navegador al storage (Backblaze B2), sin pasar por el backend. El proceso tiene 3 pasos obligatorios + 1 opcional.
 
@@ -12,7 +12,7 @@ La subida de archivos usa **URLs firmadas** (presigned URLs). El archivo va dire
 │            │<──────────────│         │  ← { uploadUrl, key, expiresIn }
 │            │               └─────────┘
 │            │    PASO 2     ┌──────────────┐
-│            │──────────────>│ Backblaze B2 │  PUT uploadUrl (binary)
+│            │──────────────>│ Backblaze B2 │  PUT uploadUrl (binario del archivo)
 │            │<──────────────│              │  ← 200 OK
 │            │               └──────────────┘
 │            │    PASO 3     ┌─────────┐
@@ -29,344 +29,251 @@ La subida de archivos usa **URLs firmadas** (presigned URLs). El archivo va dire
 
 ## Paso 1 — Obtener URL firmada
 
-```javascript
-const step1 = await api.post('/files/upload-url', {
-  name: file.name,                // "balance_2024.pdf"
-  mimeType: file.type,            // "application/pdf"
-  size: file.size,                // 2048000
-  category: 'audit_evidences'     // ver categorías abajo
-});
-
-// step1 retorna:
-// {
-//   uploadUrl: "https://s3.us-west-004.backblazeb2.com/...",
-//   key: "1/audit_evidences/general/uuid.pdf",
-//   expiresIn: 300,
-//   contentType: "application/pdf"
-// }
 ```
+POST /api/v1/files/upload-url
+Authorization: Bearer <token>
+Requiere permiso: files.upload
+```
+
+### Request
+
+```json
+{
+  "data": {
+    "name": "balance_2024.pdf",
+    "mimeType": "application/pdf",
+    "size": 2048000,
+    "category": "audit_evidences"
+  }
+}
+```
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `name` | string | Sí | Nombre original del archivo (max 255) |
+| `mimeType` | string | Sí | Tipo MIME (ver lista abajo) |
+| `size` | int | Sí | Tamaño en bytes (max 40 MB = 41943040) |
+| `category` | string | Sí | Categoría del archivo (ver tabla abajo) |
+
+### Response (200)
+
+```json
+{
+  "data": {
+    "uploadUrl": "https://s3.us-west-004.backblazeb2.com/bucket/1/audit_evidences/general/uuid.pdf?X-Amz-...",
+    "key": "1/audit_evidences/general/uuid.pdf",
+    "expiresIn": 300,
+    "contentType": "application/pdf"
+  }
+}
+```
+
+| Campo | Descripción |
+|-------|-------------|
+| `uploadUrl` | URL firmada donde se debe hacer el PUT del archivo. Expira en `expiresIn` segundos (default 300 = 5 min). |
+| `key` | Identificador único del archivo en storage. Guardarlo para el paso 3. |
+| `expiresIn` | Segundos de vida de la URL. |
+| `contentType` | MIME type a usar en el header del PUT. |
 
 ### Categorías permitidas
 
-| Categoría | Uso | Crea registro en BD |
-|-----------|-----|---------------------|
-| `audit_evidences` | Evidencias de auditoría | Sí → `audit_documents` |
-| `fiscal_reports` | Reportes fiscales | Sí → `audit_documents` |
-| `company_docs` | Documentos de la empresa | Sí → `audit_documents` |
+| Categoría | Uso | Crea registro en BD al confirmar |
+|-----------|-----|----------------------------------|
+| `audit_evidences` | Evidencias de auditoría | Sí → tabla `audit_documents` |
+| `fiscal_reports` | Reportes fiscales | Sí → tabla `audit_documents` |
+| `company_docs` | Documentos de la empresa | Sí → tabla `audit_documents` |
 | `profiles` | Fotos de perfil de usuarios/clientes | No (solo retorna key + URL) |
 
 ### MIME types permitidos
 
-- `application/pdf`
-- `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` (xlsx)
-- `application/vnd.ms-excel` (xls)
-- `image/jpeg`
-- `image/png`
-- `image/webp`
+| MIME type | Extensión |
+|-----------|-----------|
+| `application/pdf` | .pdf |
+| `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet` | .xlsx |
+| `application/vnd.ms-excel` | .xls |
+| `image/jpeg` | .jpg, .jpeg |
+| `image/png` | .png |
+| `image/webp` | .webp |
 
-### Tamaño máximo: **40 MB**
+### Tamaño máximo: **40 MB** (41943040 bytes)
 
 ---
 
 ## Paso 2 — Subir archivo directo a B2
 
-```javascript
-const uploadResponse = await fetch(step1.uploadUrl, {
-  method: 'PUT',
-  headers: {
-    'Content-Type': step1.contentType
-  },
-  body: file  // el File object directo
-});
+Hacer un **PUT** a la `uploadUrl` recibida en el paso 1 con el binario del archivo.
 
-if (!uploadResponse.ok) {
-  throw new Error('Error al subir archivo');
-}
+```
+PUT <uploadUrl del paso 1>
+Content-Type: <contentType del paso 1>
+Body: <binario del archivo>
 ```
 
-### Con barra de progreso (XMLHttpRequest)
-
-```javascript
-function uploadWithProgress(uploadUrl, file, contentType, onProgress) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('PUT', uploadUrl);
-    xhr.setRequestHeader('Content-Type', contentType);
-
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        const percent = Math.round((e.loaded / e.total) * 100);
-        onProgress(percent);
-      }
-    });
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve();
-      } else {
-        reject(new Error(`Upload failed: ${xhr.status}`));
-      }
-    });
-
-    xhr.addEventListener('error', () => reject(new Error('Network error')));
-    xhr.send(file);
-  });
-}
-
-// Uso:
-await uploadWithProgress(step1.uploadUrl, file, step1.contentType, (percent) => {
-  setProgress(percent);  // actualizar state de React
-});
-```
+- **No enviar** header `Authorization` (la autenticación va dentro de la URL firmada).
+- **Sí enviar** el header `Content-Type` con el valor de `contentType` del paso 1.
+- Si la URL expiró (pasaron más de 5 min), solicitar una nueva con el paso 1.
+- Una respuesta `200` indica que el archivo se subió correctamente al storage.
 
 ---
 
 ## Paso 3 — Confirmar subida
 
-```javascript
-const step3 = await api.post('/files/confirm', {
-  key: step1.key,
-  originalName: file.name,
-  mimeType: file.type,
-  size: file.size,
-  category: 'audit_evidences',
-  auditProjectId: 5,   // opcional: vincular al proyecto ya
-  nodeId: 12            // opcional: vincular al nodo del árbol
-});
+```
+POST /api/v1/files/confirm
+Authorization: Bearer <token>
+Requiere permiso: files.upload
 ```
 
-### Respuesta para categoría de auditoría (audit_evidences, fiscal_reports, company_docs)
+### Request
 
 ```json
 {
-  "document": {
-    "id": 42,
+  "data": {
     "key": "1/audit_evidences/general/uuid.pdf",
     "originalName": "balance_2024.pdf",
     "mimeType": "application/pdf",
     "size": 2048000,
     "category": "audit_evidences",
     "auditProjectId": 5,
-    "nodeId": 12,
-    "uploaderId": 1,
-    "organizationId": 1,
-    "downloadUrl": "https://s3.../signed-url...",
-    "analysisStatus": "pending"
+    "nodeId": 12
   }
 }
 ```
 
-**`document.id` es lo más importante** — se usa para vincular el documento a entidades.
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `key` | string | Sí | El `key` recibido en el paso 1 |
+| `originalName` | string | Sí | Nombre original del archivo |
+| `mimeType` | string | Sí | Tipo MIME |
+| `size` | int | Sí | Tamaño en bytes |
+| `category` | string | Sí | Misma categoría del paso 1 |
+| `auditProjectId` | int | No | Vincular al proyecto de auditoría (solo para categorías de auditoría) |
+| `nodeId` | int | No | Vincular al nodo del árbol del proyecto |
 
-### Respuesta para categoría `profiles`
+### Response para categoría de auditoría (`audit_evidences`, `fiscal_reports`, `company_docs`)
 
 ```json
 {
-  "document": {
-    "key": "1/profiles/general/uuid.jpg",
-    "originalName": "avatar.jpg",
-    "mimeType": "image/jpeg",
-    "size": 150000,
-    "category": "profiles",
-    "downloadUrl": "https://s3.../signed-url..."
+  "data": {
+    "document": {
+      "id": 42,
+      "key": "1/audit_evidences/general/uuid.pdf",
+      "originalName": "balance_2024.pdf",
+      "mimeType": "application/pdf",
+      "size": 2048000,
+      "category": "audit_evidences",
+      "auditProjectId": 5,
+      "nodeId": 12,
+      "uploaderId": 1,
+      "organizationId": 1,
+      "downloadUrl": "https://s3.../signed-url...",
+      "analysisStatus": "pending"
+    }
   }
 }
 ```
 
-No crea registro en BD. El `key` se guarda directamente en el campo correspondiente del usuario o cliente.
+**`document.id` es el dato clave** — se usa después para vincular el documento a entidades (proyectos, nodos).
+
+### Response para categoría `profiles`
+
+```json
+{
+  "data": {
+    "document": {
+      "key": "1/profiles/general/uuid.jpg",
+      "originalName": "avatar.jpg",
+      "mimeType": "image/jpeg",
+      "size": 150000,
+      "category": "profiles",
+      "downloadUrl": "https://s3.../signed-url..."
+    }
+  }
+}
+```
+
+No se crea registro en BD. El `key` se guarda directamente en el campo correspondiente del usuario o cliente (ej: al hacer `/users/update` con `profileImage: document.key`).
 
 ---
 
-## Paso 4 — Vincular documentos a entidades
+## Paso 4 — Vincular documentos a entidades (opcional)
 
 ### Opción A: Al crear la entidad (recomendado)
 
-```javascript
-// Subir documentos primero, recolectar sus IDs
-const docIds = [42, 43, 44];
+Las APIs de creación de entidades aceptan un campo `documentIds` para vincular documentos en la misma operación:
 
-// Crear proyecto con documentos vinculados en una sola llamada
-await api.post('/projects/create', {
-  name: 'Auditoría 2024',
-  clientId: 1,
-  auditType: 'financial',
-  periodStart: '2024-01-01',
-  periodEnd: '2024-12-31',
-  documentIds: docIds  // se vinculan automáticamente
-});
+```json
+{
+  "data": {
+    "name": "Auditoría 2024",
+    "clientId": 1,
+    "auditType": "financial",
+    "periodStart": "2024-01-01",
+    "periodEnd": "2024-12-31",
+    "documentIds": [42, 43, 44]
+  }
+}
 ```
 
-### Opción B: Vincular a entidad existente
+### Opción B: Vincular a una entidad ya existente
 
-```javascript
-await api.post('/files/link', {
-  documentIds: [42, 43],
-  auditProjectId: 5,
-  nodeId: 12  // opcional
-});
-
-// Respuesta:
-// { linked: [42, 43], auditProjectId: 5, count: 2 }
 ```
+POST /api/v1/files/link
+Authorization: Bearer <token>
+Requiere permiso: files.upload
+```
+
+### Request
+
+```json
+{
+  "data": {
+    "documentIds": [42, 43],
+    "auditProjectId": 5,
+    "nodeId": 12
+  }
+}
+```
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `documentIds` | int[] | Sí | IDs de documentos a vincular (min 1). Solo documentos sin proyecto asignado. |
+| `auditProjectId` | int | Sí | ID del proyecto al que vincular |
+| `nodeId` | int | No | ID del nodo del árbol |
+
+### Response (200)
+
+```json
+{
+  "data": {
+    "linked": [42, 43],
+    "auditProjectId": 5,
+    "count": 2
+  }
+}
+```
+
+### Errores posibles
+
+| Código | errorCode | Causa |
+|--------|-----------|-------|
+| 400 | `files.link.projectNotFound` | El proyecto no existe o no pertenece a la organización |
+| 400 | `files.link.noDocumentsFound` | Ningún documento válido para vincular (ya vinculados o no existen) |
 
 ---
 
-## Componente de Upload completo (React)
+## Resumen del flujo por tipo de archivo
 
-```jsx
-// src/components/FileUpload.jsx
-import { useState, useRef } from 'react';
-import { api } from '../services/api';
+### Archivos de auditoría (evidencias, reportes, docs empresa)
 
-const ACCEPT_MAP = {
-  audit_evidences: '.pdf,.xlsx,.xls,.jpg,.jpeg,.png,.webp',
-  profiles: '.jpg,.jpeg,.png,.webp'
-};
+1. `POST /files/upload-url` → obtener URL firmada
+2. `PUT <uploadUrl>` → subir binario al storage
+3. `POST /files/confirm` → confirmar y obtener `document.id`
+4. Usar `document.id` en la creación de la entidad (`documentIds: [...]`) o en `POST /files/link`
 
-export function FileUpload({ category = 'audit_evidences', onUploaded, multiple = false }) {
-  const [files, setFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const inputRef = useRef(null);
+### Fotos de perfil
 
-  async function uploadFile(file) {
-    const entry = { name: file.name, progress: 0, status: 'uploading', id: null };
-    setFiles(prev => [...prev, entry]);
-
-    const updateEntry = (updates) => {
-      setFiles(prev => prev.map(f => f.name === file.name ? { ...f, ...updates } : f));
-    };
-
-    try {
-      // Paso 1
-      const { uploadUrl, key, contentType } = await api.post('/files/upload-url', {
-        name: file.name,
-        mimeType: file.type,
-        size: file.size,
-        category
-      });
-
-      // Paso 2
-      await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('PUT', uploadUrl);
-        xhr.setRequestHeader('Content-Type', contentType);
-        xhr.upload.onprogress = (e) => {
-          if (e.lengthComputable) updateEntry({ progress: Math.round((e.loaded / e.total) * 100) });
-        };
-        xhr.onload = () => xhr.status < 300 ? resolve() : reject(new Error('Upload failed'));
-        xhr.onerror = () => reject(new Error('Network error'));
-        xhr.send(file);
-      });
-
-      // Paso 3
-      const { document } = await api.post('/files/confirm', {
-        key,
-        originalName: file.name,
-        mimeType: file.type,
-        size: file.size,
-        category
-      });
-
-      updateEntry({ progress: 100, status: 'done', id: document.id || null, document });
-
-      if (onUploaded) onUploaded(document);
-    } catch (err) {
-      updateEntry({ status: 'error', error: err.message });
-    }
-  }
-
-  async function handleChange(e) {
-    const selected = Array.from(e.target.files);
-    if (!selected.length) return;
-
-    setUploading(true);
-    await Promise.all(selected.map(uploadFile));
-    setUploading(false);
-  }
-
-  return (
-    <div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept={ACCEPT_MAP[category] || '*'}
-        multiple={multiple}
-        onChange={handleChange}
-        hidden
-      />
-      <button onClick={() => inputRef.current?.click()} disabled={uploading}>
-        {uploading ? 'Subiendo...' : 'Seleccionar archivos'}
-      </button>
-
-      <ul>
-        {files.map((f, i) => (
-          <li key={i}>
-            {f.name}
-            {f.status === 'uploading' && <span> — {f.progress}%</span>}
-            {f.status === 'done' && <span> ✓</span>}
-            {f.status === 'error' && <span> ✗ {f.error}</span>}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-```
-
-### Uso del componente
-
-```jsx
-function ProjectDocuments() {
-  const [docIds, setDocIds] = useState([]);
-
-  return (
-    <FileUpload
-      category="audit_evidences"
-      multiple
-      onUploaded={(doc) => {
-        setDocIds(prev => [...prev, doc.id]);
-      }}
-    />
-    // Luego usar docIds al crear el proyecto
-  );
-}
-```
-
----
-
-## Fotos de perfil
-
-Para fotos de perfil el flujo es más simple porque no crea registro en BD:
-
-```javascript
-async function uploadProfilePhoto(file) {
-  const { uploadUrl, key, contentType } = await api.post('/files/upload-url', {
-    name: file.name,
-    mimeType: file.type,
-    size: file.size,
-    category: 'profiles'
-  });
-
-  await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': contentType },
-    body: file
-  });
-
-  const { document } = await api.post('/files/confirm', {
-    key,
-    originalName: file.name,
-    mimeType: file.type,
-    size: file.size,
-    category: 'profiles'
-  });
-
-  // Guardar el key en el perfil del usuario
-  await api.post('/users/update', {
-    id: userId,
-    profileImage: document.key
-  });
-
-  return document.downloadUrl;  // para mostrar la imagen de inmediato
-}
-```
+1. `POST /files/upload-url` con `category: "profiles"` → obtener URL firmada
+2. `PUT <uploadUrl>` → subir binario al storage
+3. `POST /files/confirm` → obtener `document.key` y `downloadUrl`
+4. Guardar `document.key` en la entidad correspondiente (ej: `POST /users/update` con `profileImage`)

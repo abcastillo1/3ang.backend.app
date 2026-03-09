@@ -48,18 +48,18 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 
 ## 4. Guías para el Frontend (`frontend/`)
 
-Documentación práctica con ejemplos de código (React) para integrar el frontend con el backend. Cada guía cubre un módulo con requests, responses y componentes listos para usar.
+Contratos de API para el frontend: endpoints, requests, responses y reglas de negocio. Sin implementación de framework; solo lo que necesita saber el frontend para consumir cada servicio.
 
 | Documento | Contenido |
 |-----------|-----------|
-| [`frontend/README.md`](frontend/README.md) | Índice de las guías frontend, convenciones del API (base URL, método POST, formato body). |
-| [`frontend/api-client.md`](frontend/api-client.md) | Cliente API reutilizable: configuración base, formatos de request/response, manejo de errores, refresh automático, tabla completa de endpoints. |
-| [`frontend/auth.md`](frontend/auth.md) | Login, logout, refresh token, protección de rutas con React Router, verificación de permisos en componentes. |
-| [`frontend/file-upload.md`](frontend/file-upload.md) | Subida de archivos con presigned URLs: flujo completo paso a paso, barra de progreso, componente `FileUpload` reutilizable, fotos de perfil. |
-| [`frontend/users-roles.md`](frontend/users-roles.md) | CRUD de usuarios, roles, asignación de permisos. Componente de gestión de permisos por módulo. |
-| [`frontend/organizations.md`](frontend/organizations.md) | Datos de organización, settings (límites, tipos de auditoría). |
+| [`frontend/README.md`](frontend/README.md) | Índice y convenciones generales del API (base URL, método POST, formato body). |
+| [`frontend/api-client.md`](frontend/api-client.md) | Convenciones de request/response, códigos de error, tabla completa de endpoints con permisos requeridos. |
+| [`frontend/auth.md`](frontend/auth.md) | Login, logout, refresh token. Datos que retorna, permisos, expiración. |
+| [`frontend/file-upload.md`](frontend/file-upload.md) | Subida de archivos con presigned URLs: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
+| [`frontend/users-roles.md`](frontend/users-roles.md) | CRUD de usuarios, roles, permisos. Campos, validaciones, responses. |
+| [`frontend/organizations.md`](frontend/organizations.md) | Datos de organización, OrganizationSetting (límites y configuración). |
 
-**Cuándo leer:** Al construir pantallas y componentes del frontend.
+**Cuándo leer:** Al integrar el frontend con cualquier endpoint del backend.
 
 ---
 

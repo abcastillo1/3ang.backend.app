@@ -1,4 +1,4 @@
-# Autenticación — Guía Frontend
+# Autenticación — Contratos de API
 
 ## Login
 
@@ -18,6 +18,8 @@ Sin Authorization header
 }
 ```
 
+**Campos obligatorios:** `email` (email válido), `password` (mínimo 6 caracteres)
+
 ### Response (200)
 
 ```json
@@ -36,7 +38,7 @@ Sin Authorization header
     "role": {
       "id": 1,
       "name": "Administrador",
-      "permissions": ["users.create", "users.view", "roles.create", ...]
+      "permissions": ["users.create", "users.view", "roles.create", "..."]
     },
     "organization": {
       "id": 1,
@@ -49,25 +51,12 @@ Sin Authorization header
 
 ### Qué guardar del login
 
-```javascript
-// src/services/auth.js
-import { api } from './api';
-
-export async function login(email, password) {
-  const data = await api.post('/auth/login', { email, password });
-
-  // Guardar token para futuras peticiones
-  api.setToken(data.token);
-
-  // Guardar perfil en estado global (Context, Zustand, Redux, etc.)
-  return {
-    user: data.user,
-    role: data.role,
-    organization: data.organization,
-    permissions: data.role.permissions  // array de strings
-  };
-}
-```
+| Campo | Para qué |
+|-------|----------|
+| `token` | Enviar en header `Authorization: Bearer <token>` en todas las peticiones siguientes |
+| `user` | Datos del usuario autenticado (perfil, menú, etc.) |
+| `role.permissions` | Array de strings con los códigos de permiso. Usarlos para mostrar/ocultar funcionalidades en la UI |
+| `organization` | Datos de la organización a la que pertenece |
 
 ### Errores posibles
 
@@ -75,13 +64,13 @@ export async function login(email, password) {
 |--------|-----------|-------|
 | 401 | `auth.invalidCredentials` | Email o contraseña incorrectos |
 | 403 | `auth.userInactive` | Usuario desactivado |
-| 400 | `validation.error` | Campos inválidos |
+| 400 | `validation.error` | Campos inválidos (ver `errors`) |
 
 ---
 
 ## Refresh token
 
-Renueva el token JWT antes de que expire (por defecto expira en 24h).
+Renueva el token JWT antes de que expire. El token por defecto expira en **24 horas**.
 
 ```
 POST /api/v1/auth/refresh
@@ -106,30 +95,9 @@ Authorization: Bearer <token_actual>
 }
 ```
 
-### Auto-refresh recomendado
+El `expiresAt` indica cuándo expira el nuevo token. Se recomienda renovar unos minutos antes de esa hora.
 
-```javascript
-// src/services/api.js — agregar al ApiClient
-
-scheduleRefresh(expiresAt) {
-  const expiresMs = new Date(expiresAt).getTime();
-  const refreshAt = expiresMs - (5 * 60 * 1000); // 5 min antes
-  const delay = refreshAt - Date.now();
-
-  if (delay > 0) {
-    this._refreshTimer = setTimeout(async () => {
-      try {
-        const data = await this.post('/auth/refresh');
-        this.setToken(data.token);
-        this.scheduleRefresh(data.expiresAt);
-      } catch {
-        this.setToken(null);
-        window.location.href = '/login';
-      }
-    }, delay);
-  }
-}
-```
+Si el token actual ya expiró o es inválido, retorna `401`.
 
 ---
 
@@ -146,73 +114,24 @@ Authorization: Bearer <token>
 { "data": {} }
 ```
 
-### En el frontend
+### Response (200)
 
-```javascript
-export async function logout() {
-  try {
-    await api.post('/auth/logout');
-  } finally {
-    api.setToken(null);
-    // Limpiar estado global
-    window.location.href = '/login';
-  }
+```json
+{
+  "statusCode": 200,
+  "message": "Operación exitosa",
+  "data": null
 }
 ```
+
+Invalida la sesión del token actual en el servidor.
 
 ---
 
-## Protección de rutas (React Router)
+## Permisos
 
-```jsx
-// src/components/ProtectedRoute.jsx
+Los permisos del usuario se reciben en el login como un array de strings en `role.permissions` (ej: `["users.create", "users.view", "files.upload"]`).
 
-function ProtectedRoute({ children, requiredPermission }) {
-  const { user, permissions } = useAuth(); // tu hook de auth
+Cada endpoint protegido requiere un permiso específico (ver tabla en `api-client.md`). Si el usuario no tiene el permiso, el backend retorna `403`.
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requiredPermission && !permissions.includes(requiredPermission)) {
-    return <Navigate to="/403" replace />;
-  }
-
-  return children;
-}
-
-// Uso en rutas:
-<Route
-  path="/users"
-  element={
-    <ProtectedRoute requiredPermission="users.view">
-      <UsersPage />
-    </ProtectedRoute>
-  }
-/>
-```
-
----
-
-## Verificar permisos en componentes
-
-```jsx
-// src/hooks/useAuth.js
-export function useHasPermission(code) {
-  const { permissions } = useAuth();
-  return permissions.includes(code);
-}
-
-// En cualquier componente:
-function UserActions() {
-  const canCreate = useHasPermission('users.create');
-  const canDelete = useHasPermission('users.delete');
-
-  return (
-    <div>
-      {canCreate && <button>Nuevo usuario</button>}
-      {canDelete && <button>Eliminar</button>}
-    </div>
-  );
-}
-```
+**Excepción:** El owner de la organización siempre tiene acceso total sin importar sus permisos.

@@ -1,4 +1,4 @@
-# Usuarios, Roles y Permisos — Guía Frontend
+# Usuarios, Roles y Permisos — Contratos de API
 
 ---
 
@@ -11,6 +11,8 @@ POST /api/v1/users/list
 Authorization: Bearer <token>
 ```
 
+#### Request
+
 ```json
 {
   "data": {
@@ -21,7 +23,13 @@ Authorization: Bearer <token>
 }
 ```
 
-**Respuesta:**
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| `page` | int | No | Página (default 1) |
+| `limit` | int | No | Registros por página (default 20) |
+| `search` | string | No | Buscar por nombre o email |
+
+#### Response (200)
 
 ```json
 {
@@ -51,12 +59,19 @@ Authorization: Bearer <token>
 }
 ```
 
+Solo retorna usuarios de la misma organización del autenticado.
+
+---
+
 ### Crear usuario
 
 ```
 POST /api/v1/users/create
+Authorization: Bearer <token>
 Requiere permiso: users.create
 ```
+
+#### Request
 
 ```json
 {
@@ -73,17 +88,55 @@ Requiere permiso: users.create
 }
 ```
 
-**Campos obligatorios:** `fullName`, `email`, `password`, `roleId`, `documentType`, `documentNumber`
+| Campo | Tipo | Obligatorio | Validaciones |
+|-------|------|-------------|--------------|
+| `fullName` | string | Sí | 2–255 caracteres |
+| `email` | string | Sí | Email válido, único en la organización |
+| `password` | string | Sí | Mínimo 6 caracteres |
+| `roleId` | int | Sí | ID de un rol existente |
+| `documentType` | string | Sí | `cedula`, `ruc` o `pasaporte` |
+| `documentNumber` | string | Sí | Número del documento |
+| `phone` | string | No | Teléfono |
+| `username` | string | No | Username |
 
-**Campos opcionales:** `phone`, `username`
+#### Response (200)
 
-**Tipos de documento:** `cedula`, `ruc`, `pasaporte`
+```json
+{
+  "data": {
+    "user": {
+      "id": 5,
+      "fullName": "María López",
+      "email": "maria@example.com",
+      "documentType": "cedula",
+      "documentNumber": "0912345678",
+      "phone": "0998765432",
+      "isActive": true,
+      "roleId": 2,
+      "organizationId": 1
+    }
+  }
+}
+```
+
+#### Errores posibles
+
+| Código | errorCode | Causa |
+|--------|-----------|-------|
+| 400 | `validation.error` | Campos inválidos |
+| 400 | `users.emailExists` | Email ya registrado |
+| 400 | `users.documentExists` | Documento ya registrado |
+
+---
 
 ### Actualizar usuario
 
 ```
 POST /api/v1/users/update
+Authorization: Bearer <token>
 ```
+
+#### Request
 
 ```json
 {
@@ -96,17 +149,26 @@ POST /api/v1/users/update
 }
 ```
 
+Solo enviar los campos que se quieran actualizar, junto con el `id`.
+
+---
+
 ### Ver perfil propio
 
 ```
 POST /api/v1/users/profile
+Authorization: Bearer <token>
 ```
+
+#### Request
 
 ```json
 { "data": {} }
 ```
 
-Retorna los datos completos del usuario autenticado, incluyendo rol, permisos y organización.
+#### Response (200)
+
+Retorna los datos completos del usuario autenticado, incluyendo rol, permisos y organización (mismo formato que el login).
 
 ---
 
@@ -116,14 +178,17 @@ Retorna los datos completos del usuario autenticado, incluyendo rol, permisos y 
 
 ```
 POST /api/v1/roles/list
+Authorization: Bearer <token>
 Requiere permiso: roles.view
 ```
+
+#### Request
 
 ```json
 { "data": {} }
 ```
 
-**Respuesta:**
+#### Response (200)
 
 ```json
 {
@@ -141,19 +206,25 @@ Requiere permiso: roles.view
       {
         "id": 2,
         "name": "Auditor",
-        "permissions": [...]
+        "description": "...",
+        "permissions": ["..."]
       }
     ]
   }
 }
 ```
 
+---
+
 ### Crear rol
 
 ```
 POST /api/v1/roles/create
+Authorization: Bearer <token>
 Requiere permiso: roles.create
 ```
+
+#### Request
 
 ```json
 {
@@ -164,12 +235,22 @@ Requiere permiso: roles.create
 }
 ```
 
+| Campo | Tipo | Obligatorio |
+|-------|------|-------------|
+| `name` | string | Sí |
+| `description` | string | No |
+
+---
+
 ### Actualizar rol
 
 ```
 POST /api/v1/roles/update
+Authorization: Bearer <token>
 Requiere permiso: roles.update
 ```
+
+#### Request
 
 ```json
 {
@@ -181,12 +262,17 @@ Requiere permiso: roles.update
 }
 ```
 
+---
+
 ### Eliminar rol
 
 ```
 POST /api/v1/roles/delete
+Authorization: Bearer <token>
 Requiere permiso: roles.delete
 ```
+
+#### Request
 
 ```json
 {
@@ -196,12 +282,17 @@ Requiere permiso: roles.delete
 }
 ```
 
+---
+
 ### Asignar permisos a un rol
 
 ```
 POST /api/v1/roles/assign-permissions
+Authorization: Bearer <token>
 Requiere permiso: roles.update
 ```
+
+#### Request
 
 ```json
 {
@@ -212,7 +303,7 @@ Requiere permiso: roles.update
 }
 ```
 
-Reemplaza todos los permisos del rol con los IDs enviados.
+**Reemplaza todos** los permisos del rol con los IDs enviados. Si se quiere quitar un permiso, no incluirlo en el array.
 
 ---
 
@@ -222,14 +313,17 @@ Reemplaza todos los permisos del rol con los IDs enviados.
 
 ```
 POST /api/v1/permissions/list
+Authorization: Bearer <token>
 Requiere permiso: permissions.view
 ```
+
+#### Request
 
 ```json
 { "data": {} }
 ```
 
-**Respuesta:**
+#### Response (200)
 
 ```json
 {
@@ -250,76 +344,4 @@ Requiere permiso: permissions.view
 }
 ```
 
----
-
-## Componente: Gestión de roles con permisos
-
-```jsx
-function RolePermissions({ roleId }) {
-  const [allPermissions, setAllPermissions] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
-
-  useEffect(() => {
-    // Cargar todos los permisos disponibles
-    api.post('/permissions/list').then(data => {
-      setAllPermissions(data.permissions);
-    });
-
-    // Cargar permisos actuales del rol
-    api.post('/roles/list').then(data => {
-      const role = data.roles.find(r => r.id === roleId);
-      if (role) setSelectedIds(role.permissions.map(p => p.id));
-    });
-  }, [roleId]);
-
-  // Agrupar permisos por módulo para la UI
-  const grouped = allPermissions.reduce((acc, p) => {
-    const mod = p.module || p.code.split('.')[0];
-    if (!acc[mod]) acc[mod] = [];
-    acc[mod].push(p);
-    return acc;
-  }, {});
-
-  async function handleSave() {
-    await api.post('/roles/assign-permissions', {
-      roleId,
-      permissionIds: selectedIds
-    });
-  }
-
-  function toggle(permId) {
-    setSelectedIds(prev =>
-      prev.includes(permId)
-        ? prev.filter(id => id !== permId)
-        : [...prev, permId]
-    );
-  }
-
-  return (
-    <div>
-      {Object.entries(grouped).map(([module, perms]) => (
-        <fieldset key={module}>
-          <legend>{module}</legend>
-          {perms.map(p => (
-            <label key={p.id}>
-              <input
-                type="checkbox"
-                checked={selectedIds.includes(p.id)}
-                onChange={() => toggle(p.id)}
-              />
-              {p.description || p.code}
-            </label>
-          ))}
-        </fieldset>
-      ))}
-      <button onClick={handleSave}>Guardar permisos</button>
-    </div>
-  );
-}
-```
-
----
-
-## Nota sobre el owner de la organización
-
-El usuario que creó la organización (owner) **siempre tiene acceso total**, sin importar qué rol o permisos tenga asignados. El backend lo verifica automáticamente por `organization.ownerUserId === user.id`. En el frontend no es necesario hacer nada especial para esto.
+Los permisos se pueden agrupar por `module` (o por el prefijo antes del `.` en `code`) para mostrarlos organizados en la UI.

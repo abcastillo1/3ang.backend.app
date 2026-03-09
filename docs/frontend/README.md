@@ -1,14 +1,14 @@
 # Guías para el Frontend
 
-Documentación práctica para integrar el frontend (React) con el backend. Cada archivo cubre un tema con ejemplos de código listos para usar.
+Documentación de contratos de API para integrar el frontend con el backend. Cada archivo documenta endpoints, requests, responses y reglas de negocio relevantes.
 
 | Guía | Contenido |
 |------|-----------|
-| [`api-client.md`](api-client.md) | Configuración base: URL, headers, formato de request/response, manejo de errores, token JWT. Incluye un cliente API reutilizable. |
-| [`auth.md`](auth.md) | Login, logout, refresh token, manejo de sesión, protección de rutas. |
-| [`file-upload.md`](file-upload.md) | Subida de archivos con URLs firmadas: componente de upload, barra de progreso, vinculación con entidades. |
-| [`users-roles.md`](users-roles.md) | CRUD de usuarios, roles, permisos. Verificación de permisos en el frontend. |
-| [`organizations.md`](organizations.md) | Datos de la organización, settings (OrganizationSetting). |
+| [`api-client.md`](api-client.md) | Convenciones generales: URL base, headers, formato de request/response, códigos de error, tabla completa de endpoints. |
+| [`auth.md`](auth.md) | Login, logout, refresh token. Datos que retorna el login, permisos del usuario, comportamiento del owner. |
+| [`file-upload.md`](file-upload.md) | Subida de archivos con URLs firmadas: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
+| [`users-roles.md`](users-roles.md) | CRUD de usuarios, roles, permisos. Campos obligatorios/opcionales, respuestas, asignación de permisos. |
+| [`organizations.md`](organizations.md) | Datos de la organización, OrganizationSetting (límites y configuración). |
 
 ---
 
@@ -17,6 +17,6 @@ Documentación práctica para integrar el frontend (React) con el backend. Cada 
 - **Base URL:** `http://localhost:3000/api/v1`
 - **Método:** Todos los endpoints usan **POST** (no GET/PUT/DELETE)
 - **Body:** Siempre envuelto en `{ "data": { ... } }`
-- **Auth:** Header `Authorization: Bearer <token>` (excepto login)
+- **Auth:** Header `Authorization: Bearer <token>` (excepto login y health)
 - **Respuesta exitosa:** `{ statusCode: 200, message: "...", data: { ... } }`
 - **Respuesta error:** `{ statusCode: 4xx, message: "...", errorCode: "..." }`
