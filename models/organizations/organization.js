@@ -32,6 +32,12 @@ export default function (sequelize, DataTypes) {
         allowNull: true,
         comment: 'RUC (Ecuador). Unique per organization'
       },
+      taxId: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        field: 'tax_id',
+        comment: 'Generic tax identifier (VAT, Tax ID, etc.). For Ecuador often same as RUC'
+      },
       sriRegimen: {
         type: DataTypes.STRING(100),
         allowNull: true,

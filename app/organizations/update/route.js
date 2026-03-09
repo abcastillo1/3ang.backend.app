@@ -27,6 +27,11 @@ const validators = [
         .matches(/^(\d{10}|\d{10}001)$/)
         .withMessage('validators.organization.ruc.invalid'),
 
+    validateField('data.taxId')
+        .optional()
+        .isLength({ max: 50 })
+        .withMessage('validators.organization.taxId.invalid'),
+
     validateField('data.email')
         .optional()
         .isEmail()
@@ -101,6 +106,7 @@ async function handler(req, res, next) {
         }
         if (data.legalName !== undefined) updateData.legalName = data.legalName;
         if (data.ruc !== undefined) updateData.ruc = data.ruc;
+        if (data.taxId !== undefined) updateData.taxId = data.taxId;
         if (data.sriRegimen !== undefined) updateData.sriRegimen = data.sriRegimen;
         if (data.email !== undefined) updateData.email = data.email;
         if (data.phone !== undefined) updateData.phone = data.phone;

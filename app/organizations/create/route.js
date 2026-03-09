@@ -21,6 +21,11 @@ const validators = [
         .matches(/^(\d{10}|\d{10}001)$/)
         .withMessage('validators.organization.ruc.invalid'),
 
+    validateField('data.taxId')
+        .optional()
+        .isLength({ max: 50 })
+        .withMessage('validators.organization.taxId.invalid'),
+
     validateField('data.email')
         .optional()
         .isEmail()
@@ -67,6 +72,7 @@ async function handler(req, res, next) {
         image: data.image || null,
         legalName: data.legalName || null,
         ruc: data.ruc || null,
+        taxId: data.taxId || null,
         sriRegimen: data.sriRegimen || null,
         email: data.email || null,
         phone: data.phone || null,

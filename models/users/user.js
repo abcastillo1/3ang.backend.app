@@ -199,7 +199,7 @@ export default function (sequelize, DataTypes) {
       id: organization.id,
       name: organization.name,
       legalName: organization.legalName,
-      taxId: organization.taxId,
+      taxId: organization.tax_id,
       email: organization.email,
       phone: organization.phone,
       address: organization.address,

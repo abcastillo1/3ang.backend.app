@@ -22,7 +22,7 @@ async function handler(req, res, next) {
       id: req.organization.id,
       name: req.organization.name,
       legalName: req.organization.legalName,
-      taxId: req.organization.taxId,
+      taxId: req.organization.tax_id,
       email: req.organization.email,
       phone: req.organization.phone,
       address: req.organization.address,
