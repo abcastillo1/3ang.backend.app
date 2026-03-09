@@ -58,6 +58,7 @@ Contratos de API para el frontend: endpoints, requests, responses y reglas de ne
 | [`frontend/file-upload.md`](frontend/file-upload.md) | Subida de archivos con presigned URLs: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
 | [`frontend/users-roles.md`](frontend/users-roles.md) | CRUD de usuarios, roles, permisos. Campos, validaciones, responses. |
 | [`frontend/organizations.md`](frontend/organizations.md) | Datos de organización, OrganizationSetting (límites y configuración). |
+| [`frontend/clients.md`](frontend/clients.md) | CRUD de clientes: crear, listar, ver detalle, actualizar, eliminar. |
 
 **Cuándo leer:** Al integrar el frontend con cualquier endpoint del backend.
 

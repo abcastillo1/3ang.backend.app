@@ -42,47 +42,42 @@ Todo lo necesario para que el backend funcione: servidor, BD, auth, usuarios, ro
 
 ---
 
-## FASE 1 — Carga de archivos y almacenamiento `90%`
+## FASE 1 — Carga de archivos y almacenamiento `100%`
 
 Carga directa a B2/S3 vía URLs prefirmadas; el API nunca recibe el archivo. Aplica a todo: documentos de auditoría, imágenes de perfil, logos, etc.
 
 - [x] Helper de storage (helpers/storage.js) — S3 client, generateUploadUrl, generateDownloadUrl, deleteObject
 - [x] Endpoint POST /files/upload-url (genera URL prefirmada para cualquier categoría)
-- [x] Endpoint POST /files/confirm — comportamiento según categoría:
-  - audit_evidences, fiscal_reports, company_docs → crea registro en audit_documents
-  - profiles → solo retorna key + downloadUrl (sin registro en BD)
+- [x] Endpoint POST /files/confirm — solo categorías de auditoría (audit_evidences, fiscal_reports, company_docs) → crea registro en audit_documents
 - [x] Endpoint POST /files/link — vincular documentos huérfanos a un proyecto después de crearlo
+- [x] Endpoint POST /files/download-url — obtener URL de descarga para cualquier archivo (profiles, URLs expiradas, etc.)
 - [x] Modelo AuditDocument (storageKey, originalName, mimeType, size, category, auditProjectId, nodeId)
 - [x] Migración SQL para tabla audit_documents
 - [x] Validación de que el key pertenece a la organización del usuario
 - [x] Soporte para auditProjectId y nodeId opcionales en confirm
 - [x] Retirado endpoint legacy de upload multipart (ya no existe /files/upload)
 - [x] Documentación del flujo con 3 escenarios (docs/technical/file-upload.md)
-- [ ] API para listar documentos de un proyecto (POST /files/list con filtros por proyecto, categoría, nodo)
-- [ ] API para obtener URL de descarga (regenerar downloadUrl para un documento existente)
-- [ ] API para eliminar documento (soft delete + deleteObject en B2)
-- [ ] API para listar documentos de un proyecto (POST /files/list con filtros por proyecto, categoría, nodo)
-- [ ] API para obtener URL de descarga (regenerar downloadUrl para un documento existente)
-- [ ] API para eliminar documento (soft delete + deleteObject en B2)
+- [x] API POST /files/list — listar documentos (filtros por proyecto, categoría, nodo, paginación)
+- [x] API POST /files/delete — eliminar documento (destroy + deleteObject en B2)
 
 ---
 
-## FASE 2 — Entidades base del dominio de auditoría `35%`
+## FASE 2 — Entidades base del dominio de auditoría `55%`
 
 Clientes, proyectos de auditoría y asignaciones de equipo.
 
-### 2.1 Clientes (Client) `15%`
+### 2.1 Clientes (Client) `100%`
 
 - [x] Modelo Client (name, legalName, ruc, email, phone, address, isActive)
 - [x] Asociaciones (Organization hasMany Client; Client hasMany AuditProject)
 - [x] Migración SQL para tabla clients
-- [ ] API POST /clients/create — crear cliente (validar unicidad ruc por organización)
-- [ ] API POST /clients/list — listar clientes de la organización (paginación, búsqueda)
-- [ ] API POST /clients/view — ver detalle de un cliente
-- [ ] API POST /clients/update — actualizar cliente
-- [ ] API POST /clients/delete — soft delete
-- [ ] Router routes/clients.js y registro en routes/index.js
-- [ ] Permisos: clients.create, clients.view, clients.update, clients.delete (insertar en tabla permissions)
+- [x] API POST /clients/create — crear cliente (validar unicidad ruc por organización)
+- [x] API POST /clients/list — listar clientes de la organización (paginación, búsqueda por nombre/legalName/ruc)
+- [x] API POST /clients/view — ver detalle de un cliente (incluye proyectos asociados)
+- [x] API POST /clients/update — actualizar cliente (validar unicidad ruc)
+- [x] API POST /clients/delete — soft delete (bloquear si tiene proyectos activos)
+- [x] Router routes/clients.js y registro en routes/index.js
+- [x] Permisos: clients.create, clients.view, clients.update, clients.delete (migración 0010)
 
 ### 2.2 Proyectos de auditoría (AuditProject) `15%`
 
@@ -309,11 +304,11 @@ Vistas agregadas para monitorear el avance de los proyectos.
 
 ## Resumen de avance global
 
-| 1 | Carga de archivos | **90%** |
+| Fase | Módulo | Avance |
 |------|--------|--------|
 | 0 | Infraestructura y base | **100%** |
-| 1 | Carga de archivos | **85%** |
-| 2 | Entidades base (Client, Project, Assignment) | **35%** |
+| 1 | Carga de archivos | **100%** |
+| 2 | Entidades base (Client, Project, Assignment) | **55%** |
 | 3 | Jerarquía del proyecto (árbol) | **0%** |
 | 4 | Archivo Permanente | **0%** |
 | 5 | Planificación (cronograma, cuestionarios) | **0%** |
@@ -323,7 +318,7 @@ Vistas agregadas para monitorear el avance de los proyectos.
 | 9 | Réplica de proyecto | **0%** |
 | 10 | Inteligencia Artificial | **0%** |
 | 11 | Dashboard y analítica | **0%** |
-| | **TOTAL ESTIMADO** | **~18%** |
+| | **TOTAL ESTIMADO** | **~22%** |
 
 ---
 

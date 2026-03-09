@@ -109,6 +109,11 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
 | | `/files/download-url` | Obtener URL firmada de descarga para un archivo existente | Sí | — |
+| **Clients** | `/clients/create` | Crear cliente (auditado) | Sí | `clients.create` |
+| | `/clients/list` | Listar clientes (paginación, búsqueda) | Sí | `clients.view` |
+| | `/clients/view` | Ver detalle de un cliente (con proyectos) | Sí | `clients.view` |
+| | `/clients/update` | Actualizar cliente | Sí | `clients.update` |
+| | `/clients/delete` | Eliminar cliente (soft delete) | Sí | `clients.delete` |
 | **Audit** | `/audit/my-activity` | Ver actividad del usuario | Sí | — |
 | **System** | `/system/health` | Health check | No | — |
 

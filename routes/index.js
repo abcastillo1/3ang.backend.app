@@ -7,6 +7,7 @@ import systemRoutes from './system.js';
 import auditRoutes from './audit.js';
 import organizationRoutes from './organizations.js';
 import filesRoutes from './files.js';
+import clientsRoutes from './clients.js';
 
 const mainRouter = Router();
 mainRouter.use('/auth', authRoutes);
@@ -17,5 +18,6 @@ mainRouter.use('/system', systemRoutes);
 mainRouter.use('/audit', auditRoutes);
 mainRouter.use('/organizations', organizationRoutes);
 mainRouter.use('/files', filesRoutes);
+mainRouter.use('/clients', clientsRoutes);
 
 export default mainRouter;

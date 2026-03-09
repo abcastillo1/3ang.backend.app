@@ -9,6 +9,7 @@ Documentación de contratos de API para integrar el frontend con el backend. Cad
 | [`file-upload.md`](file-upload.md) | Subida de archivos con URLs firmadas: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
 | [`users-roles.md`](users-roles.md) | CRUD de usuarios, roles, permisos. Campos obligatorios/opcionales, respuestas, asignación de permisos. |
 | [`organizations.md`](organizations.md) | Datos de la organización, OrganizationSetting (límites y configuración). |
+| [`clients.md`](clients.md) | CRUD de clientes (auditados): crear, listar, ver detalle, actualizar, eliminar. |
 
 ---
 
