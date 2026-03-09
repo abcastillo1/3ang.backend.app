@@ -108,6 +108,8 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | **Files** | `/files/upload-url` | Obtener URL firmada para subir archivo | Sí | `files.upload` |
 | | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
+| | `/files/list` | Listar documentos | Sí | `files.upload` |
+| | `/files/delete` | Eliminar documento | Sí | `files.upload` |
 | | `/files/download-url` | Obtener URL firmada de descarga para un archivo existente | Sí | — |
 | **Clients** | `/clients/create` | Crear cliente (auditado) | Sí | `clients.create` |
 | | `/clients/list` | Listar clientes (paginación, búsqueda) | Sí | `clients.view` |

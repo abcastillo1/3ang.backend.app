@@ -132,6 +132,6 @@ Invalida la sesión del token actual en el servidor.
 
 Los permisos del usuario se reciben en el login como un array de strings en `role.permissions` (ej: `["users.create", "users.view", "files.upload"]`).
 
-Cada endpoint protegido requiere un permiso específico (ver tabla en `api-client.md`). Si el usuario no tiene el permiso, el backend retorna `403`.
+Cada endpoint protegido requiere un permiso específico (ver tabla en `_overview.md`). Si el usuario no tiene el permiso, el backend retorna `403`.
 
 **Excepción:** El owner de la organización siempre tiene acceso total sin importar sus permisos.

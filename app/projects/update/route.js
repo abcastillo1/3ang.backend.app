@@ -15,7 +15,7 @@ const VALID_TRANSITIONS = {
   closed: []
 };
 
-export const validators = [
+const validators = [
   validateField('data.id')
     .notEmpty()
     .withMessage('validators.id.required')

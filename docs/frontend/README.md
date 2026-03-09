@@ -1,16 +1,36 @@
 # Guías para el Frontend
 
-Documentación de contratos de API para integrar el frontend con el backend. Cada archivo documenta endpoints, requests, responses y reglas de negocio relevantes.
+Documentación de contratos de API y flujos de integración para el frontend. Organizado en dos secciones:
 
-| Guía | Contenido |
-|------|-----------|
-| [`api-client.md`](api-client.md) | Convenciones generales: URL base, headers, formato de request/response, códigos de error, tabla completa de endpoints. |
-| [`auth.md`](auth.md) | Login, logout, refresh token. Datos que retorna el login, permisos del usuario, comportamiento del owner. |
-| [`file-upload.md`](file-upload.md) | Subida de archivos con URLs firmadas: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
-| [`users-roles.md`](users-roles.md) | CRUD de usuarios, roles, permisos. Campos obligatorios/opcionales, respuestas, asignación de permisos. |
-| [`organizations.md`](organizations.md) | Datos de la organización, OrganizationSetting (límites y configuración). |
-| [`clients.md`](clients.md) | CRUD de clientes (auditados): crear, listar, ver detalle, actualizar, eliminar. |
-| [`projects.md`](projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignación de equipo (partner/manager/member). |
+- **`api/`** — Contratos por módulo (endpoints, requests, responses, errores)
+- **`flows/`** — Flujos y comportamientos de componentes (procesos de varios pasos)
+
+---
+
+## API — Contratos por módulo
+
+| Archivo | Contenido |
+|---------|-----------|
+| [`api/auth.md`](api/auth.md) | Login, logout, refresh token. Datos que retorna el login, permisos del usuario, comportamiento del owner. |
+| [`api/users-roles.md`](api/users-roles.md) | CRUD de usuarios, roles, permisos. Campos obligatorios/opcionales, respuestas, asignación de permisos. |
+| [`api/organizations.md`](api/organizations.md) | Datos de la organización, OrganizationSetting (límites y configuración). |
+| [`api/clients.md`](api/clients.md) | CRUD de clientes (auditados): crear, listar, ver detalle, actualizar, eliminar. |
+| [`api/projects.md`](api/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignación de equipo (partner/manager/member). |
+| [`api/files.md`](api/files.md) | Endpoints de archivos: listar, eliminar, vincular a proyectos, obtener URL de descarga. |
+
+## Flujos y comportamientos
+
+| Archivo | Contenido |
+|---------|-----------|
+| [`flows/file-upload.md`](flows/file-upload.md) | Subida de archivos con URLs firmadas: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
+
+---
+
+## Referencia general
+
+| Archivo | Contenido |
+|---------|-----------|
+| [`api/_overview.md`](api/_overview.md) | Convenciones generales: URL base, headers, formato de request/response, códigos de error, tabla completa de endpoints. |
 
 ---
 

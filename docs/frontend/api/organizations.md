@@ -1,4 +1,4 @@
-# Organizaciones y Settings — Guía Frontend
+# Organizaciones y Settings — Contratos de API
 
 Cada usuario pertenece a una organización. La organización se obtiene automáticamente en el login y se puede consultar con endpoints dedicados.
 
@@ -105,7 +105,7 @@ Authorization: Bearer <token>
 
 Cada organización puede tener settings personalizados que controlan límites y comportamiento de la plataforma. Estos settings se usan en validaciones del backend.
 
-### Settings esperados (por implementar junto con FASE 2)
+### Settings esperados
 
 | Key | Tipo | Default | Descripción |
 |-----|------|---------|-------------|

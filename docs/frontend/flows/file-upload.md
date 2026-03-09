@@ -1,4 +1,4 @@
-# Subida de Archivos — Contratos de API
+# Subida de Archivos — Flujo completo
 
 La subida de archivos usa **URLs firmadas** (presigned URLs). El archivo va directo del navegador al storage (Backblaze B2), sin pasar por el backend. El proceso tiene 3 pasos obligatorios + 1 opcional.
 
@@ -200,48 +200,7 @@ Las APIs de creación de entidades aceptan un campo `documentIds` para vincular 
 
 ### Opción B: Vincular a una entidad ya existente
 
-```
-POST /api/v1/files/link
-Authorization: Bearer <token>
-Requiere permiso: files.upload
-```
-
-### Request
-
-```json
-{
-  "data": {
-    "documentIds": [42, 43],
-    "auditProjectId": 5,
-    "nodeId": 12
-  }
-}
-```
-
-| Campo | Tipo | Obligatorio | Descripción |
-|-------|------|-------------|-------------|
-| `documentIds` | int[] | Sí | IDs de documentos a vincular (min 1). Solo documentos sin proyecto asignado. |
-| `auditProjectId` | int | Sí | ID del proyecto al que vincular |
-| `nodeId` | int | No | ID del nodo del árbol |
-
-### Response (200)
-
-```json
-{
-  "data": {
-    "linked": [42, 43],
-    "auditProjectId": 5,
-    "count": 2
-  }
-}
-```
-
-### Errores posibles
-
-| Código | errorCode | Causa |
-|--------|-----------|-------|
-| 400 | `files.link.projectNotFound` | El proyecto no existe o no pertenece a la organización |
-| 400 | `files.link.noDocumentsFound` | Ningún documento válido para vincular (ya vinculados o no existen) |
+Ver `POST /files/link` en `../api/files.md`.
 
 ---
 

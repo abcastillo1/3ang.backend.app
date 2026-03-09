@@ -73,4 +73,3 @@ const createRoute = {
 };
 
 export default createRoute;
-export { validators };

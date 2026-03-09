@@ -8,7 +8,7 @@ import { HTTP_STATUS } from '../../../config/constants.js';
 import { Op } from 'sequelize';
 import modelsInstance from '../../../models/index.js';
 
-export const validators = [
+const validators = [
   validateField('data.id')
     .notEmpty()
     .withMessage('validators.id.required')

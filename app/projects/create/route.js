@@ -7,7 +7,7 @@ import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
 
-export const validators = [
+const validators = [
   validateField('data.name')
     .notEmpty()
     .withMessage('validators.name.required')

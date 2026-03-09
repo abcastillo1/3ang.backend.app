@@ -48,18 +48,31 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 
 ## 4. Guías para el Frontend (`frontend/`)
 
-Contratos de API para el frontend: endpoints, requests, responses y reglas de negocio. Sin implementación de framework; solo lo que necesita saber el frontend para consumir cada servicio.
+Contratos de API y flujos de integración para el frontend. Organizado en subcarpetas:
+
+### `frontend/api/` — Contratos por módulo
 
 | Documento | Contenido |
 |-----------|-----------|
-| [`frontend/README.md`](frontend/README.md) | Índice y convenciones generales del API (base URL, método POST, formato body). |
-| [`frontend/api-client.md`](frontend/api-client.md) | Convenciones de request/response, códigos de error, tabla completa de endpoints con permisos requeridos. |
-| [`frontend/auth.md`](frontend/auth.md) | Login, logout, refresh token. Datos que retorna, permisos, expiración. |
-| [`frontend/file-upload.md`](frontend/file-upload.md) | Subida de archivos con presigned URLs: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
-| [`frontend/users-roles.md`](frontend/users-roles.md) | CRUD de usuarios, roles, permisos. Campos, validaciones, responses. |
-| [`frontend/organizations.md`](frontend/organizations.md) | Datos de organización, OrganizationSetting (límites y configuración). |
-| [`frontend/clients.md`](frontend/clients.md) | CRUD de clientes: crear, listar, ver detalle, actualizar, eliminar. |
-| [`frontend/projects.md`](frontend/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignaciones de equipo. |
+| [`frontend/api/auth.md`](frontend/api/auth.md) | Login, logout, refresh token. Datos que retorna, permisos, expiración. |
+| [`frontend/api/users-roles.md`](frontend/api/users-roles.md) | CRUD de usuarios, roles, permisos. Campos, validaciones, responses. |
+| [`frontend/api/organizations.md`](frontend/api/organizations.md) | Datos de organización, OrganizationSetting (límites y configuración). |
+| [`frontend/api/clients.md`](frontend/api/clients.md) | CRUD de clientes: crear, listar, ver detalle, actualizar, eliminar. |
+| [`frontend/api/projects.md`](frontend/api/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignaciones de equipo. |
+| [`frontend/api/files.md`](frontend/api/files.md) | Endpoints de archivos: listar, eliminar, vincular, descargar. |
+
+### `frontend/flows/` — Flujos y comportamientos
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`frontend/flows/file-upload.md`](frontend/flows/file-upload.md) | Subida de archivos con presigned URLs: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
+
+### Referencia general
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`frontend/README.md`](frontend/README.md) | Índice general y convenciones del API. |
+| [`frontend/api/_overview.md`](frontend/api/_overview.md) | Convenciones de request/response, códigos de error, tabla completa de endpoints con permisos requeridos. |
 
 **Cuándo leer:** Al integrar el frontend con cualquier endpoint del backend.
 

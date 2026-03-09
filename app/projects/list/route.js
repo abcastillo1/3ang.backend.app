@@ -6,7 +6,7 @@ import apiResponse from '../../../helpers/response.js';
 import { Op } from 'sequelize';
 import modelsInstance from '../../../models/index.js';
 
-export const validators = [
+const validators = [
   validateField('data.page')
     .optional()
     .isInt({ min: 1 })
