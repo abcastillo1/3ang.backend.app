@@ -43,7 +43,7 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 | [`technical/file-upload.md`](technical/file-upload.md) | Flujo de carga de archivos con URLs prefirmadas (Backblaze B2): endpoints `upload-url` y `confirm`, respuestas, ejemplo frontend, estructura del key, configuración (env vars), categorías y MIME types. |
 | [`technical/dummy-project-seed.md`](technical/dummy-project-seed.md) | Proyecto dummy en BD (`0026`) para testear árbol, node-detail, ítems y asignados sin datos reales. |
 | [`technical/roadmap-centralizar-expediente.md`](technical/roadmap-centralizar-expediente.md) | Hoja de ruta para renombrar/centralizar `permanent_file_*` en un núcleo neutro (plantilla + secciones + ítems + árbol + docs), sin duplicar esquemas por fase. |
-| [`technical/mapa-arbol-expediente-centralizado.md`](technical/mapa-arbol-expediente-centralizado.md) | Mapa visual (Mermaid) del árbol, tablas, rutas y permisos: qué cambia y qué no al centralizar. |
+| [`technical/mapa-arbol-expediente-centralizado.md`](technical/mapa-arbol-expediente-centralizado.md) | Mapa del esquema objetivo: capas, árbol, tablas `engagement_file_*`, rutas y permisos (estado final). |
 | [`technical/api-reference.md`](technical/api-reference.md) | Referencia de APIs existentes: Auth (login, refresh, logout), Users (list, create, update, profile), Roles (CRUD, assign-permissions), Permissions (list), Organizations. Incluye ejemplos de request/response y errores. |
 
 **Cuándo leer:** Al implementar endpoints, revisar convenciones o configurar el entorno.
