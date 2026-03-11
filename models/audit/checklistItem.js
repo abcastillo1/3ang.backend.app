@@ -41,16 +41,11 @@ export default function (sequelize, DataTypes) {
         allowNull: false,
         defaultValue: 'pending'
       },
-      documentId: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        field: 'document_id'
-      },
       assignedUserId: {
         type: DataTypes.INTEGER,
         allowNull: true,
         field: 'assigned_user_id',
-        comment: 'Usuario responsable del ítem'
+        comment: 'Primer asignado (compat); lista completa en checklist_item_assignees'
       },
       sortOrder: {
         type: DataTypes.INTEGER,
@@ -62,7 +57,7 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.INTEGER,
         allowNull: true,
         field: 'tree_node_id',
-        comment: 'AuditTreeNode leaf for this item; documents can use node_id'
+        comment: 'Nodo hoja; todos los documentos del ítem usan audit_documents.node_id = treeNodeId'
       },
       lastReviewedAt: {
         type: DataTypes.DATE,
@@ -102,7 +97,6 @@ export default function (sequelize, DataTypes) {
   ChecklistItem.associate = function (models) {
     ChecklistItem.belongsTo(models.AuditTreeNode, { foreignKey: 'treeNodeId', as: 'treeNode' });
     ChecklistItem.belongsTo(models.PermanentFileSection, { foreignKey: 'sectionId', as: 'section' });
-    ChecklistItem.belongsTo(models.AuditDocument, { foreignKey: 'documentId', as: 'document' });
     ChecklistItem.belongsTo(models.User, { foreignKey: 'assignedUserId', as: 'assignedUser' });
     ChecklistItem.belongsTo(models.User, { foreignKey: 'createdByUserId', as: 'createdBy' });
     ChecklistItem.hasMany(models.ChecklistItemAssignee, { foreignKey: 'checklistItemId', as: 'assignees' });

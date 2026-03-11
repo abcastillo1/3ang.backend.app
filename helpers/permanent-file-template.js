@@ -127,7 +127,6 @@ export async function applyTemplateToProject(auditProjectId, organizationId, opt
           isRequired: !!titem.isRequired,
           ref: titem.ref,
           status: 'pending',
-          documentId: null,
           sortOrder: titem.sortOrder
         }, { transaction });
 

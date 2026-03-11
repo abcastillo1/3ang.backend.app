@@ -5,7 +5,7 @@
 | Concepto | En el árbol | En BD | Qué puede tener |
 |----------|-------------|--------|------------------|
 | **Carpeta / sección** | Nodo `type: folder`, `refId` = id de sección | `permanent_file_sections` | `name`, `code`, `description`, subsecciones, ítems hijos |
-| **Actividad / ítem** | Nodo `type: checklist_item`, `refId` = id de ítem | `checklist_items` | `description`, `status`, `isRequired`, `ref`, **encargado** (`assignedUserId`), **documento** (`documentId` + archivos en `node_id`) |
+| **Actividad / ítem** | Nodo `type: checklist_item`, `refId` = id de ítem | `checklist_items` + `checklist_item_assignees` | **Creador** (`createdBy`), **varios asignados** (`assignees[]`), `description`, `status`; **N documentos** solo por `node_id` |
 | **Documentos** | Cuelgan del nodo | `audit_documents.node_id` | Varios archivos por carpeta o por ítem |
 
 Todo se gestiona en **jerarquía de árbol** (como carpetas). El panel central muestra el **detalle según el nodo seleccionado**.
@@ -50,7 +50,7 @@ Si el nodo es la raíz `permanent_file` sin `refId`, `detailType` será `generic
 ## 3. Crear actividades e ítems
 
 - **Nueva carpeta** bajo Archivo Permanente: `tree/create` con `parentId` = id del nodo "Archivo Permanente", **o** `permanent-file/sections/create` (recomendado si querés código NIA y checklist) — crea sección + nodo enlazado.
-- **Nuevo ítem** en una sección: `permanent-file/items/create` con `sectionId`, `code`, `description`, opcional `assignedUserId`, `documentId`.
+- **Nuevo ítem** en una sección: `permanent-file/items/create` con `sectionId`, `code`, `description`, opcional `assignedUserId` / `assignedUserIds`. Documentos: después, confirm con `nodeId` del nodo del ítem.
 
 ---
 
@@ -59,7 +59,7 @@ Si el nodo es la raíz `permanent_file` sin `refId`, `detailType` será `generic
 1. Upload URL con `auditProjectId` y **`nodeId`** = id del nodo (carpeta o ítem).
 2. `files/confirm` con el mismo `nodeId` → el documento aparece en `node-detail.documents` y en `documentsCount` del nodo en `tree/full`.
 
-Opcional: vincular un documento como “principal” del ítem con `permanent-file/items/update` (`documentId`).
+Varios archivos: repetir confirm con el mismo `nodeId` del ítem.
 
 ---
 
@@ -75,6 +75,7 @@ Opcional: vincular un documento como “principal” del ítem con `permanent-fi
 
 1. `tree/full` → sidebar.
 2. Click nodo → `tree/node-detail` → panel central.
-3. Subir → upload-url + confirm con `nodeId`.
+3. Subir → upload-url + confirm con `nodeId` (**cada** confirm agrega un documento; el mismo ítem/carpeta puede tener N archivos).
+4. Listar todos los docs de un ítem → `permanent-file/items/documents/list` o `node-detail.documents`.
 4. Asignar encargado / cambiar estado → `items/update`.
 5. Plantilla inicial → `permanent-file/apply-template` luego refrescar `tree/full`.

@@ -6,6 +6,7 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { loadAssigneesForItems } from '../../../../../helpers/checklist-item-assignees.js';
 
 const validators = [
   validateField('data.auditProjectId')
@@ -26,7 +27,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection, ChecklistItem, AuditDocument, User } = modelsInstance.models;
+  const { AuditProject, PermanentFileSection, ChecklistItem, User } = modelsInstance.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -45,13 +46,20 @@ async function handler(req, res, next) {
   const items = await ChecklistItem.findAll({
     where: { sectionId: section.id },
     include: [
-      { model: AuditDocument, as: 'document', attributes: ['id', 'originalName', 'mimeType', 'size'], required: false },
-      { model: User, as: 'assignedUser', attributes: ['id', 'fullName', 'email'], required: false }
+      { model: User, as: 'assignedUser', attributes: ['id', 'fullName', 'email'], required: false },
+      { model: User, as: 'createdBy', attributes: ['id', 'fullName', 'email'], required: false }
     ],
     order: [['sortOrder', 'ASC'], ['id', 'ASC']]
   });
 
-  return apiResponse(res, req, next)({ items });
+  const assigneesMap = await loadAssigneesForItems(items.map(i => i.id), null);
+  const payload = items.map(it => {
+    const plain = it.toJSON ? it.toJSON() : it;
+    plain.assignees = assigneesMap.get(it.id) || [];
+    return plain;
+  });
+
+  return apiResponse(res, req, next)({ items: payload });
 }
 
 const listRoute = {

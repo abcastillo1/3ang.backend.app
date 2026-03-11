@@ -139,7 +139,7 @@ Expediente del cliente: secciones, checklist de ítems, matriz de riesgos, dashb
 ### 4.1 Secciones e ítems del checklist `100%`
 
 - [x] Modelo PermanentFileSection (auditProjectId, code, name, priority, sortOrder, parentSectionId)
-- [x] Modelo ChecklistItem (sectionId, code, description, isRequired, ref, status, documentId, sortOrder, lastReviewedAt)
+- [x] Modelo ChecklistItem (sectionId, code, description, isRequired, ref, status, sortOrder, lastReviewedAt; documentos vía audit_documents.node_id)
 - [x] Migración 0019 permanent_file_sections + checklist_items; migración 0020 permiso projects.permanentFile.manage
 - [x] API POST /projects/permanent-file/sections/create, list, view, update, delete (body.data.auditProjectId)
 - [x] API POST /projects/permanent-file/items/create, list, update, delete (body.data.auditProjectId, sectionId/itemId)

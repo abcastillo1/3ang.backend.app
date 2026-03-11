@@ -7,6 +7,11 @@ import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
 import { updateTreeNodeName, itemDisplayName } from '../../../../../helpers/permanent-file-tree-sync.js';
+import {
+  syncItemAssignees,
+  validateAssigneeUserIds,
+  loadAssigneesForItem
+} from '../../../../../helpers/checklist-item-assignees.js';
 
 const STATUSES = ['pending', 'in_review', 'compliant', 'not_applicable'];
 
@@ -41,10 +46,6 @@ const validators = [
     .optional()
     .isIn(STATUSES)
     .withMessage('validators.status.invalid'),
-  validateField('data.documentId')
-    .optional({ values: 'null' })
-    .isInt({ min: 1 })
-    .withMessage('validators.documentId.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -53,6 +54,14 @@ const validators = [
     .optional({ values: 'null' })
     .isInt({ min: 1 })
     .withMessage('validators.assignedUserId.invalid'),
+  validateField('data.assignedUserIds')
+    .optional()
+    .isArray()
+    .withMessage('validators.assignedUserIds.invalid'),
+  validateField('data.assignedUserIds.*')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.assignedUserIds.invalid'),
   validateRequest,
   authenticate,
   requirePermission('projects.permanentFile.manage')
@@ -61,7 +70,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection, ChecklistItem, AuditDocument, User } = modelsInstance.models;
+  const { AuditProject, PermanentFileSection, ChecklistItem, User } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -88,29 +97,8 @@ async function handler(req, res, next) {
     }
   }
 
-  if (data.assignedUserId !== undefined && data.assignedUserId) {
-    const assignee = await User.findOne({
-      where: { id: data.assignedUserId, organizationId: user.organizationId }
-    });
-    if (!assignee) {
-      throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.assigneeNotFound');
-    }
-  }
-
-  if (data.documentId !== undefined) {
-    const docId = data.documentId || null;
-    if (docId) {
-      const doc = await AuditDocument.findOne({
-        where: { id: docId, auditProjectId: project.id, organizationId: user.organizationId }
-      });
-      if (!doc) {
-        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.documentNotFound');
-      }
-    }
-  }
-
   const updateFields = {};
-  const allowed = ['code', 'description', 'isRequired', 'ref', 'status', 'documentId', 'sortOrder', 'assignedUserId'];
+  const allowed = ['code', 'description', 'isRequired', 'ref', 'status', 'sortOrder'];
   for (const field of allowed) {
     if (data[field] !== undefined) updateFields[field] = data[field];
   }
@@ -118,26 +106,30 @@ async function handler(req, res, next) {
     updateFields.lastReviewedAt = new Date();
   }
 
+  let assigneeIds = null;
+  if (Array.isArray(data.assignedUserIds)) {
+    assigneeIds = [...new Set(data.assignedUserIds.filter(Boolean))];
+    await validateAssigneeUserIds(assigneeIds, user.organizationId);
+  } else if (data.assignedUserId !== undefined) {
+    assigneeIds = data.assignedUserId ? [data.assignedUserId] : [];
+    if (assigneeIds.length) await validateAssigneeUserIds(assigneeIds, user.organizationId);
+  }
+
   const transaction = await sequelize.transaction();
   try {
-    await item.update(updateFields, { transaction });
+    if (assigneeIds !== null) {
+      await syncItemAssignees(item, assigneeIds, user.id, transaction);
+    } else if (data.assignedUserId !== undefined) {
+      updateFields.assignedUserId = data.assignedUserId || null;
+    }
+
+    if (Object.keys(updateFields).length) {
+      await item.update(updateFields, { transaction });
+    }
     await item.reload({ transaction });
 
     if (item.treeNodeId && (data.code !== undefined || data.description !== undefined)) {
       await updateTreeNodeName(item.treeNodeId, itemDisplayName(item), transaction);
-    }
-
-    if (data.documentId !== undefined && item.treeNodeId) {
-      await AuditDocument.update(
-        { nodeId: null },
-        { where: { nodeId: item.treeNodeId }, transaction }
-      );
-      if (data.documentId) {
-        await AuditDocument.update(
-          { nodeId: item.treeNodeId },
-          { where: { id: data.documentId, auditProjectId: project.id }, transaction }
-        );
-      }
     }
 
     await transaction.commit();
@@ -153,8 +145,9 @@ async function handler(req, res, next) {
     projectName: project.name,
     status: data.status
   };
-  await item.reload();
-  return apiResponse(res, req, next)({ item });
+  await item.reload({ include: [{ model: User, as: 'createdBy', attributes: ['id', 'fullName', 'email'] }] });
+  const assignees = await loadAssigneesForItem(item.id, null);
+  return apiResponse(res, req, next)({ item, assignees });
 }
 
 const updateRoute = {

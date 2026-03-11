@@ -25,6 +25,7 @@ import pfItemsCreateRoute from '../app/projects/permanent-file/items/create/rout
 import pfItemsListRoute from '../app/projects/permanent-file/items/list/route.js';
 import pfItemsUpdateRoute from '../app/projects/permanent-file/items/update/route.js';
 import pfItemsDeleteRoute from '../app/projects/permanent-file/items/delete/route.js';
+import pfItemsDocumentsListRoute from '../app/projects/permanent-file/items/documents-list/route.js';
 import pfApplyTemplateRoute from '../app/projects/permanent-file/apply-template/route.js';
 
 const router = Router();
@@ -54,6 +55,7 @@ registerRoute(router, '/permanent-file/items/create', pfItemsCreateRoute, 'post'
 registerRoute(router, '/permanent-file/items/list', pfItemsListRoute, 'post');
 registerRoute(router, '/permanent-file/items/update', pfItemsUpdateRoute, 'post');
 registerRoute(router, '/permanent-file/items/delete', pfItemsDeleteRoute, 'post');
+registerRoute(router, '/permanent-file/items/documents/list', pfItemsDocumentsListRoute, 'post');
 registerRoute(router, '/permanent-file/apply-template', pfApplyTemplateRoute, 'post');
 
 export default router;

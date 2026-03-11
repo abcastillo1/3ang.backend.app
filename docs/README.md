@@ -27,6 +27,7 @@ Documentos que traducen el dominio en **entidades, flujos y reglas** de la plata
 | [`design/business-logic.md`](design/business-logic.md) | Fuente de verdad de la lógica de negocio: entidades (Organization, User, Client, AuditProject, etc.), reglas de validación, flujos de trabajo (login, permisos, creación de proyectos), OrganizationSetting con ejemplos, notas para desarrolladores. |
 | [`design/audit-project-structure-and-assignments.md`](design/audit-project-structure-and-assignments.md) | Estructura interna de un proyecto de auditoría: secciones (Archivo Permanente, Planificación, Programas por área, Hallazgos, Informes), asignaciones de colaboradores (proyecto, cronograma, procedimientos) y esquema de entidades. |
 | [`design/platform-flows.md`](design/platform-flows.md) | Decisiones transversales: (1) carga de documentos solo por URL directa a B2/S3; (2) IA como extra opcional; (3) jerarquía en árbol (`audit_tree_node`); (4) réplica de proyecto (qué copiar/resetear); (5) orden sugerido de implementación. |
+| [`design/engagement-folder-to-platform.md`](design/engagement-folder-to-platform.md) | Equivalencia entre la carpeta real del encargo (ej. `docs/91° MENHURSA S.A/`: 0. PERMANENTE, 2. ANÁLISIS, 4. TRIBUTARIO) y el árbol + nodos de la plataforma, para migrar sin perder criterio. |
 
 **Cuándo leer:** Antes de implementar o modificar cualquier funcionalidad, para alinear con las reglas de negocio y decisiones de diseño.
 
@@ -40,6 +41,9 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 |-----------|-----------|
 | [`technical/architecture.md`](technical/architecture.md) | Arquitectura del backend: stack (Express, Sequelize, MySQL), estructura de directorios, patrones (controladores, validación, manejo de errores, modelos, middlewares, i18n, logging), convenciones de código, flujo de una petición. |
 | [`technical/file-upload.md`](technical/file-upload.md) | Flujo de carga de archivos con URLs prefirmadas (Backblaze B2): endpoints `upload-url` y `confirm`, respuestas, ejemplo frontend, estructura del key, configuración (env vars), categorías y MIME types. |
+| [`technical/dummy-project-seed.md`](technical/dummy-project-seed.md) | Proyecto dummy en BD (`0026`) para testear árbol, node-detail, ítems y asignados sin datos reales. |
+| [`technical/roadmap-centralizar-expediente.md`](technical/roadmap-centralizar-expediente.md) | Hoja de ruta para renombrar/centralizar `permanent_file_*` en un núcleo neutro (plantilla + secciones + ítems + árbol + docs), sin duplicar esquemas por fase. |
+| [`technical/mapa-arbol-expediente-centralizado.md`](technical/mapa-arbol-expediente-centralizado.md) | Mapa visual (Mermaid) del árbol, tablas, rutas y permisos: qué cambia y qué no al centralizar. |
 | [`technical/api-reference.md`](technical/api-reference.md) | Referencia de APIs existentes: Auth (login, refresh, logout), Users (list, create, update, profile), Roles (CRUD, assign-permissions), Permissions (list), Organizations. Incluye ejemplos de request/response y errores. |
 
 **Cuándo leer:** Al implementar endpoints, revisar convenciones o configurar el entorno.

@@ -48,10 +48,6 @@ const validators = [
     .optional()
     .isIn(['pending', 'in_review', 'compliant', 'not_applicable'])
     .withMessage('validators.status.invalid'),
-  validateField('data.documentId')
-    .optional({ values: 'null' })
-    .isInt({ min: 1 })
-    .withMessage('validators.documentId.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -76,7 +72,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection, ChecklistItem: ChecklistItemModel, AuditDocument, User } = modelsInstance.models;
+  const { AuditProject, PermanentFileSection, ChecklistItem: ChecklistItemModel, User } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -106,15 +102,6 @@ async function handler(req, res, next) {
   }
   await validateAssigneeUserIds(assigneeIds, user.organizationId);
 
-  if (data.documentId) {
-    const doc = await AuditDocument.findOne({
-      where: { id: data.documentId, auditProjectId: project.id, organizationId: user.organizationId }
-    });
-    if (!doc) {
-      throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.documentNotFound');
-    }
-  }
-
   const maxOrder = await ChecklistItemModel.max('sortOrder', {
     where: { sectionId: section.id }
   });
@@ -129,7 +116,6 @@ async function handler(req, res, next) {
       isRequired: Boolean(data.isRequired),
       ref: data.ref || null,
       status: data.status || 'pending',
-      documentId: data.documentId || null,
       assignedUserId: assigneeIds.length ? assigneeIds[0] : null,
       sortOrder: data.sortOrder !== undefined ? data.sortOrder : (maxOrder ?? 0) + 1
     }, { transaction });
@@ -151,13 +137,34 @@ async function handler(req, res, next) {
           transaction
         );
         await item.update({ treeNodeId: itemNode.id }, { transaction });
-        if (data.documentId) {
-          await AuditDocument.update(
-            { nodeId: itemNode.id },
-            { where: { id: data.documentId }, transaction }
-          );
-        }
       }
     }
 
-    await transaction.
+    await transaction.commit();
+
+    req.activityContext = {
+      itemId: item.id,
+      auditProjectId: project.id,
+      itemCode: item.code,
+      sectionName: section.name,
+      projectName: project.name
+    };
+    await item.reload({ include: [{ model: User, as: 'createdBy', attributes: ['id', 'fullName', 'email'] }] });
+    const { loadAssigneesForItem } = await import('../../../../../helpers/checklist-item-assignees.js');
+    const assignees = await loadAssigneesForItem(item.id, null);
+    return apiResponse(res, req, next)({ item, assignees });
+  } catch (e) {
+    await transaction.rollback();
+    throw e;
+  }
+}
+
+const createRoute = {
+  validators,
+  default: handler,
+  action: 'permanent-file-item-create',
+  entity: 'projects',
+  activityKey: 'projects.permanentFile.item.create'
+};
+
+export default createRoute;

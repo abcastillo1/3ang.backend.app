@@ -7,6 +7,7 @@ import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
 import modelsInstance from '../../../../models/index.js';
 import { TYPE_SECTION_NODE, TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/permanent-file-tree-sync.js';
+import { loadAssigneesForItems, loadAssigneesForItem } from '../../../../helpers/checklist-item-assignees.js';
 
 const validators = [
   validateField('data.auditProjectId')
@@ -111,6 +112,8 @@ async function handler(req, res, next) {
       if (section.items && section.items.length) {
         section.items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
       }
+      const itemIds = (section.items || []).map(it => it.id);
+      const assigneesMap = await loadAssigneesForItems(itemIds, null);
       payload.detailType = 'section';
       payload.section = {
         id: section.id,
@@ -127,12 +130,12 @@ async function handler(req, res, next) {
           status: it.status,
           isRequired: it.isRequired,
           ref: it.ref,
-          documentId: it.documentId,
           treeNodeId: it.treeNodeId,
           sortOrder: it.sortOrder,
           lastReviewedAt: it.lastReviewedAt,
+          createdByUserId: it.createdByUserId,
           assignedUser: serializeUser(it.assignedUser),
-          document: it.documentId ? { id: it.documentId } : null
+          assignees: assigneesMap.get(it.id) || [],
         }))
       };
     }
@@ -143,26 +146,28 @@ async function handler(req, res, next) {
       where: { id: refId },
       include: [
         { model: PermanentFileSection, as: 'section', required: true },
-        { model: AuditDocument, as: 'document', required: false },
-        { model: User, as: 'assignedUser', attributes: ['id', 'fullName', 'email'], required: false }
+        { model: User, as: 'assignedUser', attributes: ['id', 'fullName', 'email'], required: false },
+        { model: User, as: 'createdBy', attributes: ['id', 'fullName', 'email'], required: false }
       ]
     });
     if (item && item.section && item.section.auditProjectId === project.id) {
+      const itemAssignees = await loadAssigneesForItem(item.id, null);
       payload.detailType = 'checklist_item';
       payload.item = {
         id: item.id,
         sectionId: item.sectionId,
+        createdByUserId: item.createdByUserId,
+        createdBy: serializeUser(item.createdBy),
         code: item.code,
         description: item.description,
         status: item.status,
         isRequired: item.isRequired,
         ref: item.ref,
-        documentId: item.documentId,
         treeNodeId: item.treeNodeId,
         sortOrder: item.sortOrder,
         lastReviewedAt: item.lastReviewedAt,
         assignedUser: serializeUser(item.assignedUser),
-        document: serializeDocument(item.document),
+        assignees: itemAssignees,
         section: { id: item.section.id, code: item.section.code, name: item.section.name }
       };
     }

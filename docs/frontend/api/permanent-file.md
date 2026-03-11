@@ -5,12 +5,16 @@
 Las secciones e ítems siguen existiendo en BD como `permanent_file_sections` y `checklist_items`, pero **cada sección/ítem tiene un `treeNodeId`** hacia `audit_tree_nodes`. Al crear o aplicar plantilla, el backend **crea los nodos bajo el nodo raíz `permanent_file`** (el que devuelve `POST /projects/tree/full`). Así el frontend puede **renderizar solo el árbol** (`tree/full` + `tree/create|move|delete|reorder`) sin un segundo panel por `auditProjectId` solo.
 
 - **Listar jerarquía del expediente:** `POST /projects/tree/full` con `data.auditProjectId`.
-- **Detalle de ítem** (estado, `documentId`, etc.): sigue siendo `sections/view` e `items/list` por `sectionId`/`itemId` cuando haga falta editar metadatos; la **navegación** es por el árbol.
+- **Detalle de ítem** (estado, asignados, etc.): `sections/view`, `items/list`, `items/documents/list` o `tree/node-detail`; la **navegación** es por el árbol.
 - **Eliminar sección/ítem:** usar las rutas permanent-file (borran también el subárbol de nodos). Borrar solo el nodo con `tree/delete` deja filas huérfanas en permanent-file.
 
 ---
 
-El archivo permanente de un proyecto de auditoría se organiza en **secciones** (con posible jerarquía) y **ítems de checklist** por sección. Cada ítem puede tener estado y un documento vinculado. Los documentos asociados a un ítem se enlazan también a `node_id` del nodo hoja cuando existe `treeNodeId`.
+El archivo permanente de un proyecto de auditoría se organiza en **secciones** (con posible jerarquía) y **ítems de checklist** por sección. Cada ítem tiene estado; **todos los documentos** del ítem se anclan con **confirm** usando `nodeId` = id del nodo del ítem (`treeNodeId`); quedan en `audit_documents.node_id` (N filas por ítem). **No hay `documentId` en el ítem** — la lista de evidencias es:
+- `POST /projects/tree/node-detail` con `nodeId` del ítem → `data.documents[]`, o
+- `POST /projects/permanent-file/items/documents/list` con `itemId` → `data.documents[]`.
+
+Lo mismo aplica a **carpetas/secciones**: cualquier nodo puede tener N documentos por `node_id`; no hay límite en BD.
 
 Todas las rutas son **POST** con parámetros en `body.data`. El proyecto se identifica siempre con `data.auditProjectId` (no hay `:id` en la URL).
 
@@ -181,7 +185,6 @@ Requiere permiso: projects.permanentFile.manage
     "isRequired": true,
     "ref": "NIA 315",
     "status": "pending",
-    "documentId": null,
     "sortOrder": 0
   }
 }
@@ -196,14 +199,14 @@ Requiere permiso: projects.permanentFile.manage
 | `isRequired` | bool | No | Default false |
 | `ref` | string | No | Referencia a norma o papel de trabajo (máx. 100) |
 | `status` | string | No | pending, in_review, compliant, not_applicable (default: pending) |
-| `documentId` | int | No | ID de documento del proyecto para vincular evidencia |
-| `assignedUserId` | int | No | Usuario responsable (misma organización); `null` quita encargado |
+| `assignedUserId` | int | No | Un solo responsable (compat); preferir `assignedUserIds` |
+| `assignedUserIds` | int[] | No | Varios responsables; reemplaza la lista actual si se envía en update |
 | `sortOrder` | int | No | Orden (default: último) |
 
 **Response (200)**  
-`data.item` con todos los campos del ítem.
+`data.item` + `data.assignees` (array: `user`, `assignedBy`, `assignedAt`). `createdByUserId` queda en el ítem.
 
-**Errores:** 404 `projects.notFound`, 404 `permanentFile.sectionNotFound`, 400 `permanentFile.itemCodeExists`, 400 `permanentFile.documentNotFound`.
+**Errores:** 404 `projects.notFound`, 404 `permanentFile.sectionNotFound`, 400 `permanentFile.itemCodeExists`.
 
 ---
 
@@ -226,7 +229,7 @@ Requiere permiso: projects.view
 ```
 
 **Response (200)**  
-`data.items` array con cada ítem y, si tiene documento vinculado, `item.document` (id, originalName, mimeType, size). Orden: sortOrder, id.
+`data.items` con `assignees`; documentos del ítem: `items/documents/list` o `node-detail` con `nodeId` = `treeNodeId`.
 
 **Errores:** 404 `projects.notFound`, 404 `permanentFile.sectionNotFound`.
 
@@ -251,18 +254,17 @@ Requiere permiso: projects.permanentFile.manage
     "isRequired": true,
     "ref": "NIA 315",
     "status": "compliant",
-    "documentId": 7,
     "sortOrder": 0
   }
 }
 ```
 
-Todos los campos excepto `auditProjectId` y `itemId` son opcionales. Si se envía `status`, el backend actualiza también `lastReviewedAt`. Se puede enviar `assignedUserId` o `null` para asignar o quitar encargado.
+Todos los campos excepto `auditProjectId` y `itemId` son opcionales. Si se envía `status`, el backend actualiza también `lastReviewedAt`. Se puede enviar `assignedUserIds: [1,2,3]` para reemplazar todos los asignados (quien llama queda como `assignedBy` en cada fila nueva). `assignedUserIds: []` deja el ítem sin asignados. `assignedUserId` sigue aceptado como atajo de un solo usuario.
 
 **Response (200)**  
 `data.item` con el ítem actualizado.
 
-**Errores:** 404 `projects.notFound`, 404 `permanentFile.itemNotFound`, 400 `permanentFile.itemCodeExists`, 400 `permanentFile.documentNotFound`.
+**Errores:** 404 `projects.notFound`, 404 `permanentFile.itemNotFound`, 400 `permanentFile.itemCodeExists`.
 
 ---
 
@@ -316,7 +318,7 @@ Mismos códigos de error que las secciones de proyecto (`permanentFile.sectionNo
 ### Listar / crear / actualizar / eliminar ítems de plantilla
 
 - **items/list:** `data: { sectionId }` → `data.items`
-- **items/create:** `data: { sectionId, code, description?, isRequired?, ref?, sortOrder? }` (sin status ni documentId)
+- **items/create:** `data: { sectionId, code, description?, isRequired?, ref?, sortOrder? }` (sin status; documentos vía confirm + `nodeId`)
 - **items/update:** `data: { itemId, code?, description?, isRequired?, ref?, sortOrder? }`
 - **items/delete:** `data: { itemId }`
 
