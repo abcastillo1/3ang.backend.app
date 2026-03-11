@@ -111,6 +111,7 @@ async function handler(req, res, next) {
     include: [{ model: modelsInstance.models.Client, as: 'client', attributes: ['id', 'name', 'ruc'] }]
   });
 
+  req.activityContext = { projectId: project.id, projectName: project.name, clientId: data.clientId };
   return apiResponse(res, req, next)({ project: result });
 }
 
@@ -118,7 +119,8 @@ const createRoute = {
   validators,
   default: handler,
   action: 'create',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.create'
 };
 
 export default createRoute;

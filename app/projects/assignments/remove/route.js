@@ -42,6 +42,17 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.assignments.notFound');
   }
 
+  const { User } = modelsInstance.models;
+  const removedUser = await User.findByPk(data.userId, { attributes: ['id', 'fullName', 'email'] });
+  const removedName = removedUser ? (removedUser.fullName || removedUser.email) : 'Usuario';
+
+  req.activityContext = {
+    auditProjectId: data.auditProjectId,
+    assignmentId: assignment.id,
+    projectName: project.name,
+    removedUserId: data.userId,
+    removedUserName: removedName
+  };
   await assignment.destroy();
 
   return apiResponse(res, req, next)();
@@ -51,7 +62,8 @@ const removeRoute = {
   validators,
   default: handler,
   action: 'assignments.remove',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.assignments.remove'
 };
 
 export default removeRoute;

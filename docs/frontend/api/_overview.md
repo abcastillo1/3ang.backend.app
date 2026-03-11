@@ -108,6 +108,16 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/organizations/tree-template/view` | Ver plantilla de árbol de la organización | Sí | — |
 | | `/organizations/tree-template/update` | Personalizar plantilla de árbol (solo owner) | Sí | — |
 | | `/organizations/tree-template/reset` | Restaurar plantilla por defecto (solo owner) | Sí | — |
+| | `/organizations/permanent-file-template/sections/list` | Listar secciones de la plantilla de archivo permanente | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/sections/create` | Crear sección en la plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/sections/view` | Ver sección de plantilla con ítems | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/sections/update` | Actualizar sección de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/sections/delete` | Eliminar sección de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/items/list` | Listar ítems de una sección de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/items/create` | Crear ítem en la plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/items/update` | Actualizar ítem de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/items/delete` | Eliminar ítem de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/load-defaults` | Cargar plantilla por defecto (solo si está vacía) | Sí | `organizations.permanentFileTemplate.manage` |
 | **Files** | `/files/upload-url` | Obtener URL firmada para subir archivo | Sí | `files.upload` |
 | | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
@@ -134,7 +144,18 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/projects/tree/reorder` | Reordenar nodos dentro del mismo padre | Sí | `projects.tree.manage` |
 | | `/projects/tree/delete` | Eliminar nodo y subárbol | Sí | `projects.tree.manage` |
 | | `/projects/tree/full` | Obtener árbol completo del proyecto (1 query) | Sí | `projects.view` |
-| **Audit** | `/audit/my-activity` | Ver actividad del usuario | Sí | — |
+| | `/projects/permanent-file/sections/create` | Crear sección del archivo permanente | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/sections/list` | Listar secciones (por proyecto y opcionalmente padre) | Sí | `projects.view` |
+| | `/projects/permanent-file/sections/view` | Ver sección con ítems | Sí | `projects.view` |
+| | `/projects/permanent-file/sections/update` | Actualizar sección | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/sections/delete` | Eliminar sección (y ítems) | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/items/create` | Crear ítem del checklist | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/items/list` | Listar ítems de una sección | Sí | `projects.view` |
+| | `/projects/permanent-file/items/update` | Actualizar ítem (estado, documento, etc.) | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/items/delete` | Eliminar ítem | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/apply-template` | Aplicar plantilla de la organización al proyecto | Sí | `projects.permanentFile.manage` |
+| **Audit** | `/audit/my-activity` | Ver actividad del usuario (request-level) | Sí | — |
+| | `/audit/activity/list` | Listar historial de actividad (org o por proyecto) | Sí | `activity.view` |
 | **System** | `/system/health` | Health check | No | — |
 
 ---

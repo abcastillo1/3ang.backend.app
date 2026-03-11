@@ -1,6 +1,8 @@
 import { logger } from './logger.js';
 import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
 import modelsInstance from '../models/index.js';
+import { flushPendingActivities, pushActivity } from './record-activity.js';
+import { getActivityPayload, hasActivityMapping } from './activity-mapping.js';
 
 /**
  * Executes a middleware function, handling both async (Promise) and callback-based patterns.
@@ -66,6 +68,16 @@ export function registerRoute(router, path, routeModule, method = 'post') {
           responseData,
           responseStatus
         });
+      }
+      if (responseStatus < 400 && req.user?.id) {
+        const activityKey = routeModule.activityKey;
+        if (activityKey && hasActivityMapping(activityKey) && req.activityContext) {
+          const payload = getActivityPayload(activityKey, req.activityContext);
+          if (payload) pushActivity(req, payload);
+        }
+        if (req.pendingActivities?.length) {
+          flushPendingActivities(req.user.organizationId, req.user.id, req.pendingActivities);
+        }
       }
     } catch (error) {
       logger.error('Error in controller', {

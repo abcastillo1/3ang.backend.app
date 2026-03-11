@@ -244,6 +244,10 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'user_id',
       as: 'auditLogs'
     });
+    User.hasMany(models.ActivityLog, {
+      foreignKey: 'user_id',
+      as: 'activityLogs'
+    });
   };
 
   return User;

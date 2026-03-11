@@ -124,6 +124,10 @@ async function handler(req, res, next) {
         await organization.update(updateData);
         await organization.reload();
 
+        if (req.user?.id) {
+            req.activityContext = { organizationId: organization.id, organizationName: organization.name };
+        }
+
         const response = {
             organization: organization
         };
@@ -138,7 +142,8 @@ const updateRoute = {
     validators,
     default: handler,
     action: 'update',
-    entity: 'organizations'
+    entity: 'organizations',
+    activityKey: 'organizations.update'
 };
 
 export default updateRoute;

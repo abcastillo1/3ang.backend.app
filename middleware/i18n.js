@@ -46,6 +46,17 @@ i18next
     }
   });
 
+const LANG_MAP = { es: 'es', en: 'en', 'es-EC': 'es', 'es-ES': 'es', 'en-US': 'en', 'en-GB': 'en' };
+
+export function getActivityDescription(key, metadata, locale = 'es') {
+  const lang = LANG_MAP[locale] || locale?.slice(0, 2) || 'es';
+  const lookupKey = (key === 'activity.project.updated' && metadata?.statusChanged)
+    ? 'activity.project.updatedStatus'
+    : key;
+  i18next.changeLanguage(lang);
+  return i18next.t(lookupKey, metadata || {});
+}
+
 export default function i18nMiddleware(req, res, next) {
   const acceptLanguage = req.headers['accept-language'];
   let lang = 'es';

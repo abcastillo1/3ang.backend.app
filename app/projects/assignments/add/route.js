@@ -63,6 +63,14 @@ async function handler(req, res, next) {
     include: [{ model: User, as: 'user', attributes: ['id', 'fullName', 'email'] }]
   });
 
+  req.activityContext = {
+    auditProjectId: data.auditProjectId,
+    assignmentId: assignment.id,
+    projectName: project.name,
+    targetUserId: data.userId,
+    targetUserName: targetUser.fullName || targetUser.email,
+    role: data.role || 'member'
+  };
   return apiResponse(res, req, next)({ assignment: result });
 }
 
@@ -70,7 +78,8 @@ const addRoute = {
   validators,
   default: handler,
   action: 'assignments.add',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.assignments.add'
 };
 
 export default addRoute;

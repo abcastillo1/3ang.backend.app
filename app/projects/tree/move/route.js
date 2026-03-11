@@ -110,6 +110,13 @@ async function handler(req, res, next) {
     throw err;
   }
 
+  req.activityContext = {
+    auditProjectId: project.id,
+    nodeId: node.id,
+    projectName: project.name,
+    nodeName: node.name,
+    newParentId
+  };
   const updated = await AuditTreeNode.findByPk(node.id);
   return apiResponse(res, req, next)({ node: updated });
 }
@@ -118,7 +125,8 @@ const moveRoute = {
   validators,
   default: handler,
   action: 'tree-move',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.tree.move'
 };
 
 export default moveRoute;

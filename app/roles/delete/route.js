@@ -48,6 +48,7 @@ async function handler(req, res, next) {
     throwError(HTTP_STATUS.CONFLICT, 'roles.hasUsers');
   }
 
+  req.activityContext = { roleId: role.id, roleName: role.name };
   await role.softDelete();
 
   return apiResponse(res, req, next)();
@@ -57,7 +58,8 @@ const deleteRoute = {
   validators,
   default: handler,
   action: 'delete',
-  entity: 'roles'
+  entity: 'roles',
+  activityKey: 'roles.delete'
 };
 
 export default deleteRoute;

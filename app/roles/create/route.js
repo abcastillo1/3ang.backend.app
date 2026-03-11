@@ -68,6 +68,7 @@ async function handler(req, res, next) {
     await newRole.setPermissions(permissions);
   }
 
+  req.activityContext = { roleId: newRole.id, roleName: data.name };
   const roleWithPermissions = await Role.findByPk(newRole.id, {
     include: [{
       model: Permission,
@@ -100,7 +101,8 @@ const createRoute = {
   validators,
   default: handler,
   action: 'create',
-  entity: 'roles'
+  entity: 'roles',
+  activityKey: 'roles.create'
 };
 
 export default createRoute;

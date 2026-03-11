@@ -35,6 +35,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.canOnlyDeleteDraft');
   }
 
+  req.activityContext = { projectId: project.id, projectName: project.name };
   await project.softDelete();
 
   return apiResponse(res, req, next)();
@@ -44,7 +45,8 @@ const deleteRoute = {
   validators,
   default: handler,
   action: 'delete',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.delete'
 };
 
 export default deleteRoute;

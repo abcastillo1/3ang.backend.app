@@ -15,6 +15,17 @@ import treeMoveRoute from '../app/projects/tree/move/route.js';
 import treeReorderRoute from '../app/projects/tree/reorder/route.js';
 import treeDeleteRoute from '../app/projects/tree/delete/route.js';
 import treeFullRoute from '../app/projects/tree/full/route.js';
+import treeNodeDetailRoute from '../app/projects/tree/node-detail/route.js';
+import pfSectionsCreateRoute from '../app/projects/permanent-file/sections/create/route.js';
+import pfSectionsListRoute from '../app/projects/permanent-file/sections/list/route.js';
+import pfSectionsViewRoute from '../app/projects/permanent-file/sections/view/route.js';
+import pfSectionsUpdateRoute from '../app/projects/permanent-file/sections/update/route.js';
+import pfSectionsDeleteRoute from '../app/projects/permanent-file/sections/delete/route.js';
+import pfItemsCreateRoute from '../app/projects/permanent-file/items/create/route.js';
+import pfItemsListRoute from '../app/projects/permanent-file/items/list/route.js';
+import pfItemsUpdateRoute from '../app/projects/permanent-file/items/update/route.js';
+import pfItemsDeleteRoute from '../app/projects/permanent-file/items/delete/route.js';
+import pfApplyTemplateRoute from '../app/projects/permanent-file/apply-template/route.js';
 
 const router = Router();
 
@@ -33,5 +44,16 @@ registerRoute(router, '/tree/move', treeMoveRoute, 'post');
 registerRoute(router, '/tree/reorder', treeReorderRoute, 'post');
 registerRoute(router, '/tree/delete', treeDeleteRoute, 'post');
 registerRoute(router, '/tree/full', treeFullRoute, 'post');
+registerRoute(router, '/tree/node-detail', treeNodeDetailRoute, 'post');
+registerRoute(router, '/permanent-file/sections/create', pfSectionsCreateRoute, 'post');
+registerRoute(router, '/permanent-file/sections/list', pfSectionsListRoute, 'post');
+registerRoute(router, '/permanent-file/sections/view', pfSectionsViewRoute, 'post');
+registerRoute(router, '/permanent-file/sections/update', pfSectionsUpdateRoute, 'post');
+registerRoute(router, '/permanent-file/sections/delete', pfSectionsDeleteRoute, 'post');
+registerRoute(router, '/permanent-file/items/create', pfItemsCreateRoute, 'post');
+registerRoute(router, '/permanent-file/items/list', pfItemsListRoute, 'post');
+registerRoute(router, '/permanent-file/items/update', pfItemsUpdateRoute, 'post');
+registerRoute(router, '/permanent-file/items/delete', pfItemsDeleteRoute, 'post');
+registerRoute(router, '/permanent-file/apply-template', pfApplyTemplateRoute, 'post');
 
 export default router;

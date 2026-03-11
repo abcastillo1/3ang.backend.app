@@ -80,6 +80,14 @@ async function handler(req, res, next) {
 
   await node.update({ path: materializedPath });
 
+  req.activityContext = {
+    auditProjectId: project.id,
+    nodeId: node.id,
+    projectName: project.name,
+    nodeName: data.name,
+    nodeType: data.type,
+    parentId: data.parentId
+  };
   return apiResponse(res, req, next)({ node });
 }
 
@@ -87,7 +95,8 @@ const createRoute = {
   validators,
   default: handler,
   action: 'tree-create',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.tree.create'
 };
 
 export default createRoute;

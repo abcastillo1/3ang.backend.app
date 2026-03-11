@@ -70,6 +70,7 @@ async function handler(req, res, next) {
 
   const newUser = await User.create(userData);
 
+  req.activityContext = { userId: newUser.id, userFullName: data.fullName, userEmail: data.email };
   const response = {
     user: newUser.toPublicJSON()
   };
@@ -81,7 +82,8 @@ const createRoute = {
   validators,
   default: handler,
   action: 'create',
-  entity: 'users'
+  entity: 'users',
+  activityKey: 'users.create'
 };
 
 export default createRoute;

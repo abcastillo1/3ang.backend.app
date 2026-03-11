@@ -359,6 +359,20 @@
       "generationFailed": "Error al generar la URL del archivo"
     }
   },
+  "permanentFile": {
+    "templateEmpty": "La plantilla de archivo permanente está vacía. Configure secciones e ítems en Configuración.",
+    "templateAlreadyHasSections": "La plantilla ya tiene secciones. Cargar valores por defecto solo está permitido cuando la plantilla está vacía.",
+    "templateApplied": "Plantilla aplicada al proyecto.",
+    "defaultsLoaded": "Plantilla por defecto cargada.",
+    "sectionNotFound": "Sección del archivo permanente no encontrada",
+    "sectionCodeExists": "Ya existe una sección con ese código en el proyecto",
+    "parentSectionNotFound": "La sección padre no existe o no pertenece al proyecto",
+    "sectionCannotBeParentOfItself": "Una sección no puede ser padre de sí misma",
+    "itemNotFound": "Ítem del checklist no encontrado",
+    "itemCodeExists": "Ya existe un ítem con ese código en la sección",
+    "documentNotFound": "El documento no existe o no pertenece al proyecto",
+    "assigneeNotFound": "El usuario asignado no existe o no pertenece a la organización"
+  },
   "establishments": {
     "notFound": "Establecimiento no encontrado",
     "codeExists": "El código de establecimiento ya existe en esta organización",
@@ -376,19 +390,59 @@
     "cannotDeleteWithEstablishments": "No se puede eliminar una organización con establecimientos asignados",
     "cannotDeleteWithUsers": "No se puede eliminar una organización con usuarios asignados"
   },
-  "species": {
-    "notFound": "Especie no encontrada",
-    "nameExists": "El nombre de la especie ya existe",
-    "hasAnimals": "No se puede eliminar una especie con animales asignados"
-  },
-  "animals": {
-    "notFound": "Animal no encontrado",
-    "codeExists": "El código del animal ya existe en esta organización",
-    "hasChildren": "No se puede eliminar un animal que es padre o madre de otros animales",
-    "fatherNotFound": "Padre no encontrado",
-    "motherNotFound": "Madre no encontrada",
-    "fatherMustBeMale": "El padre debe ser un animal macho",
-    "motherMustBeFemale": "La madre debe ser un animal hembra",
-    "cannotBeOwnParent": "Un animal no puede ser su propio padre o madre"
+  
+  "activity": {
+    "project": {
+      "created": "Creó el proyecto \"{{projectName}}\"",
+      "updated": "Actualizó el proyecto \"{{projectName}}\"",
+      "updatedStatus": "Actualizó el proyecto \"{{projectName}}\" (estado: {{previousStatus}} → {{newStatus}})",
+      "deleted": "Eliminó el proyecto \"{{projectName}}\""
+    },
+    "assignment": {
+      "added": "Agregó a {{targetUserName}} al equipo",
+      "removed": "Sacó a {{removedUserName}} del equipo"
+    },
+    "tree": {
+      "node": {
+        "created": "Creó el nodo \"{{nodeName}}\"",
+        "moved": "Movió el nodo \"{{nodeName}}\"",
+        "reordered": "Reordenó nodos del árbol",
+        "deleted": "Eliminó el nodo \"{{nodeName}}\" y su subárbol"
+      }
+    },
+    "document": {
+      "uploaded": "Subió el documento \"{{originalName}}\"",
+      "linked": "Vinculó {{count}} documento(s) al proyecto",
+      "deleted": "Eliminó el documento \"{{originalName}}\""
+    },
+    "client": {
+      "created": "Creó el cliente \"{{clientName}}\"",
+      "updated": "Actualizó el cliente \"{{clientName}}\"",
+      "deleted": "Eliminó el cliente \"{{clientName}}\""
+    },
+    "organization": {
+      "updated": "Actualizó los datos de la organización \"{{organizationName}}\""
+    },
+    "user": {
+      "created": "Creó al usuario \"{{userFullName}}\"",
+      "updated": "Actualizó al usuario \"{{userFullName}}\""
+    },
+    "role": {
+      "created": "Creó el rol \"{{roleName}}\"",
+      "updated": "Actualizó el rol \"{{roleName}}\"",
+      "deleted": "Eliminó el rol \"{{roleName}}\""
+    },
+    "permanentFile": {
+      "section": {
+        "created": "Creó la sección \"{{sectionName}}\" del archivo permanente",
+        "updated": "Actualizó la sección \"{{sectionName}}\" del archivo permanente",
+        "deleted": "Eliminó la sección \"{{sectionName}}\" del archivo permanente"
+      },
+      "item": {
+        "created": "Añadió el ítem \"{{itemCode}}\" al archivo permanente",
+        "updated": "Actualizó el ítem \"{{itemCode}}\" del archivo permanente",
+        "deleted": "Eliminó el ítem \"{{itemCode}}\" del archivo permanente"
+      }
+    }
   }
 }

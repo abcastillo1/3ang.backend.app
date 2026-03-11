@@ -24,6 +24,7 @@ Documentación de contratos de API y flujos de integración para el frontend. Or
 | Archivo | Contenido |
 |---------|-----------|
 | [`flows/file-upload.md`](flows/file-upload.md) | Subida de archivos con URLs firmadas: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
+| [`flows/permanent-file-ui.md`](flows/permanent-file-ui.md) | Archivo permanente: árbol + node-detail, carpetas/ítems/documentos/encargado, qué llamar desde el panel central. |
 
 ---
 

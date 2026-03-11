@@ -17,7 +17,7 @@ ALTER TABLE permissions AUTO_INCREMENT = 1;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- ============================================================
--- 2. PERMISOS (22 en total)
+-- 2. PERMISOS (24 en total)
 -- ============================================================
 INSERT INTO permissions (code, module, description, created_at, updated_at) VALUES
   -- Usuarios (1-2)
@@ -42,13 +42,15 @@ INSERT INTO permissions (code, module, description, created_at, updated_at) VALU
   ('clients.view', 'clients', 'Ver clientes', NOW(), NOW()),
   ('clients.update', 'clients', 'Actualizar clientes', NOW(), NOW()),
   ('clients.delete', 'clients', 'Eliminar clientes', NOW(), NOW()),
-  -- Proyectos (17-22)
+  -- Proyectos (17-23)
   ('projects.create', 'projects', 'Crear proyectos de auditoría', NOW(), NOW()),
   ('projects.view', 'projects', 'Ver proyectos, asignaciones y árbol', NOW(), NOW()),
   ('projects.update', 'projects', 'Actualizar proyectos (datos y estado)', NOW(), NOW()),
   ('projects.delete', 'projects', 'Eliminar proyectos (solo draft)', NOW(), NOW()),
   ('projects.assignments.manage', 'projects', 'Gestionar asignaciones de equipo en proyectos', NOW(), NOW()),
-  ('projects.tree.manage', 'projects', 'Gestionar nodos del árbol del proyecto', NOW(), NOW());
+  ('projects.tree.manage', 'projects', 'Gestionar nodos del árbol del proyecto', NOW(), NOW()),
+  ('projects.permanentFile.manage', 'projects', 'Gestionar secciones e ítems del archivo permanente', NOW(), NOW()),
+  ('organizations.permanentFileTemplate.manage', 'organizations', 'Gestionar plantilla de archivo permanente (secciones e ítems estándar)', NOW(), NOW());
 
 -- ============================================================
 -- 3. ROLES (5 roles para la organización)
@@ -71,11 +73,11 @@ SET @rol_supervisor = (SELECT id FROM roles WHERE organization_id = @org_id AND 
 SET @rol_auditor    = (SELECT id FROM roles WHERE organization_id = @org_id AND name = 'Auditor' LIMIT 1);
 SET @rol_asistente  = (SELECT id FROM roles WHERE organization_id = @org_id AND name = 'Asistente' LIMIT 1);
 
--- ADMINISTRADOR: todos los permisos (22)
+-- ADMINISTRADOR: todos los permisos (24)
 INSERT INTO role_permissions (role_id, permission_id, created_at, updated_at)
 SELECT @rol_admin, id, NOW(), NOW() FROM permissions;
 
--- SOCIO: todo excepto gestión de usuarios, roles, permisos y organización (14 permisos)
+-- SOCIO: todo excepto gestión de usuarios, roles, permisos y organización (16 permisos)
 INSERT INTO role_permissions (role_id, permission_id, created_at, updated_at)
 SELECT @rol_socio, id, NOW(), NOW() FROM permissions
 WHERE code IN (
@@ -85,11 +87,13 @@ WHERE code IN (
   'projects.create', 'projects.view', 'projects.update', 'projects.delete',
   'projects.assignments.manage',
   'projects.tree.manage',
+  'projects.permanentFile.manage',
+  'organizations.permanentFileTemplate.manage',
   'organizations.view',
   'roles.view'
 );
 
--- SUPERVISOR: gestión de proyectos + clientes + archivos, sin eliminar proyectos ni gestionar org (11 permisos)
+-- SUPERVISOR: gestión de proyectos + clientes + archivos, sin eliminar proyectos ni gestionar org (12 permisos)
 INSERT INTO role_permissions (role_id, permission_id, created_at, updated_at)
 SELECT @rol_supervisor, id, NOW(), NOW() FROM permissions
 WHERE code IN (
@@ -99,6 +103,7 @@ WHERE code IN (
   'projects.create', 'projects.view', 'projects.update',
   'projects.assignments.manage',
   'projects.tree.manage',
+  'projects.permanentFile.manage',
   'roles.view'
 );
 

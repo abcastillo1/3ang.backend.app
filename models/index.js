@@ -93,6 +93,30 @@ class Models {
     const auditTreeNodeModule = await import('./audit/auditTreeNode.js');
     const AuditTreeNodeFactory = auditTreeNodeModule.default;
     this.models.AuditTreeNode = AuditTreeNodeFactory(this.sequelize, Sequelize.DataTypes);
+
+    const activityLogModule = await import('./audit/activityLog.js');
+    const ActivityLogFactory = activityLogModule.default;
+    this.models.ActivityLog = ActivityLogFactory(this.sequelize, Sequelize.DataTypes);
+
+    const permanentFileSectionModule = await import('./audit/permanentFileSection.js');
+    const PermanentFileSectionFactory = permanentFileSectionModule.default;
+    this.models.PermanentFileSection = PermanentFileSectionFactory(this.sequelize, Sequelize.DataTypes);
+
+    const checklistItemModule = await import('./audit/checklistItem.js');
+    const ChecklistItemFactory = checklistItemModule.default;
+    this.models.ChecklistItem = ChecklistItemFactory(this.sequelize, Sequelize.DataTypes);
+
+    const checklistItemAssigneeModule = await import('./audit/checklistItemAssignee.js');
+    const ChecklistItemAssigneeFactory = checklistItemAssigneeModule.default;
+    this.models.ChecklistItemAssignee = ChecklistItemAssigneeFactory(this.sequelize, Sequelize.DataTypes);
+
+    const permanentFileTemplateSectionModule = await import('./organizations/permanentFileTemplateSection.js');
+    const PermanentFileTemplateSectionFactory = permanentFileTemplateSectionModule.default;
+    this.models.PermanentFileTemplateSection = PermanentFileTemplateSectionFactory(this.sequelize, Sequelize.DataTypes);
+
+    const permanentFileTemplateItemModule = await import('./organizations/permanentFileTemplateItem.js');
+    const PermanentFileTemplateItemFactory = permanentFileTemplateItemModule.default;
+    this.models.PermanentFileTemplateItem = PermanentFileTemplateItemFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {

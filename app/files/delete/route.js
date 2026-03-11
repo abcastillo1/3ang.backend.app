@@ -33,6 +33,11 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'files.delete.notFound');
   }
 
+  req.activityContext = {
+    documentId: document.id,
+    auditProjectId: document.auditProjectId || undefined,
+    originalName: document.originalName
+  };
   try {
     await storageService.deleteObject(document.storageKey);
   } catch (err) {
@@ -51,7 +56,8 @@ const deleteRoute = {
   validators,
   default: handler,
   action: 'delete',
-  entity: 'files'
+  entity: 'files',
+  activityKey: 'files.delete'
 };
 
 export default deleteRoute;

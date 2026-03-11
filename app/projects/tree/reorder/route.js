@@ -72,6 +72,7 @@ async function handler(req, res, next) {
     throw err;
   }
 
+  req.activityContext = { auditProjectId: project.id, projectName: project.name, parentId };
   const updated = await AuditTreeNode.findAll({
     where: { auditProjectId: project.id, parentId },
     order: [['sort_order', 'ASC']]
@@ -84,7 +85,8 @@ const reorderRoute = {
   validators,
   default: handler,
   action: 'tree-reorder',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.tree.reorder'
 };
 
 export default reorderRoute;

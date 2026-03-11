@@ -104,6 +104,14 @@ async function handler(req, res, next) {
     analysisStatus: record.analysisStatus
   };
 
+  const project = auditProjectId ? await modelsInstance.models.AuditProject.findByPk(auditProjectId, { attributes: ['name'] }) : null;
+  req.activityContext = {
+    documentId: record.id,
+    auditProjectId: auditProjectId || undefined,
+    originalName: data.originalName,
+    projectName: project?.name,
+    nodeId
+  };
   return apiResponse(res, req, next)({ document });
 }
 
@@ -111,7 +119,8 @@ const confirmRoute = {
   validators,
   default: handler,
   action: 'confirm',
-  entity: 'files'
+  entity: 'files',
+  activityKey: 'files.confirm'
 };
 
 export default confirmRoute;

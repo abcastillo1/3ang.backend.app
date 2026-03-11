@@ -74,8 +74,16 @@ async function handler(req, res, next) {
     }
   }
 
+  const previousStatus = project.status;
   await project.update(updateFields);
 
+  req.activityContext = {
+    projectId: project.id,
+    projectName: project.name,
+    previousStatus,
+    newStatus: data.status,
+    statusChanged: Boolean(data.status && data.status !== previousStatus)
+  };
   return apiResponse(res, req, next)({ project });
 }
 
@@ -83,7 +91,8 @@ const updateRoute = {
   validators,
   default: handler,
   action: 'update',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.update'
 };
 
 export default updateRoute;

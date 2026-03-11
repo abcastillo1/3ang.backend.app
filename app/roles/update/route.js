@@ -64,6 +64,7 @@ async function handler(req, res, next) {
 
   await role.update(updateData);
 
+  req.activityContext = { roleId: role.id, roleName: role.name };
   const roleWithPermissions = await Role.findByPk(role.id, {
     include: [{
       model: modelsInstance.models.Permission,
@@ -96,7 +97,8 @@ const updateRoute = {
   validators,
   default: handler,
   action: 'update',
-  entity: 'roles'
+  entity: 'roles',
+  activityKey: 'roles.update'
 };
 
 export default updateRoute;

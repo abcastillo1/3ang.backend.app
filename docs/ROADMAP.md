@@ -27,7 +27,13 @@ Todo lo necesario para que el backend funcione: servidor, BD, auth, usuarios, ro
 - [x] Modelo UserSession
 - [x] Modelo Role y RolePermission
 - [x] Modelo Permission
-- [x] Modelo AuditLog
+- [x] Modelo AuditLog (request-level: método, ruta, IP, body sanitizado)
+- [x] Modelo ActivityLog (organizationId, userId, auditProjectId, action, entity, entityId, descriptionKey, metadata)
+- [x] Migraciones ActivityLog (0017 activity_logs + 0018 permiso activity.view)
+- [x] Helper de actividad (helpers/record-activity.js + helpers/activity-mapping.js)
+- [x] Integración centralizada en controller-wrapper (activityKey + activityContext por ruta, flush automático solo en respuestas 2xx/3xx)
+- [x] API POST /audit/activity/list — historial de actividad por organización/proyecto/usuario, paginado
+- [x] Traducciones de actividad en assets/translations/es.json y en.json (sección `activity`)
 - [x] Autenticación JWT (login, logout, refresh)
 - [x] Middleware de permisos (requirePermission, bypass del propietario)
 - [x] APIs de auth: login, logout, refresh
@@ -126,19 +132,23 @@ Estructura tipo árbol para organizar secciones, carpetas y bloques dentro de un
 
 ---
 
-## FASE 4 — Archivo Permanente `0%`
+## FASE 4 — Archivo Permanente `~33%`
 
 Expediente del cliente: secciones, checklist de ítems, matriz de riesgos, dashboard de cumplimiento.
 
-### 4.1 Secciones e ítems del checklist
+### 4.1 Secciones e ítems del checklist `100%`
 
-- [ ] Modelo PermanentFileSection (projectId, code, name, priority, order, parentSectionId)
-- [ ] Modelo ChecklistItem (sectionId, code, description, isRequired, ref, status, documentId)
-- [ ] Migraciones SQL
-- [ ] API CRUD para secciones del archivo permanente
-- [ ] API CRUD para ítems del checklist (crear, listar, actualizar estado; acepta documentIds para vincular documentos)
-- [ ] Estados del ítem: pending, in_review, compliant, not_applicable
-- [ ] Seed/plantilla: crear secciones e ítems estándar al iniciar archivo permanente (A: Historia del negocio, B: Organización societaria, etc.)
+- [x] Modelo PermanentFileSection (auditProjectId, code, name, priority, sortOrder, parentSectionId)
+- [x] Modelo ChecklistItem (sectionId, code, description, isRequired, ref, status, documentId, sortOrder, lastReviewedAt)
+- [x] Migración 0019 permanent_file_sections + checklist_items; migración 0020 permiso projects.permanentFile.manage
+- [x] API POST /projects/permanent-file/sections/create, list, view, update, delete (body.data.auditProjectId)
+- [x] API POST /projects/permanent-file/items/create, list, update, delete (body.data.auditProjectId, sectionId/itemId)
+- [x] Estados del ítem: pending, in_review, compliant, not_applicable
+- [x] Actividad registrada (activityKey + activity-mapping + traducciones activity.permanentFile.*)
+- [x] Plantilla por organización: tablas permanent_file_template_sections e permanent_file_template_items (migración 0021), permiso organizations.permanentFileTemplate.manage (0022)
+- [x] APIs CRUD plantilla bajo /organizations/permanent-file-template/ (sections e items), load-defaults (carga plantilla NIA estándar si vacía)
+- [x] POST /projects/permanent-file/apply-template — aplica plantilla de la org al proyecto
+- [x] Seed por defecto para org 1 en migración 0022 (secciones A–D con ítems)
 
 ### 4.2 Matriz de riesgos
 
@@ -303,6 +313,17 @@ Vistas agregadas para monitorear el avance de los proyectos.
 - [ ] "Mis tareas": actividades del cronograma y procedimientos donde soy responsable o revisor
 - [ ] Avance por colaborador: tareas asignadas vs completadas
 - [ ] Políticas de retención: advertencia si se intenta eliminar documentos antes de document_retention_years
+
+---
+
+## Reglas transversales (a partir de Fase 4)
+
+- **Registro de actividad de negocio (ActivityLog)**:
+  - Toda API que modifique estado de dominio (crear/actualizar/eliminar entidades, asignar/quitar usuarios, mover nodos, subir/eliminar documentos, etc.) debe:
+    - Definir un `activityKey` en la ruta.
+    - Poner en `req.activityContext` los datos mínimos (IDs, nombres, flags) que el mapa de actividad espera.
+  - Cualquier nueva acción debe añadirse a `helpers/activity-mapping.js` y a `assets/translations/*/activity.*`.
+  - El listado `/audit/activity/list` es la fuente de verdad para feeds, dashboards y auditoría funcional.
 
 ---
 

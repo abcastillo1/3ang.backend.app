@@ -40,6 +40,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.CONFLICT, 'clients.hasActiveProjects');
   }
 
+  req.activityContext = { clientId: client.id, clientName: client.name };
   await client.softDelete();
 
   return apiResponse(res, req, next)();
@@ -49,7 +50,8 @@ const deleteRoute = {
   validators,
   default: handler,
   action: 'delete',
-  entity: 'clients'
+  entity: 'clients',
+  activityKey: 'clients.delete'
 };
 
 export default deleteRoute;

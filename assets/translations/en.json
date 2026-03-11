@@ -223,49 +223,23 @@
   "server": {
     "internalError": "Internal server error"
   },
+  "permanentFile": {
+    "templateEmpty": "Permanent file template is empty. Configure sections and items in Settings.",
+    "templateAlreadyHasSections": "Template already has sections. Load defaults is only allowed when the template is empty.",
+    "templateApplied": "Template applied to project.",
+    "defaultsLoaded": "Default template loaded.",
+    "sectionNotFound": "Permanent file section not found",
+    "sectionCodeExists": "A section with this code already exists in the project",
+    "parentSectionNotFound": "Parent section does not exist or does not belong to the project",
+    "sectionCannotBeParentOfItself": "A section cannot be its own parent",
+    "itemNotFound": "Checklist item not found",
+    "itemCodeExists": "An item with this code already exists in the section",
+    "documentNotFound": "Document does not exist or does not belong to the project",
+    "assigneeNotFound": "Assignee does not exist or does not belong to the organization"
+  },
   "establishments": {
     "notFound": "Establishment not found",
     "targetNotFound": "Target establishment not found"
-  },
-  "species": {
-    "notFound": "Species not found",
-    "nameExists": "Species name already exists",
-    "hasAnimals": "Cannot delete a species with assigned animals"
-  },
-  "animals": {
-    "notFound": "Animal not found",
-    "codeExists": "Animal code already exists in this organization",
-    "hasChildren": "Cannot delete an animal that is father or mother of other animals",
-    "fatherNotFound": "Father not found",
-    "motherNotFound": "Mother not found",
-    "fatherMustBeMale": "Father must be a male animal",
-    "motherMustBeFemale": "Mother must be a female animal",
-    "cannotBeOwnParent": "An animal cannot be its own parent"
-  },
-  "inventory": {
-    "stock": {
-      "insufficientStock": "Insufficient stock to perform this operation",
-      "invalidType": "Invalid movement type",
-      "sameEstablishment": "Cannot transfer to the same establishment"
-    },
-    "products": {
-      "notFound": "Product not found"
-    },
-    "batches": {
-      "notFound": "Batch not found",
-      "quantityRequired": "Each batch in batches must have quantity greater than 0",
-      "sumMustEqualQuantity": "The sum of batch quantities must equal the item quantity"
-    },
-    "movements": {
-      "notFound": "Movement not found",
-      "itemsMustBeTransfer": "In a transfer movement all items must be transfer type",
-      "itemsMustBeAdjustment": "In an adjustment movement transfer items are not allowed"
-    },
-    "categories": {
-      "notFound": "Category not found",
-      "nameExists": "Category name already exists",
-      "hasProducts": "Cannot delete a category with assigned products"
-    }
   },
   "files": {
     "category": {
@@ -293,6 +267,60 @@
     },
     "url": {
       "generationFailed": "Error generating file URL"
+    }
+  },
+  "activity": {
+    "project": {
+      "created": "Created project \"{{projectName}}\"",
+      "updated": "Updated project \"{{projectName}}\"",
+      "updatedStatus": "Updated project \"{{projectName}}\" (status: {{previousStatus}} → {{newStatus}})",
+      "deleted": "Deleted project \"{{projectName}}\""
+    },
+    "assignment": {
+      "added": "Added {{targetUserName}} to the team",
+      "removed": "Removed {{removedUserName}} from the team"
+    },
+    "tree": {
+      "node": {
+        "created": "Created node \"{{nodeName}}\"",
+        "moved": "Moved node \"{{nodeName}}\"",
+        "reordered": "Reordered tree nodes",
+        "deleted": "Deleted node \"{{nodeName}}\" and its subtree"
+      }
+    },
+    "document": {
+      "uploaded": "Uploaded document \"{{originalName}}\"",
+      "linked": "Linked {{count}} document(s) to the project",
+      "deleted": "Deleted document \"{{originalName}}\""
+    },
+    "client": {
+      "created": "Created client \"{{clientName}}\"",
+      "updated": "Updated client \"{{clientName}}\"",
+      "deleted": "Deleted client \"{{clientName}}\""
+    },
+    "organization": {
+      "updated": "Updated organization \"{{organizationName}}\""
+    },
+    "user": {
+      "created": "Created user \"{{userFullName}}\"",
+      "updated": "Updated user \"{{userFullName}}\""
+    },
+    "role": {
+      "created": "Created role \"{{roleName}}\"",
+      "updated": "Updated role \"{{roleName}}\"",
+      "deleted": "Deleted role \"{{roleName}}\""
+    },
+    "permanentFile": {
+      "section": {
+        "created": "Created permanent file section \"{{sectionName}}\"",
+        "updated": "Updated permanent file section \"{{sectionName}}\"",
+        "deleted": "Deleted permanent file section \"{{sectionName}}\""
+      },
+      "item": {
+        "created": "Added checklist item \"{{itemCode}}\" to permanent file",
+        "updated": "Updated checklist item \"{{itemCode}}\" in permanent file",
+        "deleted": "Deleted checklist item \"{{itemCode}}\" from permanent file"
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 # Contexto de la Plataforma — Para el Frontend
 
-> **Última actualización:** 2026-03-02 — FASE 3 completada (Jerarquía del proyecto)
+> **Última actualización:** 2026-03-02 — Archivo permanente (secciones e ítems del checklist)
 
 Este documento describe qué es la plataforma, qué entidades maneja, cómo se relacionan y qué datos de prueba existen. Copiar este archivo al proyecto frontend para que sirva como contexto permanente.
 
@@ -79,7 +79,7 @@ draft → planning → in_progress → review → closed
 
 Cada proyecto tiene una estructura jerárquica (árbol) que se crea automáticamente al crear el proyecto. Los nodos raíz son configurables por organización (plantilla), por defecto:
 
-1. **Archivo Permanente** — expediente del cliente (secciones, checklist)
+1. **Archivo Permanente** — expediente del cliente. Tiene **secciones** (jerárquicas: code, name, priority) e **ítems de checklist** por sección (code, description, status: pending / in_review / compliant / not_applicable, documento opcional). **Plantilla por organización:** cada firma define su plantilla estándar (secciones e ítems) en Configuración (`POST /organizations/permanent-file-template/sections/*` y `items/*`, permiso `organizations.permanentFileTemplate.manage`). Opción "Cargar valores por defecto" (`/organizations/permanent-file-template/load-defaults`) inserta la plantilla NIA estándar si la plantilla está vacía. Para crear el contenido en un proyecto a partir de la plantilla: `POST /projects/permanent-file/apply-template` con `data.auditProjectId`. CRUD por proyecto: `POST /projects/permanent-file/sections/*` y `items/*` con `data.auditProjectId`. Permiso proyecto: `projects.permanentFile.manage`; ver: `projects.view`. Ver `docs/frontend/api/permanent-file.md`.
 2. **Planificación** — cronograma, cuestionarios de control interno
 3. **Programas de Auditoría** — un programa por área contable (Bancos, CxC, Inventarios...), cada uno con procedimientos
 4. **Hallazgos** — problemas encontrados (PCI: Condición, Criterio, Causa, Efecto)
@@ -90,6 +90,28 @@ El frontend muestra esto como un árbol expandible (sidebar o panel). Se carga c
 Cada nodo puede tener documentos asociados (`documentsCount`).
 
 Los nodos raíz (sistema) no se pueden eliminar ni mover. Los nodos hijos sí.
+
+---
+
+## Historial de actividad
+
+Hay dos niveles de registro:
+
+1. **AuditLog** (request-level): cada request HTTP exitoso se registra (método, path, IP, body sanitizado). Sirve para seguridad y auditoría técnica. El endpoint `/audit/my-activity` devuelve solo la actividad del usuario logueado en ese formato.
+
+2. **ActivityLog** (negocio): cada acción relevante del usuario se registra como un evento con quién, cuándo, qué hizo y en qué proyecto (si aplica). Permite mostrar en el frontend un historial legible: "María sacó a Carlos del equipo", "Luis creó el proyecto X", "Ana subió el documento Y". Se consulta con `POST /audit/activity/list`.
+
+**Request** `POST /audit/activity/list` (permiso `activity.view`):
+
+- `data.page`, `data.limit`: paginación.
+- `data.auditProjectId`: opcional. Si se envía, solo se devuelve actividad de ese proyecto (y se valida que el proyecto sea de la organización).
+- `data.userId`, `data.action`, `data.entity`: filtros opcionales.
+
+**Response**: `{ activity: [ { id, userId, userFullName, userEmail, auditProjectId, action, entity, entityId, description, metadata, createdAt } ], pagination: { page, limit, total, totalPages } }`.
+
+El campo `description` es texto listo para mostrar (ej. "Sacó a Carlos Mendoza del equipo"). El `action` es un código estable (ej. `assignment.removed`) por si el frontend prefiere traducir por i18n. `metadata` trae contexto adicional (nombres de proyecto, documento, etc.).
+
+Uso típico: feed de actividad en el dashboard (org), y panel "Historial" o "Actividad" dentro de la vista de un proyecto (filtrando por `auditProjectId`).
 
 ---
 
@@ -111,7 +133,7 @@ Los archivos NO pasan por el backend. Flujo:
 - Recuperar contraseña (futuro)
 
 ### Dashboard
-- Resumen: proyectos activos, actividad reciente
+- Resumen: proyectos activos, actividad reciente (feed desde `/audit/activity/list`)
 
 ### Usuarios y Roles
 - Lista de usuarios (búsqueda, paginación)
@@ -132,6 +154,7 @@ Los archivos NO pasan por el backend. Flujo:
   - Panel central: contenido del nodo seleccionado (documentos, formularios según el tipo)
   - Header: datos del proyecto, estado, equipo asignado
   - Breadcrumb: ruta del nodo actual
+  - Opcional: panel o pestaña "Actividad" / "Historial" con `/audit/activity/list` filtrado por `auditProjectId`
 
 ### Gestión del equipo
 - Asignar/quitar miembros al proyecto
@@ -192,7 +215,9 @@ Los contratos completos de cada endpoint están en la carpeta `api-reference/` d
 | `clients.md` | CRUD clientes |
 | `projects.md` | CRUD proyectos, asignaciones de equipo |
 | `tree.md` | Árbol del proyecto: crear, listar, mover, reordenar, eliminar, breadcrumb, full |
+| `permanent-file.md` | Archivo permanente: secciones e ítems del checklist (CRUD) |
 | `files.md` | Listar, eliminar, vincular documentos, download URL |
+| `activity.md` | Listar historial de actividad (org y por proyecto) |
 | `file-upload.md` (en flows/) | Flujo completo de subida de archivos |
 
 Si un archivo no existe en `api-reference/`, copiarlo desde la documentación del backend (`docs/frontend/api/` y `docs/frontend/flows/`).
@@ -205,3 +230,5 @@ Si un archivo no existe en `api-reference/`, copiarlo desde la documentación de
 |-------|------|---------|
 | 2026-03-02 | FASE 1-2 | Auth, usuarios, roles, permisos, organizaciones, clientes, archivos |
 | 2026-03-02 | FASE 3 | Proyectos, asignaciones, árbol jerárquico, plantilla configurable, datos demo |
+| 2026-03-09 | — | ActivityLog: historial de acciones por proyecto/org, endpoint `/audit/activity/list`, permiso `activity.view` |
+| 2026-03-02 | FASE 4.1 | Archivo permanente: modelos PermanentFileSection y ChecklistItem, APIs CRUD secciones e ítems, permiso `projects.permanentFile.manage`, actividad registrada |

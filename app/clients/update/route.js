@@ -79,6 +79,7 @@ async function handler(req, res, next) {
 
   await client.update(updateFields);
 
+  req.activityContext = { clientId: client.id, clientName: client.name };
   return apiResponse(res, req, next)({ client });
 }
 
@@ -86,7 +87,8 @@ const updateRoute = {
   validators,
   default: handler,
   action: 'update',
-  entity: 'clients'
+  entity: 'clients',
+  activityKey: 'clients.update'
 };
 
 export default updateRoute;

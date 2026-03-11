@@ -354,6 +354,29 @@ Retorna **todos** los nodos del proyecto en un array plano, ordenados por `depth
 - `tree/full` — una query, todo el árbol, ideal para la vista principal
 - `tree/list` — un nivel a la vez, útil si se necesita lazy-load en un caso específico
 
+**Campos en cada nodo (camelCase):** `id`, `auditProjectId`, `parentId`, `path`, `depth`, `type`, `name`, `order`, **`refId`**, `isSystemNode`, `documentsCount`, `createdAt`, `updatedAt`.  
+Si el nodo viene del archivo permanente sincronizado: `type === 'folder'` y `refId` = id de sección; `type === 'checklist_item'` y `refId` = id de ítem.
+
+---
+
+## Detalle de nodo (panel central)
+
+Al seleccionar un nodo en el árbol, el frontend puede cargar **un solo payload** para pintar el panel:
+
+```
+POST /api/v1/projects/tree/node-detail
+Requiere permiso: projects.view
+```
+
+**Request:** `{ "data": { "auditProjectId": 5, "nodeId": 42 } }`
+
+**Response:** `detailType` = `section` | `checklist_item` | `generic`, más:
+- `section` — datos de carpeta + lista de ítems (con encargado si aplica)
+- `item` — actividad con descripción, estado, documento vinculado, encargado
+- `documents` — archivos con `node_id` = este nodo
+
+Ver flujo completo: [`flows/permanent-file-ui.md`](../flows/permanent-file-ui.md).
+
 ---
 
 ## Estructura automática al crear proyecto

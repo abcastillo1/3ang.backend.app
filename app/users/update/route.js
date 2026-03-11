@@ -58,10 +58,11 @@ const validators = [
 
 async function handler(req, res, next) {
   const user = req.userToUpdate;
-  
+
   await user.update(req.updateData);
   await user.reload();
-  
+
+  req.activityContext = { userId: user.id, userFullName: user.fullName, userEmail: user.email };
   const response = {
     user: user.toPublicJSON()
   };
@@ -71,7 +72,8 @@ async function handler(req, res, next) {
 
 const updateRoute = {
   validators,
-  default: handler
+  default: handler,
+  activityKey: 'users.update'
 };
 
 export default updateRoute;

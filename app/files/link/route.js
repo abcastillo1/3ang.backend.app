@@ -70,6 +70,13 @@ async function handler(req, res, next) {
     where: { id: linkedIds }
   });
 
+  req.activityContext = {
+    auditProjectId: data.auditProjectId,
+    projectName: project.name,
+    documentIds: linkedIds,
+    count: linkedIds.length,
+    nodeId: data.nodeId
+  };
   return apiResponse(res, req, next)({
     linked: linkedIds,
     auditProjectId: data.auditProjectId,
@@ -81,7 +88,8 @@ const linkRoute = {
   validators,
   default: handler,
   action: 'link',
-  entity: 'files'
+  entity: 'files',
+  activityKey: 'files.link'
 };
 
 export default linkRoute;

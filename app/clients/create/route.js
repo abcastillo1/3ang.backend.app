@@ -62,6 +62,7 @@ async function handler(req, res, next) {
     address: data.address || null
   });
 
+  req.activityContext = { clientId: client.id, clientName: data.name };
   return apiResponse(res, req, next)({ client });
 }
 
@@ -69,7 +70,8 @@ const createRoute = {
   validators,
   default: handler,
   action: 'create',
-  entity: 'clients'
+  entity: 'clients',
+  activityKey: 'clients.create'
 };
 
 export default createRoute;

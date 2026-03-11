@@ -52,6 +52,13 @@ async function handler(req, res, next) {
   });
   descendants.forEach(d => subtreeIds.push(d.id));
 
+  req.activityContext = {
+    auditProjectId: project.id,
+    nodeId: node.id,
+    projectName: project.name,
+    nodeName: node.name,
+    deletedCount: subtreeIds.length
+  };
   const transaction = await sequelize.transaction();
   try {
     await AuditDocument.update(
@@ -77,7 +84,8 @@ const deleteRoute = {
   validators,
   default: handler,
   action: 'tree-delete',
-  entity: 'projects'
+  entity: 'projects',
+  activityKey: 'projects.tree.delete'
 };
 
 export default deleteRoute;
