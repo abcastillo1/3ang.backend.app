@@ -32,18 +32,20 @@ export default function (sequelize, DataTypes) {
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at'
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'deleted_at'
       }
     },
     {
       tableName: 'project_assignments',
+      paranoid: true,
       timestamps: true,
       underscored: true,
       indexes: [
-        {
-          unique: true,
-          fields: ['audit_project_id', 'user_id'],
-          name: 'project_assignments_project_user_unique'
-        }
+        { fields: ['audit_project_id', 'user_id'] }
       ]
     }
   );

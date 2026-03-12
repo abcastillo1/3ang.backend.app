@@ -25,15 +25,21 @@ export default function (sequelize, DataTypes) {
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at'
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'deleted_at'
       }
     },
     {
       tableName: 'checklist_item_assignees',
+      paranoid: true,
       timestamps: true,
       updatedAt: false,
       underscored: true,
       indexes: [
-        { unique: true, fields: ['checklist_item_id', 'user_id'] },
+        { fields: ['checklist_item_id', 'user_id'] },
         { fields: ['checklist_item_id'] },
         { fields: ['user_id'] }
       ]

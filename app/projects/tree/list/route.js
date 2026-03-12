@@ -42,11 +42,15 @@ async function handler(req, res, next) {
     attributes: {
       include: [
         [
-          Sequelize.literal(`(SELECT COUNT(*) FROM audit_tree_nodes AS c WHERE c.parent_id = AuditTreeNode.id)`),
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM audit_tree_nodes AS c WHERE c.parent_id = AuditTreeNode.id AND c.deleted_at IS NULL)`
+          ),
           'childrenCount'
         ],
         [
-          Sequelize.literal(`(SELECT COUNT(*) FROM audit_documents AS d WHERE d.node_id = AuditTreeNode.id)`),
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM audit_documents AS d WHERE d.node_id = AuditTreeNode.id AND d.comment_id IS NULL AND d.deleted_at IS NULL)`
+          ),
           'documentsCount'
         ]
       ]

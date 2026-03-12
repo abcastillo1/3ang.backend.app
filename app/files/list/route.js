@@ -5,6 +5,8 @@ import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
 import { storageService } from '../../../helpers/storage.js';
 import { Op } from 'sequelize';
+
+// Por defecto, listado por nodeId excluye adjuntos de comentarios (evidencia solamente)
 import modelsInstance from '../../../models/index.js';
 
 export const validators = [
@@ -28,6 +30,10 @@ export const validators = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage('validators.limit.invalid'),
+  validateField('data.includeCommentAttachments')
+    .optional()
+    .isBoolean()
+    .withMessage('validators.includeCommentAttachments.invalid'),
   validateRequest,
   authenticate,
   requirePermission('files.upload')
@@ -45,7 +51,12 @@ async function handler(req, res, next) {
   const where = { organizationId: user.organizationId };
 
   if (data.auditProjectId) where.auditProjectId = data.auditProjectId;
-  if (data.nodeId) where.nodeId = data.nodeId;
+  if (data.nodeId) {
+    where.nodeId = data.nodeId;
+    if (!data.includeCommentAttachments) {
+      where.commentId = { [Op.is]: null };
+    }
+  }
   if (data.category) where.category = data.category;
 
   const total = await AuditDocument.count({ where });
@@ -72,6 +83,7 @@ async function handler(req, res, next) {
         category: doc.category,
         auditProjectId: doc.auditProjectId,
         nodeId: doc.nodeId,
+        commentId: doc.commentId,
         analysisStatus: doc.analysisStatus,
         uploader: doc.uploader ? { id: doc.uploader.id, fullName: doc.uploader.fullName } : null,
         downloadUrl,

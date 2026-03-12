@@ -65,10 +65,16 @@ export default function (sequelize, DataTypes) {
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at'
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'deleted_at'
       }
     },
     {
       tableName: 'audit_tree_nodes',
+      paranoid: true,
       timestamps: true,
       underscored: true,
       indexes: [

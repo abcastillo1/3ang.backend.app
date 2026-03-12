@@ -22,7 +22,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, AuditTreeNode, AuditDocument } = modelsInstance.models;
+  const { AuditProject, AuditTreeNode } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const node = await AuditTreeNode.findByPk(data.nodeId);
@@ -61,11 +61,7 @@ async function handler(req, res, next) {
   };
   const transaction = await sequelize.transaction();
   try {
-    await AuditDocument.update(
-      { nodeId: null },
-      { where: { nodeId: subtreeIds }, transaction }
-    );
-
+    // Documentos mantienen node_id (nodo soft-borrado); no desvincular.
     await AuditTreeNode.destroy({
       where: { id: subtreeIds },
       transaction

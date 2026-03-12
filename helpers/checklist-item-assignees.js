@@ -1,35 +1,49 @@
 /**
- * Sincroniza asignados N:N de un checklist item.
- * @param {import('sequelize').Model} item ChecklistItem instance
- * @param {number[]} userIds ids de usuarios (misma org validada antes)
- * @param {number} assignedByUserId quien hace la asignación
- * @param {import('sequelize').Transaction} transaction
+ * Sincroniza asignados N:N de un checklist item (solo borrado lógico).
  */
 export async function syncItemAssignees(item, userIds, assignedByUserId, transaction) {
   const models = (await import('../models/index.js')).default.models;
   const { ChecklistItemAssignee } = models;
   const uniqueIds = [...new Set((userIds || []).filter(Boolean))];
-  await ChecklistItemAssignee.destroy({
+  const wantSet = new Set(uniqueIds);
+
+  const existingRows = await ChecklistItemAssignee.findAll({
     where: { checklistItemId: item.id },
+    paranoid: false,
     transaction
   });
-  for (const uid of uniqueIds) {
-    await ChecklistItemAssignee.create({
-      checklistItemId: item.id,
-      userId: uid,
-      assignedByUserId: assignedByUserId || null
-    }, { transaction });
+
+  for (const row of existingRows) {
+    if (!wantSet.has(row.userId) && !row.deletedAt) {
+      await row.destroy({ transaction });
+    }
   }
-  // Compat: primer asignado sigue en assigned_user_id para quien solo lea ese campo
+
+  for (const uid of uniqueIds) {
+    const row = existingRows.find(r => r.userId === uid);
+    if (row) {
+      if (row.deletedAt) {
+        await row.restore({ transaction });
+      }
+      await row.update({ assignedByUserId: assignedByUserId || null }, { transaction });
+    } else {
+      await ChecklistItemAssignee.create(
+        {
+          checklistItemId: item.id,
+          userId: uid,
+          assignedByUserId: assignedByUserId || null
+        },
+        { transaction }
+      );
+    }
+  }
+
   await item.update(
     { assignedUserId: uniqueIds.length ? uniqueIds[0] : null },
     { transaction }
   );
 }
 
-/**
- * Valida que todos los userIds pertenezcan a la organización.
- */
 export async function validateAssigneeUserIds(userIds, organizationId) {
   const models = (await import('../models/index.js')).default.models;
   const { User } = models;
@@ -45,9 +59,6 @@ export async function validateAssigneeUserIds(userIds, organizationId) {
   }
 }
 
-/**
- * Carga asignados para varios ítems (evita N+1 en listados).
- */
 export async function loadAssigneesForItems(itemIds, transaction) {
   if (!itemIds || !itemIds.length) return new Map();
   const models = (await import('../models/index.js')).default.models;
@@ -69,7 +80,9 @@ export async function loadAssigneesForItems(itemIds, transaction) {
       userId: r.userId,
       user: r.user ? { id: r.user.id, name: r.user.fullName, email: r.user.email } : null,
       assignedByUserId: r.assignedByUserId,
-      assignedBy: r.assignedBy ? { id: r.assignedBy.id, name: r.assignedBy.fullName, email: r.assignedBy.email } : null,
+      assignedBy: r.assignedBy
+        ? { id: r.assignedBy.id, name: r.assignedBy.fullName, email: r.assignedBy.email }
+        : null,
       assignedAt: r.createdAt
     });
     map.set(r.checklistItemId, list);
@@ -93,7 +106,9 @@ export async function loadAssigneesForItem(itemId, transaction) {
     userId: r.userId,
     user: r.user ? { id: r.user.id, name: r.user.fullName, email: r.user.email } : null,
     assignedByUserId: r.assignedByUserId,
-    assignedBy: r.assignedBy ? { id: r.assignedBy.id, name: r.assignedBy.fullName, email: r.assignedBy.email } : null,
+    assignedBy: r.assignedBy
+      ? { id: r.assignedBy.id, name: r.assignedBy.fullName, email: r.assignedBy.email }
+      : null,
     assignedAt: r.createdAt
   }));
 }

@@ -68,8 +68,9 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.tree.nodeNotFound');
   }
 
+  // Evidencia formal del nodo: excluye adjuntos de comentarios (comment_id IS NULL)
   const documents = await AuditDocument.findAll({
-    where: { auditProjectId: project.id, nodeId: node.id },
+    where: { auditProjectId: project.id, nodeId: node.id, commentId: null },
     attributes: ['id', 'originalName', 'mimeType', 'size', 'nodeId', 'createdAt'],
     order: [['createdAt', 'DESC']]
   });

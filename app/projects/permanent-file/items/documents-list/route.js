@@ -52,8 +52,9 @@ async function handler(req, res, next) {
     return apiResponse(res, req, next)({ documents: [] });
   }
 
+  // Solo evidencia del ítem; adjuntos de comentarios tienen comment_id set
   const documents = await AuditDocument.findAll({
-    where: { auditProjectId: project.id, nodeId: item.treeNodeId },
+    where: { auditProjectId: project.id, nodeId: item.treeNodeId, commentId: null },
     attributes: ['id', 'originalName', 'mimeType', 'size', 'nodeId', 'createdAt', 'uploaderId'],
     order: [['createdAt', 'DESC']]
   });

@@ -7,6 +7,7 @@ import { storageService } from '../../../helpers/storage.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
+import { assertCommentAttachable } from '../../../helpers/comment-document.js';
 
 const ALLOWED_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs'];
 
@@ -45,6 +46,10 @@ export const validators = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('validators.nodeId.invalid'),
+  validateField('data.commentId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.commentId.invalid'),
   validateRequest,
   authenticate,
   requirePermission('files.upload')
@@ -64,8 +69,21 @@ async function handler(req, res, next) {
 
   const auditProjectId = data.auditProjectId ?? data.auditCaseId ?? null;
   const nodeId = data.nodeId ?? null;
+  const commentId = data.commentId ?? null;
 
   const { AuditDocument, AuditProject } = modelsInstance.models;
+
+  if (commentId) {
+    if (!auditProjectId) {
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.confirm.commentRequiresProject');
+    }
+    await assertCommentAttachable({
+      commentId,
+      nodeId,
+      auditProjectId,
+      models: modelsInstance.models
+    });
+  }
 
   if (auditProjectId) {
     const project = await AuditProject.findOne({
@@ -80,6 +98,7 @@ async function handler(req, res, next) {
     organizationId: user.organizationId,
     auditProjectId,
     nodeId,
+    commentId: commentId || null,
     storageKey: key,
     originalName: data.originalName,
     mimeType: data.mimeType,
@@ -88,6 +107,12 @@ async function handler(req, res, next) {
     uploaderId: user.id,
     analysisStatus: 'pending'
   });
+
+  if (commentId) {
+    await modelsInstance.models.ChecklistItemComment.increment('attachment_count', {
+      where: { id: commentId }
+    });
+  }
 
   const document = {
     id: record.id,
@@ -98,6 +123,7 @@ async function handler(req, res, next) {
     category: record.category,
     auditProjectId: record.auditProjectId,
     nodeId: record.nodeId,
+    commentId: record.commentId,
     uploaderId: record.uploaderId,
     organizationId: record.organizationId,
     downloadUrl,

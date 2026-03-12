@@ -27,7 +27,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, EngagementFileSection, ChecklistItem, AuditDocument } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection, ChecklistItem } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -48,14 +48,12 @@ async function handler(req, res, next) {
   const itemCode = item.code;
   const transaction = await sequelize.transaction();
   try {
+    // No desvincular documentos: conservan node_id (nodo soft-borrado) para trazabilidad.
+    // Si se nullara node_id, la evidencia quedaría solo a nivel proyecto sin contexto de ítem.
     if (item.treeNodeId) {
-      await AuditDocument.update(
-        { nodeId: null },
-        { where: { nodeId: item.treeNodeId }, transaction }
-      );
       await destroyTreeSubtree(item.treeNodeId, transaction);
     }
-    await item.destroy({ force: true, transaction });
+    await item.destroy({ transaction });
     await transaction.commit();
   } catch (e) {
     await transaction.rollback();

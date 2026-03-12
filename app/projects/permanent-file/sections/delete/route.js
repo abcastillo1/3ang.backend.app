@@ -40,10 +40,9 @@ async function deleteSectionCascade(sectionId, auditProjectId, transaction) {
   }
   await ChecklistItem.destroy({
     where: { sectionId: section.id },
-    force: true,
     transaction
   });
-  await section.destroy({ force: true, transaction });
+  await section.destroy({ transaction });
 }
 
 async function handler(req, res, next) {

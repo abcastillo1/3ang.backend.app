@@ -39,6 +39,7 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 
 | Documento | Contenido |
 |-----------|-----------|
+| [`technical/soft-delete.md`](technical/soft-delete.md) | Borrado lógico: migraciones 0033/0034, documentos sin borrar en storage al eliminar, árbol y asignaciones en soft delete. |
 | [`technical/architecture.md`](technical/architecture.md) | Arquitectura del backend: stack (Express, Sequelize, MySQL), estructura de directorios, patrones (controladores, validación, manejo de errores, modelos, middlewares, i18n, logging), convenciones de código, flujo de una petición. |
 | [`technical/file-upload.md`](technical/file-upload.md) | Flujo de carga de archivos con URLs prefirmadas (Backblaze B2): endpoints `upload-url` y `confirm`, respuestas, ejemplo frontend, estructura del key, configuración (env vars), categorías y MIME types. |
 | [`technical/dummy-project-seed.md`](technical/dummy-project-seed.md) | Proyecto dummy completo (`0029` tras 0028) o legacy `0026`; árbol, secciones anidadas, ítems y asignados **sin documentos**. |

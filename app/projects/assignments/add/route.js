@@ -46,11 +46,33 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.assignments.userNotFound');
   }
 
-  const existing = await ProjectAssignment.findOne({
+  let existing = await ProjectAssignment.findOne({
     where: { auditProjectId: data.auditProjectId, userId: data.userId }
   });
   if (existing) {
     throw throwError(HTTP_STATUS.CONFLICT, 'projects.assignments.alreadyAssigned');
+  }
+  // Reactivar asignación previamente soft-borrada (misma fila)
+  existing = await ProjectAssignment.findOne({
+    where: { auditProjectId: data.auditProjectId, userId: data.userId },
+    paranoid: false
+  });
+  if (existing && existing.deletedAt) {
+    await existing.restore();
+    await existing.update({ role: data.role || 'member' });
+    const result = await ProjectAssignment.findByPk(existing.id, {
+      include: [{ model: User, as: 'user', attributes: ['id', 'fullName', 'email'] }]
+    });
+    req.activityContext = {
+      auditProjectId: data.auditProjectId,
+      assignmentId: existing.id,
+      projectName: project.name,
+      targetUserId: data.userId,
+      targetUserName: targetUser.fullName || targetUser.email,
+      role: data.role || 'member',
+      restored: true
+    };
+    return apiResponse(res, req, next)({ assignment: result });
   }
 
   const assignment = await ProjectAssignment.create({

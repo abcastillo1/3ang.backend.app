@@ -4,6 +4,8 @@ Este documento describe la lógica de negocio, reglas de dominio y flujos de tra
 
 **IMPORTANTE:** Antes de implementar nuevas funcionalidades o modificar las existentes, siempre consulta este documento para asegurar el cumplimiento de las reglas de negocio.
 
+**Borrado lógico:** Toda la plataforma debe usar **solo borrado lógico** para registros de negocio (`deleted_at` / `paranoid`), para bitácora y trazabilidad. Ver también `docs/frontend/PLATFORM-CONTEXT.md` (sección regla transversal).
+
 ## Visión General del Sistema
 
 Este es un sistema multi-tenant diseñado para organizaciones (firmas auditoras) para gestionar usuarios, roles y el flujo de auditoría.

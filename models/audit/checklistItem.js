@@ -100,6 +100,7 @@ export default function (sequelize, DataTypes) {
     ChecklistItem.belongsTo(models.User, { foreignKey: 'assignedUserId', as: 'assignedUser' });
     ChecklistItem.belongsTo(models.User, { foreignKey: 'createdByUserId', as: 'createdBy' });
     ChecklistItem.hasMany(models.ChecklistItemAssignee, { foreignKey: 'checklistItemId', as: 'assignees' });
+    ChecklistItem.hasMany(models.ChecklistItemComment, { foreignKey: 'checklistItemId', as: 'comments' });
   };
 
   return ChecklistItem;

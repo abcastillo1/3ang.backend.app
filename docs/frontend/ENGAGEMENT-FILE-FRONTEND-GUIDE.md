@@ -17,6 +17,8 @@ Documento para el **frontend**: cómo está modelado el expediente, qué endpoin
 
 **Regla de oro:** La UI navega por **árbol** (`tree/full`). El **detalle** de lo seleccionado sale de **`tree/node-detail`** (o de `engagement-file/sections|items/*` si editás metadatos).
 
+**Prioridad MVP — pantalla de actividad (ítem):** primer enfoque = **una vista con pestañas** (cabecera + evidencias por `nodeId` + comentarios cuando exista API + notas/campos después). Los Excel/PDF se resuelven por **descarga** (URL firmada) y edición en escritorio. **Visor/edición Excel en web** (OnlyOffice, callback a B2/S3, etc.) queda para **una fase posterior** sin cambiar el modelo del ítem.
+
 ---
 
 ## 2. Permisos que debe conocer el front

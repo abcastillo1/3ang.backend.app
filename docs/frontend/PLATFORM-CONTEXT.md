@@ -8,6 +8,18 @@ Este documento describe qué es la plataforma, qué entidades maneja, cómo se r
 
 ---
 
+## Regla transversal: solo borrado lógico
+
+**Toda la plataforma debe usar borrado lógico (soft delete)** para registros de negocio: en BD `deleted_at` (o equivalente), en Sequelize `paranoid: true`. No se eliminan filas de dominio con `DELETE` físico salvo casos excepcionales y explícitos (ej. limpieza técnica, GDPR con política aparte).
+
+- **Bitácora / auditoría:** al borrar solo se marca `deleted_at`; los listados por defecto excluyen `deleted_at IS NOT NULL` (o usan scope `paranoid`).
+- **Nuevas tablas:** siempre incluir `deleted_at` y modelo con `paranoid: true`.
+- **Documentos y árbol:** partes del código histórico aún hacen `destroy` físico o `force: true`; la dirección es migrar a soft delete y, si hace falta, ocultar en storage sin borrar la fila hasta política de retención.
+
+Los **comentarios de ítem** (`checklist_item_comments`) ya nacen con borrado lógico.
+
+---
+
 ## Qué es la plataforma
 
 Sistema multi-tenant para **firmas de auditoría contable** (Ecuador, normas NIA/NIIF). Cada firma (organización) gestiona:

@@ -76,10 +76,11 @@ export async function updateTreeNodeName(treeNodeId, name, transaction) {
 }
 
 /**
- * Destroy subtree like tree/delete: null documents, destroy nodes. Does not touch EngagementFileSection/ChecklistItem rows.
+ * Soft-delete subtree nodes. No toca audit_documents: conservan node_id para trazabilidad
+ * (el nodo sigue existiendo en BD con deleted_at; FK sigue válida).
  */
 export async function destroyTreeSubtree(nodeId, transaction) {
-  const { AuditTreeNode, AuditDocument } = modelsInstance.models;
+  const { AuditTreeNode } = modelsInstance.models;
   const node = await AuditTreeNode.findByPk(nodeId, { transaction });
   if (!node) return;
 
@@ -95,10 +96,6 @@ export async function destroyTreeSubtree(nodeId, transaction) {
   });
   descendants.forEach(d => subtreeIds.push(d.id));
 
-  await AuditDocument.update(
-    { nodeId: null },
-    { where: { nodeId: subtreeIds }, transaction }
-  );
   await AuditTreeNode.destroy({
     where: { id: subtreeIds },
     transaction

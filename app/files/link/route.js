@@ -6,6 +6,7 @@ import apiResponse from '../../../helpers/response.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
+import { assertCommentAttachable } from '../../../helpers/comment-document.js';
 
 export const validators = [
   validateField('data.documentIds')
@@ -23,6 +24,10 @@ export const validators = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('validators.nodeId.invalid'),
+  validateField('data.commentId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.commentId.invalid'),
   validateRequest,
   authenticate,
   requirePermission('files.upload')
@@ -59,9 +64,21 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'files.link.noDocumentsFound');
   }
 
+  if (data.commentId) {
+    await assertCommentAttachable({
+      commentId: data.commentId,
+      nodeId: data.nodeId ?? null,
+      auditProjectId: data.auditProjectId,
+      models: modelsInstance.models
+    });
+  }
+
   const updatePayload = { auditProjectId: data.auditProjectId };
   if (data.nodeId) {
     updatePayload.nodeId = data.nodeId;
+  }
+  if (data.commentId) {
+    updatePayload.commentId = data.commentId;
   }
 
   const linkedIds = documents.map(d => d.id);
@@ -69,6 +86,13 @@ async function handler(req, res, next) {
   await AuditDocument.update(updatePayload, {
     where: { id: linkedIds }
   });
+
+  if (data.commentId) {
+    await modelsInstance.models.ChecklistItemComment.increment('attachment_count', {
+      by: linkedIds.length,
+      where: { id: data.commentId }
+    });
+  }
 
   req.activityContext = {
     auditProjectId: data.auditProjectId,

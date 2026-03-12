@@ -3,10 +3,8 @@ import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
-import { storageService } from '../../../helpers/storage.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
-import { logger } from '../../../helpers/logger.js';
 import modelsInstance from '../../../models/index.js';
 
 export const validators = [
@@ -38,15 +36,17 @@ async function handler(req, res, next) {
     auditProjectId: document.auditProjectId || undefined,
     originalName: document.originalName
   };
-  try {
-    await storageService.deleteObject(document.storageKey);
-  } catch (err) {
-    logger.error('Failed to delete object from storage, proceeding with DB removal', {
-      key: document.storageKey,
-      error: err.message
+  if (document.commentId) {
+    const { ChecklistItemComment } = modelsInstance.models;
+    const c = await ChecklistItemComment.findByPk(document.commentId, {
+      attributes: ['id', 'attachmentCount']
     });
+    if (c && c.attachmentCount > 0) {
+      await c.update({ attachmentCount: c.attachmentCount - 1 });
+    }
   }
 
+  // Borrado lógico: solo marcamos deleted_at. Limpieza en storage puede ser job aparte.
   await document.destroy();
 
   return apiResponse(res, req, next)({ deleted: data.id });

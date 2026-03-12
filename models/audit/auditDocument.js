@@ -28,6 +28,12 @@ export default function (sequelize, DataTypes) {
         field: 'node_id',
         comment: 'Optional: folder/node in tree (when audit_tree_node exists)'
       },
+      commentId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'comment_id',
+        comment: 'If set, attachment of comment; evidence-only lists use comment_id IS NULL'
+      },
       storageKey: {
         type: DataTypes.STRING(512),
         allowNull: false,
@@ -72,16 +78,23 @@ export default function (sequelize, DataTypes) {
       updatedAt: {
         type: DataTypes.DATE,
         field: 'updated_at'
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        field: 'deleted_at'
       }
     },
     {
       tableName: 'audit_documents',
+      paranoid: true,
       timestamps: true,
       underscored: true,
       indexes: [
         { fields: ['organization_id'] },
         { fields: ['audit_project_id'] },
         { fields: ['node_id'] },
+        { fields: ['comment_id'] },
         { fields: ['uploader_id'] }
       ]
     }
@@ -103,6 +116,10 @@ export default function (sequelize, DataTypes) {
     AuditDocument.belongsTo(models.AuditTreeNode, {
       foreignKey: 'node_id',
       as: 'treeNode'
+    });
+    AuditDocument.belongsTo(models.ChecklistItemComment, {
+      foreignKey: 'comment_id',
+      as: 'comment'
     });
   };
 

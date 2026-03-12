@@ -110,6 +110,10 @@ class Models {
     const ChecklistItemAssigneeFactory = checklistItemAssigneeModule.default;
     this.models.ChecklistItemAssignee = ChecklistItemAssigneeFactory(this.sequelize, Sequelize.DataTypes);
 
+    const checklistItemCommentModule = await import('./audit/checklistItemComment.js');
+    const ChecklistItemCommentFactory = checklistItemCommentModule.default;
+    this.models.ChecklistItemComment = ChecklistItemCommentFactory(this.sequelize, Sequelize.DataTypes);
+
     const engagementFileTemplateSectionModule = await import('./organizations/engagementFileTemplateSection.js');
     const EngagementFileTemplateSectionFactory = engagementFileTemplateSectionModule.default;
     this.models.EngagementFileTemplateSection = EngagementFileTemplateSectionFactory(this.sequelize, Sequelize.DataTypes);
