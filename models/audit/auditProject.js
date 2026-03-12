@@ -113,9 +113,9 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'audit_project_id',
       as: 'activityLogs'
     });
-    AuditProject.hasMany(models.PermanentFileSection, {
+    AuditProject.hasMany(models.EngagementFileSection, {
       foreignKey: 'audit_project_id',
-      as: 'permanentFileSections'
+      as: 'engagementFileSections'
     });
   };
 

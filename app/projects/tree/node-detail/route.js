@@ -6,7 +6,7 @@ import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
 import modelsInstance from '../../../../models/index.js';
-import { TYPE_SECTION_NODE, TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/permanent-file-tree-sync.js';
+import { TYPE_SECTION_NODE, TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/engagement-file-tree-sync.js';
 import { loadAssigneesForItems, loadAssigneesForItem } from '../../../../helpers/checklist-item-assignees.js';
 
 const validators = [
@@ -48,7 +48,7 @@ async function handler(req, res, next) {
   const {
     AuditProject,
     AuditTreeNode,
-    PermanentFileSection,
+    EngagementFileSection,
     ChecklistItem,
     AuditDocument,
     User
@@ -97,7 +97,7 @@ async function handler(req, res, next) {
   const refId = node.refId;
 
   if (node.type === TYPE_SECTION_NODE && refId) {
-    const section = await PermanentFileSection.findOne({
+    const section = await EngagementFileSection.findOne({
       where: { id: refId, auditProjectId: project.id },
       include: [
         {
@@ -145,7 +145,7 @@ async function handler(req, res, next) {
     const item = await ChecklistItem.findOne({
       where: { id: refId },
       include: [
-        { model: PermanentFileSection, as: 'section', required: true },
+        { model: EngagementFileSection, as: 'section', required: true },
         { model: User, as: 'assignedUser', attributes: ['id', 'fullName', 'email'], required: false },
         { model: User, as: 'createdBy', attributes: ['id', 'fullName', 'email'], required: false }
       ]

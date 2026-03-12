@@ -7,7 +7,7 @@ import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
 import {
-  findPermanentFileRoot,
+  findEngagementFileRoot,
   createTreeChild,
   sectionDisplayName,
   TYPE_SECTION_NODE
@@ -47,13 +47,13 @@ const validators = [
     .withMessage('validators.description.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('projects.permanentFile.manage')
+  requirePermission('projects.engagementFile.manage')
 ];
 
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -63,7 +63,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.notFound');
   }
 
-  const existing = await PermanentFileSection.findOne({
+  const existing = await EngagementFileSection.findOne({
     where: { auditProjectId: project.id, code: data.code }
   });
   if (existing) {
@@ -73,7 +73,7 @@ async function handler(req, res, next) {
   let parentSectionId = data.parentSectionId || null;
   let parentSection = null;
   if (parentSectionId) {
-    parentSection = await PermanentFileSection.findOne({
+    parentSection = await EngagementFileSection.findOne({
       where: { id: parentSectionId, auditProjectId: project.id }
     });
     if (!parentSection) {
@@ -81,13 +81,13 @@ async function handler(req, res, next) {
     }
   }
 
-  const maxOrder = await PermanentFileSection.max('sortOrder', {
+  const maxOrder = await EngagementFileSection.max('sortOrder', {
     where: { auditProjectId: project.id, parentSectionId }
   });
 
   const transaction = await sequelize.transaction();
   try {
-    const section = await PermanentFileSection.create({
+    const section = await EngagementFileSection.create({
       auditProjectId: project.id,
       parentSectionId,
       code: data.code,
@@ -97,7 +97,7 @@ async function handler(req, res, next) {
       sortOrder: data.sortOrder !== undefined ? data.sortOrder : (maxOrder ?? 0) + 1
     }, { transaction });
 
-    let parentTreeNode = await findPermanentFileRoot(project.id, transaction);
+    let parentTreeNode = await findEngagementFileRoot(project.id, transaction);
     if (parentSection && parentSection.treeNodeId) {
       const n = await modelsInstance.models.AuditTreeNode.findByPk(parentSection.treeNodeId, { transaction });
       if (n) parentTreeNode = n;

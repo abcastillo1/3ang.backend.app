@@ -98,9 +98,9 @@ class Models {
     const ActivityLogFactory = activityLogModule.default;
     this.models.ActivityLog = ActivityLogFactory(this.sequelize, Sequelize.DataTypes);
 
-    const permanentFileSectionModule = await import('./audit/permanentFileSection.js');
-    const PermanentFileSectionFactory = permanentFileSectionModule.default;
-    this.models.PermanentFileSection = PermanentFileSectionFactory(this.sequelize, Sequelize.DataTypes);
+    const engagementFileSectionModule = await import('./audit/engagementFileSection.js');
+    const EngagementFileSectionFactory = engagementFileSectionModule.default;
+    this.models.EngagementFileSection = EngagementFileSectionFactory(this.sequelize, Sequelize.DataTypes);
 
     const checklistItemModule = await import('./audit/checklistItem.js');
     const ChecklistItemFactory = checklistItemModule.default;
@@ -110,13 +110,13 @@ class Models {
     const ChecklistItemAssigneeFactory = checklistItemAssigneeModule.default;
     this.models.ChecklistItemAssignee = ChecklistItemAssigneeFactory(this.sequelize, Sequelize.DataTypes);
 
-    const permanentFileTemplateSectionModule = await import('./organizations/permanentFileTemplateSection.js');
-    const PermanentFileTemplateSectionFactory = permanentFileTemplateSectionModule.default;
-    this.models.PermanentFileTemplateSection = PermanentFileTemplateSectionFactory(this.sequelize, Sequelize.DataTypes);
+    const engagementFileTemplateSectionModule = await import('./organizations/engagementFileTemplateSection.js');
+    const EngagementFileTemplateSectionFactory = engagementFileTemplateSectionModule.default;
+    this.models.EngagementFileTemplateSection = EngagementFileTemplateSectionFactory(this.sequelize, Sequelize.DataTypes);
 
-    const permanentFileTemplateItemModule = await import('./organizations/permanentFileTemplateItem.js');
-    const PermanentFileTemplateItemFactory = permanentFileTemplateItemModule.default;
-    this.models.PermanentFileTemplateItem = PermanentFileTemplateItemFactory(this.sequelize, Sequelize.DataTypes);
+    const engagementFileTemplateItemModule = await import('./organizations/engagementFileTemplateItem.js');
+    const EngagementFileTemplateItemFactory = engagementFileTemplateItemModule.default;
+    this.models.EngagementFileTemplateItem = EngagementFileTemplateItemFactory(this.sequelize, Sequelize.DataTypes);
   }
 
   setAssociations() {

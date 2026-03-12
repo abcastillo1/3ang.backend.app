@@ -27,7 +27,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection, ChecklistItem, User } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection, ChecklistItem, User } = modelsInstance.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -36,7 +36,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.notFound');
   }
 
-  const section = await PermanentFileSection.findOne({
+  const section = await EngagementFileSection.findOne({
     where: { id: data.sectionId, auditProjectId: project.id }
   });
   if (!section) {

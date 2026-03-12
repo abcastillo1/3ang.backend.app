@@ -16,13 +16,13 @@ const validators = [
     .withMessage('validators.auditProjectId.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('projects.permanentFile.manage')
+  requirePermission('projects.engagementFile.manage')
 ];
 
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileTemplateSection } = modelsInstance.models;
+  const { AuditProject, EngagementFileTemplateSection } = modelsInstance.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -31,7 +31,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.notFound');
   }
 
-  const templateCount = await PermanentFileTemplateSection.count({
+  const templateCount = await EngagementFileTemplateSection.count({
     where: { organizationId: user.organizationId }
   });
   if (templateCount === 0) {

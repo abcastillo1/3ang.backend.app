@@ -1,5 +1,7 @@
 # Archivo permanente — Guía para el frontend
 
+> **Actualización:** guía granular y dummy completo en [`ENGAGEMENT-FILE-FRONTEND-GUIDE.md`](../ENGAGEMENT-FILE-FRONTEND-GUIDE.md). Rutas nuevas: `/engagement-file/` (alias de `/permanent-file/`). Tablas: `engagement_file_*`.
+
 ## Modelo mental
 
 | Concepto | En el árbol | En BD | Qué puede tener |
@@ -21,7 +23,7 @@ POST /api/v1/projects/tree/full
 
 Respuesta `data.nodes`: array en **camelCase**:
 
-- `id`, `parentId`, `type`, `name`, `refId`, `depth`, `order`, `isSystemNode`, `documentsCount`
+- `id`, `parentId`, `type`, `name`, `refId`, `depth`, `order`, `isSystemNode`, `status` (ítems)
 - **`refId`**: si `type === 'folder'` → id de `permanent_file_sections`; si `type === 'checklist_item'` → id de `checklist_items`
 - Construís el árbol en memoria con `parentId`.
 
@@ -57,7 +59,7 @@ Si el nodo es la raíz `permanent_file` sin `refId`, `detailType` será `generic
 ## 4. Subir archivos
 
 1. Upload URL con `auditProjectId` y **`nodeId`** = id del nodo (carpeta o ítem).
-2. `files/confirm` con el mismo `nodeId` → el documento aparece en `node-detail.documents` y en `documentsCount` del nodo en `tree/full`.
+2. `files/confirm` con el mismo `nodeId` → el documento aparece en `node-detail.documents` (el árbol full no lleva conteo por nodo por ahora).
 
 Varios archivos: repetir confirm con el mismo `nodeId` del ítem.
 

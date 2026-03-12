@@ -1,6 +1,6 @@
 export default function (sequelize, DataTypes) {
-  const PermanentFileTemplateSection = sequelize.define(
-    'PermanentFileTemplateSection',
+  const EngagementFileTemplateSection = sequelize.define(
+    'EngagementFileTemplateSection',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -49,7 +49,7 @@ export default function (sequelize, DataTypes) {
       }
     },
     {
-      tableName: 'permanent_file_template_sections',
+      tableName: 'engagement_file_template_sections',
       paranoid: true,
       timestamps: true,
       underscored: true,
@@ -61,12 +61,12 @@ export default function (sequelize, DataTypes) {
     }
   );
 
-  PermanentFileTemplateSection.associate = function (models) {
-    PermanentFileTemplateSection.belongsTo(models.Organization, { foreignKey: 'organizationId', as: 'organization' });
-    PermanentFileTemplateSection.belongsTo(models.PermanentFileTemplateSection, { foreignKey: 'parentSectionId', as: 'parentSection' });
-    PermanentFileTemplateSection.hasMany(models.PermanentFileTemplateSection, { foreignKey: 'parentSectionId', as: 'children' });
-    PermanentFileTemplateSection.hasMany(models.PermanentFileTemplateItem, { foreignKey: 'templateSectionId', as: 'items' });
+  EngagementFileTemplateSection.associate = function (models) {
+    EngagementFileTemplateSection.belongsTo(models.Organization, { foreignKey: 'organizationId', as: 'organization' });
+    EngagementFileTemplateSection.belongsTo(models.EngagementFileTemplateSection, { foreignKey: 'parentSectionId', as: 'parentSection' });
+    EngagementFileTemplateSection.hasMany(models.EngagementFileTemplateSection, { foreignKey: 'parentSectionId', as: 'children' });
+    EngagementFileTemplateSection.hasMany(models.EngagementFileTemplateItem, { foreignKey: 'templateSectionId', as: 'items' });
   };
 
-  return PermanentFileTemplateSection;
+  return EngagementFileTemplateSection;
 }

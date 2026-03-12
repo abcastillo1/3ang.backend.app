@@ -15,9 +15,9 @@ const validators = [
 
 async function handler(req, res, next) {
   const { user } = req;
-  const { PermanentFileTemplateSection, PermanentFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
 
-  const existing = await PermanentFileTemplateSection.count({
+  const existing = await EngagementFileTemplateSection.count({
     where: { organizationId: user.organizationId }
   });
   if (existing > 0) {
@@ -25,7 +25,7 @@ async function handler(req, res, next) {
   }
 
   for (const sec of DEFAULT_PERMANENT_FILE_TEMPLATE.sections) {
-    const section = await PermanentFileTemplateSection.create({
+    const section = await EngagementFileTemplateSection.create({
       organizationId: user.organizationId,
       parentSectionId: null,
       code: sec.code,
@@ -34,7 +34,7 @@ async function handler(req, res, next) {
       sortOrder: sec.sortOrder ?? 0
     });
     for (const it of sec.items || []) {
-      await PermanentFileTemplateItem.create({
+      await EngagementFileTemplateItem.create({
         templateSectionId: section.id,
         code: it.code,
         description: it.description || null,
@@ -45,7 +45,7 @@ async function handler(req, res, next) {
     }
   }
 
-  const sections = await PermanentFileTemplateSection.findAll({
+  const sections = await EngagementFileTemplateSection.findAll({
     where: { organizationId: user.organizationId },
     order: [['sortOrder', 'ASC'], ['id', 'ASC']]
   });

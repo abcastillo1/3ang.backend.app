@@ -21,11 +21,11 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection, PermanentFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
 
-  const section = await PermanentFileTemplateSection.findOne({
+  const section = await EngagementFileTemplateSection.findOne({
     where: { id: data.sectionId, organizationId: user.organizationId },
-    include: [{ model: PermanentFileTemplateItem, as: 'items', required: false }]
+    include: [{ model: EngagementFileTemplateItem, as: 'items', required: false }]
   });
   if (!section) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'permanentFile.sectionNotFound');

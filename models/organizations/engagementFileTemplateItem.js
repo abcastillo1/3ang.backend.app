@@ -1,6 +1,6 @@
 export default function (sequelize, DataTypes) {
-  const PermanentFileTemplateItem = sequelize.define(
-    'PermanentFileTemplateItem',
+  const EngagementFileTemplateItem = sequelize.define(
+    'EngagementFileTemplateItem',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -50,7 +50,7 @@ export default function (sequelize, DataTypes) {
       }
     },
     {
-      tableName: 'permanent_file_template_items',
+      tableName: 'engagement_file_template_items',
       paranoid: true,
       timestamps: true,
       underscored: true,
@@ -61,9 +61,9 @@ export default function (sequelize, DataTypes) {
     }
   );
 
-  PermanentFileTemplateItem.associate = function (models) {
-    PermanentFileTemplateItem.belongsTo(models.PermanentFileTemplateSection, { foreignKey: 'templateSectionId', as: 'templateSection' });
+  EngagementFileTemplateItem.associate = function (models) {
+    EngagementFileTemplateItem.belongsTo(models.EngagementFileTemplateSection, { foreignKey: 'templateSectionId', as: 'templateSection' });
   };
 
-  return PermanentFileTemplateItem;
+  return EngagementFileTemplateItem;
 }

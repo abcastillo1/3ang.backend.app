@@ -20,10 +20,17 @@ const validators = [
 ];
 
 /**
- * Normaliza nodos a camelCase para el front. refId enlaza con permanent_file_sections.id
+ * status en cada nodo: solo checklist_item — valores posibles (ChecklistItem.STATUSES):
+ * pending | in_review | compliant | not_applicable. Resto de nodos: null.
+ */
+
+/**
+ * Normaliza nodos a camelCase para el front. refId enlaza con engagement_file_sections.id
  * (type folder) o checklist_items.id (type checklist_item).
+ * status: checklist_items.status cuando el nodo es ítem (badge en árbol sin node-detail).
  */
 function mapNode(row) {
+  const status = row.item_status || null;
   return {
     id: row.id,
     auditProjectId: row.audit_project_id,
@@ -35,7 +42,7 @@ function mapNode(row) {
     order: row.sort_order,
     refId: row.ref_id,
     isSystemNode: Boolean(row.is_system_node),
-    documentsCount: Number(row.documentsCount) || 0,
+    status,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -58,8 +65,10 @@ async function handler(req, res, next) {
     attributes: {
       include: [
         [
-          Sequelize.literal(`(SELECT COUNT(*) FROM audit_documents AS d WHERE d.node_id = AuditTreeNode.id)`),
-          'documentsCount'
+          Sequelize.literal(
+            `(SELECT i.status FROM checklist_items AS i WHERE i.tree_node_id = AuditTreeNode.id AND i.deleted_at IS NULL LIMIT 1)`
+          ),
+          'item_status'
         ]
       ]
     },

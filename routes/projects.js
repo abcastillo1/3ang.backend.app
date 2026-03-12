@@ -57,5 +57,17 @@ registerRoute(router, '/permanent-file/items/update', pfItemsUpdateRoute, 'post'
 registerRoute(router, '/permanent-file/items/delete', pfItemsDeleteRoute, 'post');
 registerRoute(router, '/permanent-file/items/documents/list', pfItemsDocumentsListRoute, 'post');
 registerRoute(router, '/permanent-file/apply-template', pfApplyTemplateRoute, 'post');
+// Alias centralizado (mismos handlers; deprecar /permanent-file cuando el frontend migre)
+registerRoute(router, '/engagement-file/sections/create', pfSectionsCreateRoute, 'post');
+registerRoute(router, '/engagement-file/sections/list', pfSectionsListRoute, 'post');
+registerRoute(router, '/engagement-file/sections/view', pfSectionsViewRoute, 'post');
+registerRoute(router, '/engagement-file/sections/update', pfSectionsUpdateRoute, 'post');
+registerRoute(router, '/engagement-file/sections/delete', pfSectionsDeleteRoute, 'post');
+registerRoute(router, '/engagement-file/items/create', pfItemsCreateRoute, 'post');
+registerRoute(router, '/engagement-file/items/list', pfItemsListRoute, 'post');
+registerRoute(router, '/engagement-file/items/update', pfItemsUpdateRoute, 'post');
+registerRoute(router, '/engagement-file/items/delete', pfItemsDeleteRoute, 'post');
+registerRoute(router, '/engagement-file/items/documents/list', pfItemsDocumentsListRoute, 'post');
+registerRoute(router, '/engagement-file/apply-template', pfApplyTemplateRoute, 'post');
 
 export default router;

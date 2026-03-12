@@ -42,27 +42,27 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection, PermanentFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
 
-  const section = await PermanentFileTemplateSection.findOne({
+  const section = await EngagementFileTemplateSection.findOne({
     where: { id: data.sectionId, organizationId: user.organizationId }
   });
   if (!section) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'permanentFile.sectionNotFound');
   }
 
-  const existing = await PermanentFileTemplateItem.findOne({
+  const existing = await EngagementFileTemplateItem.findOne({
     where: { templateSectionId: section.id, code: data.code }
   });
   if (existing) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.itemCodeExists');
   }
 
-  const maxOrder = await PermanentFileTemplateItem.max('sortOrder', {
+  const maxOrder = await EngagementFileTemplateItem.max('sortOrder', {
     where: { templateSectionId: section.id }
   });
 
-  const item = await PermanentFileTemplateItem.create({
+  const item = await EngagementFileTemplateItem.create({
     templateSectionId: section.id,
     code: data.code,
     description: data.description || null,

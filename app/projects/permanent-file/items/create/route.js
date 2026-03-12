@@ -66,13 +66,13 @@ const validators = [
     .withMessage('validators.assignedUserIds.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('projects.permanentFile.manage')
+  requirePermission('projects.engagementFile.manage')
 ];
 
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection, ChecklistItem: ChecklistItemModel, User } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection, ChecklistItem: ChecklistItemModel, User } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -82,7 +82,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.notFound');
   }
 
-  const section = await PermanentFileSection.findOne({
+  const section = await EngagementFileSection.findOne({
     where: { id: data.sectionId, auditProjectId: project.id }
   });
   if (!section) {

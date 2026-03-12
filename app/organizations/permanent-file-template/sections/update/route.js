@@ -41,9 +41,9 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection } = modelsInstance.models;
+  const { EngagementFileTemplateSection } = modelsInstance.models;
 
-  const section = await PermanentFileTemplateSection.findOne({
+  const section = await EngagementFileTemplateSection.findOne({
     where: { id: data.sectionId, organizationId: user.organizationId }
   });
   if (!section) {
@@ -51,7 +51,7 @@ async function handler(req, res, next) {
   }
 
   if (data.code !== undefined && data.code !== section.code) {
-    const existing = await PermanentFileTemplateSection.findOne({
+    const existing = await EngagementFileTemplateSection.findOne({
       where: { organizationId: user.organizationId, code: data.code }
     });
     if (existing) {
@@ -65,7 +65,7 @@ async function handler(req, res, next) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.sectionCannotBeParentOfItself');
     }
     if (newParentId) {
-      const parent = await PermanentFileTemplateSection.findOne({
+      const parent = await EngagementFileTemplateSection.findOne({
         where: { id: newParentId, organizationId: user.organizationId }
       });
       if (!parent) {

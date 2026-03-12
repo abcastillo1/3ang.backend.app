@@ -198,9 +198,9 @@ export default function (sequelize, DataTypes) {
       foreignKey: 'organization_id',
       as: 'clients'
     });
-    Organization.hasMany(models.PermanentFileTemplateSection, {
+    Organization.hasMany(models.EngagementFileTemplateSection, {
       foreignKey: 'organizationId',
-      as: 'permanentFileTemplateSections'
+      as: 'engagementFileTemplateSections'
     });
   };
 

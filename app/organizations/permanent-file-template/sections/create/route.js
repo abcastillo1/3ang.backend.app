@@ -38,10 +38,10 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection } = modelsInstance.models;
+  const { EngagementFileTemplateSection } = modelsInstance.models;
 
   const orgId = user.organizationId;
-  const existing = await PermanentFileTemplateSection.findOne({
+  const existing = await EngagementFileTemplateSection.findOne({
     where: { organizationId: orgId, code: data.code }
   });
   if (existing) {
@@ -50,7 +50,7 @@ async function handler(req, res, next) {
 
   let parentSectionId = data.parentSectionId || null;
   if (parentSectionId) {
-    const parent = await PermanentFileTemplateSection.findOne({
+    const parent = await EngagementFileTemplateSection.findOne({
       where: { id: parentSectionId, organizationId: orgId }
     });
     if (!parent) {
@@ -58,11 +58,11 @@ async function handler(req, res, next) {
     }
   }
 
-  const maxOrder = await PermanentFileTemplateSection.max('sortOrder', {
+  const maxOrder = await EngagementFileTemplateSection.max('sortOrder', {
     where: { organizationId: orgId, parentSectionId }
   });
 
-  const section = await PermanentFileTemplateSection.create({
+  const section = await EngagementFileTemplateSection.create({
     organizationId: orgId,
     parentSectionId,
     code: data.code,

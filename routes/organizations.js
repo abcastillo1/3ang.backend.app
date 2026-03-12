@@ -38,5 +38,15 @@ registerRoute(router, '/permanent-file-template/items/create', pfTemplateItemsCr
 registerRoute(router, '/permanent-file-template/items/update', pfTemplateItemsUpdateRoute, 'post');
 registerRoute(router, '/permanent-file-template/items/delete', pfTemplateItemsDeleteRoute, 'post');
 registerRoute(router, '/permanent-file-template/load-defaults', pfTemplateLoadDefaultsRoute, 'post');
+registerRoute(router, '/engagement-file-template/sections/list', pfTemplateSectionsListRoute, 'post');
+registerRoute(router, '/engagement-file-template/sections/create', pfTemplateSectionsCreateRoute, 'post');
+registerRoute(router, '/engagement-file-template/sections/view', pfTemplateSectionsViewRoute, 'post');
+registerRoute(router, '/engagement-file-template/sections/update', pfTemplateSectionsUpdateRoute, 'post');
+registerRoute(router, '/engagement-file-template/sections/delete', pfTemplateSectionsDeleteRoute, 'post');
+registerRoute(router, '/engagement-file-template/items/list', pfTemplateItemsListRoute, 'post');
+registerRoute(router, '/engagement-file-template/items/create', pfTemplateItemsCreateRoute, 'post');
+registerRoute(router, '/engagement-file-template/items/update', pfTemplateItemsUpdateRoute, 'post');
+registerRoute(router, '/engagement-file-template/items/delete', pfTemplateItemsDeleteRoute, 'post');
+registerRoute(router, '/engagement-file-template/load-defaults', pfTemplateLoadDefaultsRoute, 'post');
 
 export default router;

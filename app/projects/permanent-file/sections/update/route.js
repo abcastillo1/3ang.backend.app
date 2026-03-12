@@ -7,7 +7,7 @@ import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
 import {
-  findPermanentFileRoot,
+  findEngagementFileRoot,
   updateTreeNodeName,
   moveTreeNode,
   sectionDisplayName
@@ -50,13 +50,13 @@ const validators = [
     .withMessage('validators.description.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('projects.permanentFile.manage')
+  requirePermission('projects.engagementFile.manage')
 ];
 
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -66,7 +66,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.notFound');
   }
 
-  const section = await PermanentFileSection.findOne({
+  const section = await EngagementFileSection.findOne({
     where: { id: data.sectionId, auditProjectId: project.id }
   });
   if (!section) {
@@ -74,7 +74,7 @@ async function handler(req, res, next) {
   }
 
   if (data.code !== undefined && data.code !== section.code) {
-    const existing = await PermanentFileSection.findOne({
+    const existing = await EngagementFileSection.findOne({
       where: { auditProjectId: project.id, code: data.code }
     });
     if (existing) {
@@ -88,7 +88,7 @@ async function handler(req, res, next) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.sectionCannotBeParentOfItself');
     }
     if (newParentId) {
-      const parent = await PermanentFileSection.findOne({
+      const parent = await EngagementFileSection.findOne({
         where: { id: newParentId, auditProjectId: project.id }
       });
       if (!parent) {
@@ -116,10 +116,10 @@ async function handler(req, res, next) {
         const newParentSectionId = section.parentSectionId;
         let newParentTreeId = null;
         if (newParentSectionId) {
-          const parentSec = await PermanentFileSection.findByPk(newParentSectionId, { transaction });
+          const parentSec = await EngagementFileSection.findByPk(newParentSectionId, { transaction });
           if (parentSec && parentSec.treeNodeId) newParentTreeId = parentSec.treeNodeId;
         } else {
-          const root = await findPermanentFileRoot(project.id, transaction);
+          const root = await findEngagementFileRoot(project.id, transaction);
           if (root) newParentTreeId = root.id;
         }
         if (newParentTreeId) {

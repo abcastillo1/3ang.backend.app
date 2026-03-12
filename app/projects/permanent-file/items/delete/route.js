@@ -21,13 +21,13 @@ const validators = [
     .withMessage('validators.itemId.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('projects.permanentFile.manage')
+  requirePermission('projects.engagementFile.manage')
 ];
 
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection, ChecklistItem, AuditDocument } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection, ChecklistItem, AuditDocument } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -39,7 +39,7 @@ async function handler(req, res, next) {
 
   const item = await ChecklistItem.findOne({
     where: { id: data.itemId },
-    include: [{ model: PermanentFileSection, as: 'section' }]
+    include: [{ model: EngagementFileSection, as: 'section' }]
   });
   if (!item || !item.section || item.section.auditProjectId !== project.id) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'permanentFile.itemNotFound');

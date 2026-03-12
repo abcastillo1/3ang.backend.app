@@ -41,18 +41,18 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection, PermanentFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
 
-  const item = await PermanentFileTemplateItem.findOne({
+  const item = await EngagementFileTemplateItem.findOne({
     where: { id: data.itemId },
-    include: [{ model: PermanentFileTemplateSection, as: 'templateSection' }]
+    include: [{ model: EngagementFileTemplateSection, as: 'templateSection' }]
   });
   if (!item || !item.templateSection || item.templateSection.organizationId !== user.organizationId) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'permanentFile.itemNotFound');
   }
 
   if (data.code !== undefined && data.code !== item.code) {
-    const existing = await PermanentFileTemplateItem.findOne({
+    const existing = await EngagementFileTemplateItem.findOne({
       where: { templateSectionId: item.templateSectionId, code: data.code }
     });
     if (existing) {

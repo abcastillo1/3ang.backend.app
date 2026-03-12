@@ -21,9 +21,9 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection } = modelsInstance.models;
+  const { EngagementFileTemplateSection } = modelsInstance.models;
 
-  const section = await PermanentFileTemplateSection.findOne({
+  const section = await EngagementFileTemplateSection.findOne({
     where: { id: data.sectionId, organizationId: user.organizationId }
   });
   if (!section) {

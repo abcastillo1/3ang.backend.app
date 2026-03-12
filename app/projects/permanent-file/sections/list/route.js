@@ -25,7 +25,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection } = modelsInstance.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -41,7 +41,7 @@ async function handler(req, res, next) {
     where.parentSectionId = null;
   }
 
-  const sections = await PermanentFileSection.findAll({
+  const sections = await EngagementFileSection.findAll({
     where,
     order: [['sortOrder', 'ASC'], ['id', 'ASC']]
   });

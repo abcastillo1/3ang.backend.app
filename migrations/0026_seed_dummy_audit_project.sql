@@ -1,4 +1,6 @@
 -- ============================================================
+-- SEED LEGACY: Proyecto dummy (permanent_file_* / type permanent_file).
+-- Tras migración 0028 usar 0029_dummy_project_complete.sql (engagement_file_*).
 -- SEED: Proyecto dummy para testear plataforma (árbol + permanent-file + asignados)
 -- Requiere: 0015 (usuarios/clientes base), 0023 (tree_node_id), 0025 (assignees + created_by)
 -- Opcional 0024 (description en sections) — si no existe, quitar description del INSERT section

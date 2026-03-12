@@ -87,7 +87,7 @@ Cada proyecto tiene una estructura jerárquica (árbol) que se crea automáticam
 
 El frontend muestra esto como un árbol expandible (sidebar o panel). Se carga con `POST /projects/tree/full` en una sola llamada.
 
-Cada nodo puede tener documentos asociados (`documentsCount`).
+Los documentos se listan por nodo en `node-detail` (el árbol `tree/full` no devuelve conteo por nodo por rendimiento).
 
 Los nodos raíz (sistema) no se pueden eliminar ni mover. Los nodos hijos sí.
 

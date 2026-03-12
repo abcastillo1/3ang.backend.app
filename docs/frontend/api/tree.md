@@ -38,7 +38,7 @@ Requiere permiso: projects.tree.manage
 
 | Tipo | Uso |
 |------|-----|
-| `permanent_file` | Sección de Archivo Permanente (creado automáticamente) |
+| `engagement_file` | Raíz del expediente estructurado / Archivo Permanente (creado automáticamente; en BD antigua puede figurar como `permanent_file`) |
 | `planning` | Sección de Planificación (creado automáticamente) |
 | `programs` | Sección de Programas (creado automáticamente) |
 | `findings` | Sección de Hallazgos (creado automáticamente) |
@@ -47,7 +47,7 @@ Requiere permiso: projects.tree.manage
 | `folder` | Carpeta genérica |
 | `program` | Programa de auditoría por área |
 | `procedure` | Procedimiento dentro de un programa |
-| `checklist_item` | Ítem de checklist |
+| `checklist_item` | Ítem de checklist (hoja: no puede tener hijos en el árbol; la actividad se desarrolla en pantalla con documentos/evidencias, no con subcarpetas) |
 
 ### Response (200)
 
@@ -77,6 +77,7 @@ Requiere permiso: projects.tree.manage
 |--------|-----------|-------|
 | 404 | `projects.notFound` | Proyecto no encontrado o no pertenece a la organización |
 | 400 | `projects.tree.parentNotFound` | Nodo padre no encontrado en el proyecto |
+| 400 | `projects.tree.cannotCreateUnderChecklistItem` | No se pueden crear nodos bajo un ítem de checklist (el ítem es hoja) |
 
 ---
 
@@ -141,7 +142,7 @@ Requiere permiso: projects.view
 }
 ```
 
-Cada nodo incluye `childrenCount` (cantidad de hijos directos) y `documentsCount` (cantidad de documentos asociados). Calculados con subqueries en una sola consulta SQL (sin N+1).
+`tree/full` **no** incluye conteo de documentos por nodo (se omitió para aligerar la consulta). La lista de archivos sigue en `node-detail` / `items/documents/list` cuando haga falta.
 
 Ordenados por `order` ascendente.
 
@@ -217,6 +218,7 @@ Mueve el nodo y todos sus descendientes. Actualiza `path`, `depth` y `order` aut
 | 400 | `projects.tree.cannotMoveSystemNode` | No se pueden mover nodos del sistema |
 | 400 | `projects.tree.cannotMoveToSelf` | No se puede mover un nodo dentro de sí mismo |
 | 400 | `projects.tree.cannotMoveToDescendant` | No se puede mover un nodo dentro de uno de sus descendientes |
+| 400 | `projects.tree.cannotMoveUnderChecklistItem` | No se puede colocar un nodo bajo un ítem de checklist (el ítem es hoja) |
 
 ---
 
@@ -337,10 +339,9 @@ Requiere permiso: projects.view
 {
   "data": {
     "nodes": [
-      { "id": 1, "parentId": null, "depth": 0, "type": "permanent_file", "name": "Archivo Permanente", "order": 1, "isSystemNode": true, "documentsCount": 0, "path": "/1/" },
-      { "id": 2, "parentId": null, "depth": 0, "type": "planning", "name": "Planificación", "order": 2, "isSystemNode": true, "documentsCount": 0, "path": "/2/" },
-      { "id": 6, "parentId": 1, "depth": 1, "type": "section", "name": "Historia del negocio", "order": 1, "isSystemNode": false, "documentsCount": 3, "path": "/1/6/" },
-      { "id": 7, "parentId": 1, "depth": 1, "type": "section", "name": "Organización societaria", "order": 2, "isSystemNode": false, "documentsCount": 1, "path": "/1/7/" }
+      { "id": 1, "parentId": null, "depth": 0, "type": "engagement_file", "name": "Archivo Permanente", "order": 1, "isSystemNode": true, "path": "/1/", "status": null },
+      { "id": 2, "parentId": null, "depth": 0, "type": "planning", "name": "Planificación", "order": 2, "isSystemNode": true, "path": "/2/", "status": null },
+      { "id": 10, "parentId": 9, "depth": 3, "type": "checklist_item", "name": "A1.1 — Revisar procedimiento", "order": 1, "isSystemNode": false, "path": "/1/8/9/10/", "refId": 3, "status": "pending" }
     ]
   }
 }
@@ -354,8 +355,11 @@ Retorna **todos** los nodos del proyecto en un array plano, ordenados por `depth
 - `tree/full` — una query, todo el árbol, ideal para la vista principal
 - `tree/list` — un nivel a la vez, útil si se necesita lazy-load en un caso específico
 
-**Campos en cada nodo (camelCase):** `id`, `auditProjectId`, `parentId`, `path`, `depth`, `type`, `name`, `order`, **`refId`**, `isSystemNode`, `documentsCount`, `createdAt`, `updatedAt`.  
-Si el nodo viene del archivo permanente sincronizado: `type === 'folder'` y `refId` = id de sección; `type === 'checklist_item'` y `refId` = id de ítem.
+**Campos en cada nodo (camelCase):** `id`, `auditProjectId`, `parentId`, `path`, `depth`, `type`, `name`, `order`, **`refId`**, `isSystemNode`, **`status`** (solo ítems), `createdAt`, `updatedAt`.  
+**No** se devuelve `documentsCount` en `tree/full` (por rendimiento); usar `node-detail` para listar documentos.
+
+- **`status`**: solo para `type === 'checklist_item'` — valor de `checklist_items.status` (`pending` | `in_review` | `compliant` | `not_applicable`). En el resto de nodos es `null`. Sirve para badge en el árbol sin llamar a `node-detail` por cada ítem.
+- Si el nodo viene del expediente sincronizado: `type === 'folder'` y `refId` = id de sección; `type === 'checklist_item'` y `refId` = id de ítem.
 
 ---
 

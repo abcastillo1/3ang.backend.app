@@ -21,19 +21,19 @@ const validators = [
     .withMessage('validators.sectionId.invalid'),
   validateRequest,
   authenticate,
-  requirePermission('projects.permanentFile.manage')
+  requirePermission('projects.engagementFile.manage')
 ];
 
 async function deleteSectionCascade(sectionId, auditProjectId, transaction) {
-  const { PermanentFileSection, ChecklistItem } = modelsInstance.models;
-  const children = await PermanentFileSection.findAll({
+  const { EngagementFileSection, ChecklistItem } = modelsInstance.models;
+  const children = await EngagementFileSection.findAll({
     where: { auditProjectId, parentSectionId: sectionId },
     transaction
   });
   for (const child of children) {
     await deleteSectionCascade(child.id, auditProjectId, transaction);
   }
-  const section = await PermanentFileSection.findByPk(sectionId, { transaction });
+  const section = await EngagementFileSection.findByPk(sectionId, { transaction });
   if (!section) return;
   if (section.treeNodeId) {
     await destroyTreeSubtree(section.treeNodeId, transaction);
@@ -49,7 +49,7 @@ async function deleteSectionCascade(sectionId, auditProjectId, transaction) {
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, PermanentFileSection } = modelsInstance.models;
+  const { AuditProject, EngagementFileSection } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -59,7 +59,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.notFound');
   }
 
-  const section = await PermanentFileSection.findOne({
+  const section = await EngagementFileSection.findOne({
     where: { id: data.sectionId, auditProjectId: project.id }
   });
   if (!section) {

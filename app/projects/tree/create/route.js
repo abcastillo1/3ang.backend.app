@@ -6,6 +6,7 @@ import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
 import modelsInstance from '../../../../models/index.js';
+import { TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/engagement-file-tree-sync.js';
 
 const validators = [
   validateField('data.auditProjectId')
@@ -53,6 +54,9 @@ async function handler(req, res, next) {
     });
     if (!parent) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.tree.parentNotFound');
+    }
+    if (parent.type === TYPE_CHECKLIST_ITEM_NODE) {
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.tree.cannotCreateUnderChecklistItem');
     }
     parentPath = parent.path;
     parentDepth = parent.depth;

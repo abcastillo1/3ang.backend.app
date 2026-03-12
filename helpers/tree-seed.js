@@ -3,7 +3,7 @@ import modelsInstance from '../models/index.js';
 export const SETTING_KEY = 'project_tree_template';
 
 export const DEFAULT_TREE_TEMPLATE = [
-  { type: 'permanent_file', name: 'Archivo Permanente' },
+  { type: 'engagement_file', name: 'Archivo Permanente' },
   { type: 'planning', name: 'Planificación' },
   { type: 'programs', name: 'Programas de Auditoría' },
   { type: 'findings', name: 'Hallazgos' },

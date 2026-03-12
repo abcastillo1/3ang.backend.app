@@ -7,6 +7,7 @@ import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
 import modelsInstance from '../../../../models/index.js';
+import { TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/engagement-file-tree-sync.js';
 
 const validators = [
   validateField('data.nodeId')
@@ -59,6 +60,9 @@ async function handler(req, res, next) {
     });
     if (!newParent) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.tree.parentNotFound');
+    }
+    if (newParent.type === TYPE_CHECKLIST_ITEM_NODE) {
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.tree.cannotMoveUnderChecklistItem');
     }
 
     if (newParent.path.startsWith(node.path)) {

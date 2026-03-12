@@ -96,7 +96,7 @@ export default function (sequelize, DataTypes) {
 
   ChecklistItem.associate = function (models) {
     ChecklistItem.belongsTo(models.AuditTreeNode, { foreignKey: 'treeNodeId', as: 'treeNode' });
-    ChecklistItem.belongsTo(models.PermanentFileSection, { foreignKey: 'sectionId', as: 'section' });
+    ChecklistItem.belongsTo(models.EngagementFileSection, { foreignKey: 'sectionId', as: 'section' });
     ChecklistItem.belongsTo(models.User, { foreignKey: 'assignedUserId', as: 'assignedUser' });
     ChecklistItem.belongsTo(models.User, { foreignKey: 'createdByUserId', as: 'createdBy' });
     ChecklistItem.hasMany(models.ChecklistItemAssignee, { foreignKey: 'checklistItemId', as: 'assignees' });

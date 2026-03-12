@@ -20,7 +20,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { PermanentFileTemplateSection } = modelsInstance.models;
+  const { EngagementFileTemplateSection } = modelsInstance.models;
 
   const where = { organizationId: user.organizationId };
   if (data?.parentSectionId != null) {
@@ -29,7 +29,7 @@ async function handler(req, res, next) {
     where.parentSectionId = null;
   }
 
-  const sections = await PermanentFileTemplateSection.findAll({
+  const sections = await EngagementFileTemplateSection.findAll({
     where,
     order: [['sortOrder', 'ASC'], ['id', 'ASC']]
   });
