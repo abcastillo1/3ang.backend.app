@@ -9,6 +9,7 @@ import organizationRoutes from './organizations.js';
 import filesRoutes from './files.js';
 import clientsRoutes from './clients.js';
 import projectsRoutes from './projects.js';
+import commentsRoutes from './comments.js';
 
 const mainRouter = Router();
 mainRouter.use('/auth', authRoutes);
@@ -21,5 +22,6 @@ mainRouter.use('/organizations', organizationRoutes);
 mainRouter.use('/files', filesRoutes);
 mainRouter.use('/clients', clientsRoutes);
 mainRouter.use('/projects', projectsRoutes);
+mainRouter.use('/comments', commentsRoutes);
 
 export default mainRouter;

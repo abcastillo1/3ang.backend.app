@@ -32,6 +32,9 @@ import { ACTIVITY_ACTIONS, ACTIVITY_ENTITIES } from './record-activity.js';
  *   activity.permanentFile.item.created    → itemCode, sectionName?, projectName
  *   activity.permanentFile.item.updated    → itemCode, projectName, status?
  *   activity.permanentFile.item.deleted    → itemCode, projectName
+ *   activity.comment.created               → itemCode?, projectName, commentId?
+ *   activity.comment.updated               → itemCode?, projectName, commentId?
+ *   activity.comment.deleted               → itemCode?, projectName, commentId?
  */
 const DESCRIPTION_KEYS = {
   PROJECT_CREATED: 'activity.project.created',
@@ -60,7 +63,10 @@ const DESCRIPTION_KEYS = {
   PERMANENT_FILE_SECTION_DELETED: 'activity.permanentFile.section.deleted',
   PERMANENT_FILE_ITEM_CREATED: 'activity.permanentFile.item.created',
   PERMANENT_FILE_ITEM_UPDATED: 'activity.permanentFile.item.updated',
-  PERMANENT_FILE_ITEM_DELETED: 'activity.permanentFile.item.deleted'
+  PERMANENT_FILE_ITEM_DELETED: 'activity.permanentFile.item.deleted',
+  COMMENT_CREATED: 'activity.comment.created',
+  COMMENT_UPDATED: 'activity.comment.updated',
+  COMMENT_DELETED: 'activity.comment.deleted'
 };
 
 const MAP = {
@@ -322,6 +328,36 @@ const MAP = {
       auditProjectId: ctx.auditProjectId,
       description: DESCRIPTION_KEYS.PERMANENT_FILE_ITEM_DELETED,
       metadata: { itemCode: ctx.itemCode, projectName: ctx.projectName }
+    })
+  },
+  'comments.create': {
+    action: ACTIVITY_ACTIONS.COMMENT_CREATED,
+    entity: ACTIVITY_ENTITIES.COMMENT,
+    build: (ctx) => ({
+      entityId: ctx.commentId,
+      auditProjectId: ctx.auditProjectId,
+      description: DESCRIPTION_KEYS.COMMENT_CREATED,
+      metadata: { projectName: ctx.projectName, itemCode: ctx.itemCode }
+    })
+  },
+  'comments.update': {
+    action: ACTIVITY_ACTIONS.COMMENT_UPDATED,
+    entity: ACTIVITY_ENTITIES.COMMENT,
+    build: (ctx) => ({
+      entityId: ctx.commentId,
+      auditProjectId: ctx.auditProjectId,
+      description: DESCRIPTION_KEYS.COMMENT_UPDATED,
+      metadata: { projectName: ctx.projectName, itemCode: ctx.itemCode }
+    })
+  },
+  'comments.delete': {
+    action: ACTIVITY_ACTIONS.COMMENT_DELETED,
+    entity: ACTIVITY_ENTITIES.COMMENT,
+    build: (ctx) => ({
+      entityId: ctx.commentId,
+      auditProjectId: ctx.auditProjectId,
+      description: DESCRIPTION_KEYS.COMMENT_DELETED,
+      metadata: { projectName: ctx.projectName, itemCode: ctx.itemCode }
     })
   }
 };

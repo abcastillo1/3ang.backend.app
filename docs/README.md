@@ -67,6 +67,12 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 | [`frontend/api/files.md`](frontend/api/files.md) | Endpoints de archivos: listar, eliminar, vincular, descargar. |
 | [`frontend/api/tree.md`](frontend/api/tree.md) | Árbol del proyecto: crear, listar, breadcrumb, mover, reordenar, eliminar nodos. |
 
+### Pantalla de actividad (ítem)
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`frontend/ACTIVITY-ITEM-SCREEN.md`](frontend/ACTIVITY-ITEM-SCREEN.md) | **Guía dedicada:** qué es cada pestaña (Evidencias, Comentarios, Notas, Campos/montarios), cómo funciona la evidencia (`node_id` + `comment_id` null), permisos, orden de implementación y referencias. |
+
 ### `frontend/flows/` — Flujos y comportamientos
 
 | Documento | Contenido |
@@ -92,7 +98,15 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 
 ---
 
-## 6. Configuración del proyecto (raíz)
+## 6. Requerimientos del dueño del proyecto
+
+| Documento | Contenido |
+|-----------|-----------|
+| [`REQUERIMIENTOS-DUEÑO-PROYECTO.md`](REQUERIMIENTOS-DUEÑO-PROYECTO.md) | **Requerimientos del product owner:** funcionales, no funcionales, criterios de aceptación, restricciones, prioridades y notas de reuniones. Actualizar conforme se reciban nuevos criterios. |
+
+---
+
+## 7. Configuración del proyecto (raíz)
 
 | Archivo | Ubicación | Contenido |
 |---------|-----------|-----------|
@@ -106,6 +120,10 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 ```
 .cursorrules (reglas obligatorias)
     └── referencia → design/business-logic.md
+
+REQUERIMIENTOS-DUEÑO-PROYECTO.md (requerimientos del dueño)
+    ├── referencia → design/business-logic.md (alinear reglas de negocio)
+    └── referencia → ROADMAP.md (prioridades y fases)
 
 design/business-logic.md (fuente de verdad del dominio)
     ├── referencia → domain/fases-auditoria-general.md

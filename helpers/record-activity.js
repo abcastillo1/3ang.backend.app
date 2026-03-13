@@ -28,7 +28,10 @@ export const ACTIVITY_ACTIONS = {
   PERMANENT_FILE_SECTION_DELETED: 'permanent_file.section.deleted',
   PERMANENT_FILE_ITEM_CREATED: 'permanent_file.item.created',
   PERMANENT_FILE_ITEM_UPDATED: 'permanent_file.item.updated',
-  PERMANENT_FILE_ITEM_DELETED: 'permanent_file.item.deleted'
+  PERMANENT_FILE_ITEM_DELETED: 'permanent_file.item.deleted',
+  COMMENT_CREATED: 'comment.created',
+  COMMENT_UPDATED: 'comment.updated',
+  COMMENT_DELETED: 'comment.deleted'
 };
 
 export const ACTIVITY_ENTITIES = {
@@ -41,7 +44,8 @@ export const ACTIVITY_ENTITIES = {
   USER: 'user',
   ROLE: 'role',
   PERMANENT_FILE_SECTION: 'permanent_file_section',
-  PERMANENT_FILE_ITEM: 'permanent_file_item'
+  PERMANENT_FILE_ITEM: 'permanent_file_item',
+  COMMENT: 'checklist_item_comment'
 };
 
 function normalizePayload(payload) {

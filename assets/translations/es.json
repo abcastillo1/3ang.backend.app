@@ -443,6 +443,11 @@
         "updated": "Actualizó el ítem \"{{itemCode}}\" del archivo permanente",
         "deleted": "Eliminó el ítem \"{{itemCode}}\" del archivo permanente"
       }
+    },
+    "comment": {
+      "created": "Añadió un comentario en el ítem \"{{itemCode}}\"",
+      "updated": "Editó un comentario en el ítem \"{{itemCode}}\"",
+      "deleted": "Eliminó un comentario en el ítem \"{{itemCode}}\""
     }
   }
 }

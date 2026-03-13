@@ -321,6 +321,11 @@
         "updated": "Updated checklist item \"{{itemCode}}\" in permanent file",
         "deleted": "Deleted checklist item \"{{itemCode}}\" from permanent file"
       }
+    },
+    "comment": {
+      "created": "Added a comment on item \"{{itemCode}}\"",
+      "updated": "Edited a comment on item \"{{itemCode}}\"",
+      "deleted": "Deleted a comment on item \"{{itemCode}}\""
     }
   }
 }
