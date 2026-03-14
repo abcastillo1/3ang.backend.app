@@ -154,6 +154,10 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/projects/permanent-file/items/update` | Actualizar ítem (estado, documento, etc.) | Sí | `projects.permanentFile.manage` |
 | | `/projects/permanent-file/items/delete` | Eliminar ítem | Sí | `projects.permanentFile.manage` |
 | | `/projects/permanent-file/apply-template` | Aplicar plantilla de la organización al proyecto | Sí | `projects.permanentFile.manage` |
+| **Comments** | `/comments/list` | Listar comentarios del ítem (paginado) | Sí | `projects.view` |
+| | `/comments/create` | Crear comentario en un ítem | Sí | `projects.view` |
+| | `/comments/update` | Actualizar comentario (autor o manage) | Sí | — |
+| | `/comments/delete` | Eliminar comentario (soft, autor o manage) | Sí | — |
 | **Audit** | `/audit/my-activity` | Ver actividad del usuario (request-level) | Sí | — |
 | | `/audit/activity/list` | Listar historial de actividad (org o por proyecto) | Sí | `activity.view` |
 | **System** | `/system/health` | Health check | No | — |

@@ -40,7 +40,7 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.JSON,
         allowNull: true,
         field: 'mention_user_ids',
-        comment: 'Array of user ids; parsed from @ in body on save'
+        comment: 'Array of { id, fullName, email } from front; list returns it; notifications use .map(m => m.id)'
       },
       attachmentCount: {
         type: DataTypes.INTEGER,

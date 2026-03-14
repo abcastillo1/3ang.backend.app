@@ -28,9 +28,11 @@ Ya aplicado en:
 - Por defecto: **solo** documentos con `comment_id IS NULL` (evidencia).
 - Para incluir también adjuntos de comentarios: `data.includeCommentAttachments: true`.
 
-## Listar comentarios del ítem (paginado)
+## Listar comentarios del ítem (paginado, sin cortar hilos)
 
-Cuando hay muchos mensajes, el listado debe ser **paginado** para no cargar todos de una vez. Endpoint a implementar (ej. `POST .../comments/list` o `POST .../items/:itemId/comments/list`).
+**POST /api/v1/comments/list**
+
+Requiere permiso `projects.view`. Orden: **`createdAt` ASC, `id` ASC**. Sin `parentId` se paginan solo raíces y cada una trae **todas** sus respuestas en `replies`; con `parentId` se devuelven todas las respuestas de ese comentario (no se parte ningún hilo). Default: 10 raíces por página.
 
 ### Request
 
@@ -40,7 +42,7 @@ Cuando hay muchos mensajes, el listado debe ser **paginado** para no cargar todo
     "auditProjectId": 5,
     "checklistItemId": 42,
     "page": 1,
-    "limit": 20
+    "limit": 10
   }
 }
 ```
@@ -49,17 +51,16 @@ Cuando hay muchos mensajes, el listado debe ser **paginado** para no cargar todo
 |-------|------|-------------|--------------|
 | auditProjectId | int | Sí | Proyecto (el ítem debe pertenecer a este proyecto). |
 | checklistItemId | int | Sí | Ítem del cual listar comentarios. |
-| page | int | No (default 1) | Página. |
-| limit | int | No (default 20, max 100) | Comentarios por página. |
-
-Opcional: **parentId** — si se envía, solo se devuelven respuestas (replies) de ese comentario; si no se envía o es `null`, se listan los comentarios de primer nivel (raíz del hilo). Así el front puede paginar por nivel (raíz vs respuestas de un comentario).
+| page | int | No (default 1) | Página de raíces (solo sin `parentId`). |
+| limit | int | No (default 10, max 100) | Raíces por página (sin `parentId`); con `parentId` se traen todas las respuestas. |
+| parentId | int \| null | No | Sin envío: raíces con `replies` completos (paginado). Con valor: todas las respuestas de ese comentario. |
 
 ### Response exitosa (200)
 
+Cuando **no** se envía `parentId`, cada ítem de `comments` es una raíz con **`replies`** anidados (hasta 2 niveles):
+
 ```json
 {
-  "statusCode": 200,
-  "message": "Operación exitosa",
   "data": {
     "comments": [
       {
@@ -70,30 +71,38 @@ Opcional: **parentId** — si se envía, solo se devuelven respuestas (replies) 
         "body": "¿Podés revisar el Excel adjunto?",
         "attachmentCount": 1,
         "createdAt": "2026-03-12T10:00:00.000Z",
-        "author": {
-          "id": 7,
-          "fullName": "Ana García",
-          "email": "ana@firma.com"
-        },
-        "mentionsUser": [
-          { "id": 3, "fullName": "Luis Pérez", "email": "luis@firma.com" }
+        "author": { "id": 7, "fullName": "Ana García", "email": "ana@firma.com" },
+        "mentionsUser": [{ "id": 3, "fullName": "Luis Pérez", "email": "luis@firma.com" }],
+        "replies": [
+          {
+            "id": 2,
+            "parentId": 1,
+            "body": "Sí, lo reviso.",
+            "attachmentCount": 0,
+            "createdAt": "2026-03-12T11:00:00.000Z",
+            "author": { "id": 3, "fullName": "Luis Pérez", "email": "luis@firma.com" },
+            "mentionsUser": [],
+            "replies": [
+              {
+                "id": 4,
+                "parentId": 2,
+                "body": "Listo.",
+                "author": { ... },
+                "mentionsUser": [],
+                "replies": []
+              }
+            ]
+          }
         ]
       }
     ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 47,
-      "totalPages": 3
-    }
+    "pagination": { "page": 1, "limit": 10, "total": 47, "totalPages": 5 }
   }
 }
 ```
 
-- **comments:** array de comentarios con el mismo contrato (sin `authorUserId` ni `mentionUserIds`; con `author` y `mentionsUser`).
-- **pagination:** `page` (página actual), `limit` (tamaño de página), `total` (total de comentarios que cumplen el filtro), `totalPages` (techo de total/limit).
-
-Orden recomendado: **`createdAt` ASC** (más antiguos primero) para leer el hilo en orden cronológico; o permitir `data.sort: 'asc' | 'desc'` y aplicar a `createdAt`.
+- **comments:** raíces de la página actual; cada una trae **`replies`** con todas sus respuestas (y las respuestas de esas), orden **`createdAt` ASC, `id` ASC**, sin cortar hilos.
+- **pagination:** aplica al número de **raíces**; `total` = total de raíces del ítem.
 
 ### Validaciones
 
@@ -101,9 +110,47 @@ Orden recomendado: **`createdAt` ASC** (más antiguos primero) para leer el hilo
 - El ítem existe y pertenece al proyecto.
 - `page` ≥ 1, `limit` entre 1 y 100.
 
+## Crear comentario
+
+**POST /api/v1/comments/create**
+
+### Request
+
+Los usuarios mencionados se envían como **array de objetos** con `id`, nombre (`fullName`) y correo (`email`). El backend usa el `id` para persistir en `mention_user_ids` y devuelve esos mismos datos en `mentionsUser` en la respuesta.
+
+```json
+{
+  "data": {
+    "auditProjectId": 5,
+    "checklistItemId": 42,
+    "body": "¿Podés revisar el Excel adjunto?",
+    "parentId": null,
+    "mentionsUser": [
+      { "id": 3, "fullName": "Luis Pérez", "email": "luis@firma.com" }
+    ]
+  }
+}
+```
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| auditProjectId | int | Sí | Proyecto (el ítem debe pertenecer a este proyecto). |
+| checklistItemId | int | Sí | Ítem donde se crea el comentario. |
+| body | string | Sí | Texto del comentario (máx. 65535 caracteres). |
+| parentId | int | No | Si se envía, el comentario es **respuesta** a ese comentario (el padre debe existir y pertenecer al mismo ítem/proyecto); si no, es de primer nivel. |
+| mentionsUser | object[] | No | Usuarios mencionados en el comentario. Cada elemento: **`id`** (int, user_id), **`fullName`** (string, nombre), **`email`** (string, correo). El backend guarda los ids en `mention_user_ids` y devuelve estos objetos en `mentionsUser` en la respuesta. |
+
+**Responder a un comentario:** enviar el mismo body que para un comentario nuevo pero con **`parentId`** = id del comentario al que se responde. El backend valida que ese comentario exista y sea del mismo ítem; si no, devuelve `comments.parentNotFound`.
+
+### Response (200)
+
+`data.comment` con el mismo contrato (id, checklistItemId, auditProjectId, parentId, body, attachmentCount, createdAt, **author**, **mentionsUser**). No se devuelve `authorUserId` ni `mentionUserIds`.
+
+---
+
 ## Subir / vincular archivo a un comentario
 
-1. Crear comentario (endpoint CRUD cuando exista) → `id`.
+1. Crear comentario (endpoint anterior) → `id`.
 2. `files/confirm` o `files/link` con:
    - `auditProjectId`, `nodeId` = `item.treeNodeId`
    - **`commentId`** = id del comentario  
@@ -116,7 +163,7 @@ Al borrar el documento (`files/delete`), se decrementa `attachment_count`.
 
 - **`audit_project_id`** en el comentario: listar hilos por proyecto sin join a `checklist_items` → `engagement_file_sections`.
 - **`attachment_count`** denormalizado: la UI puede mostrar “paperclip x3” sin agregar `COUNT` por fila.
-- **`mention_user_ids`** JSON: al guardar el comentario, el back (o el front con ayuda de un endpoint de búsqueda de usuarios) resuelve `@usuario` → ids y guarda `[1,2,3]`. Las notificaciones leen solo esa columna.
+- **`mention_user_ids`** JSON: el backend guarda el array **`mentionsUser`** tal como lo envía el front (`{ id, fullName, email }`). Al **listar**, se devuelve ese mismo JSON; no se consulta la tabla de usuarios. Para notificaciones se usan los `id` de cada objeto (`.map(m => m.id)`).
 
 ## @menciones — lógica recomendada
 
@@ -126,12 +173,10 @@ Al borrar el documento (`files/delete`), se decrementa `attachment_count`.
    - `@email` / `@fullName` resuelto en el cliente con autocomplete y guardado como ids.
 
 2. **Al crear/actualizar comentario**  
-   - Parsear el cuerpo (regex o tokens que el front inserte al elegir mención).  
-   - Resolver a `user_id` (misma org, opcionalmente solo asignados al ítem).  
-   - Guardar **`mention_user_ids`** = array único de ids.
+   - El front envía **`mentionsUser`** en el body: array de objetos con **`id`** (user_id), **`fullName`** (nombre) y **`email`** (correo) de cada usuario mencionado. El backend persiste los ids en **`mention_user_ids`** y devuelve esos mismos objetos en `mentionsUser` en la respuesta.
 
 3. **Notificaciones**  
-   - Job/cola: para cada id en `mention_user_ids`, crear notificación “Te mencionaron en ítem X”.  
+   - Job/cola: para cada id en `mention_user_ids` (extraídos de los objetos `mentionsUser` del request), crear notificación “Te mencionaron en ítem X”.  
    - No hace falta tabla `comment_mentions` si solo necesitás “quién notificar”; si necesitás “leído por usuario”, ahí sí tabla aparte.
 
 4. **Response — qué incluir y qué no**  
@@ -161,20 +206,27 @@ Al borrar el documento (`files/delete`), se decrementa `attachment_count`.
    }
    ```
 
-   - **Implementación:** `User` del autor → `author`; `User.findAll` por `mention_user_ids` → `mentionsUser`. No exponer `authorUserId` / `mentionUserIds` en el payload.
+   - **Implementación:** `User` del autor → `author`. Los mencionados: en create/update el front envía **`mentionsUser`** (array de objetos `{ id, fullName, email }`); el backend guarda los `id` en `mention_user_ids`. En list/get el backend puede devolver esos mismos objetos (o reconsultar por ids). En el **response** no se exponen `authorUserId` ni `mentionUserIds`.
 
 5. **Sin path en comentarios (v1)**  
    Hilo con `parent_id` + `created_at` ordenado es suficiente; path materializado solo si los hilos son muy profundos y necesitás prefijos como en el árbol.
 
+6. **Profundidad del hilo: 2 niveles = máximo 3 mensajes encadenados**  
+   - **Raíz** (1.º mensaje) → **respuesta** (2.º) → **respuesta a la respuesta** (3.º). Ahí termina.  
+   - No se permite un 4.º mensaje respondiendo al 3.º; el backend rechaza con `comments.maxDepthReached`.  
+   - Así el hilo se mantiene legible en contexto de auditoría (raíz + 2 respuestas = 3 mensajes).
+
 ## Cómo se edita un comentario
 
-Endpoint a implementar (ej. `PATCH /projects/:auditProjectId/items/:itemId/comments/:commentId` o `POST .../comments/update` con `id` en el body). Contrato recomendado:
+**POST /api/v1/comments/update**
+
+Solo el usuario que **escribió ese comentario** puede editarlo (se compara `comment.author_user_id` con el usuario actual).
 
 ### Request
 
 - **Identificación:** `commentId` (en path o en `data.id`). Obligatorio también `auditProjectId` (y opcionalmente `itemId` o `checklistItemId`) para validar que el comentario pertenece al proyecto/ítem.
-- **Body editable:** solo **`body`** (texto del comentario). No se cambia autor, ítem ni `parent_id`.
-- **Menciones:** al actualizar `body`, el backend (o el front antes de enviar) debe reextraer los @ y actualizar **`mention_user_ids`** en BD con el array de ids correspondiente, igual que en crear.
+- **Body editable:** **`body`** (texto del comentario). Opcionalmente **`mentionsUser`** (array de objetos con `id`, `fullName`, `email`); si se envía, el backend actualiza **`mention_user_ids`** con los ids y devuelve esos objetos en `mentionsUser`.
+- No se cambia autor, ítem ni `parent_id`.
 
 Ejemplo de body:
 
@@ -183,15 +235,17 @@ Ejemplo de body:
   "data": {
     "id": 123,
     "auditProjectId": 5,
-    "body": "Texto actualizado con @userId:3 para revisar."
+    "body": "Texto actualizado con @userId:3 para revisar.",
+    "mentionsUser": [
+      { "id": 3, "fullName": "Luis Pérez", "email": "luis@firma.com" }
+    ]
   }
 }
 ```
 
 ### Quién puede editar
 
-- **Solo el autor:** `comment.author_user_id === req.user.id`. Quien no sea el autor recibe 403 (ej. `comments.forbiddenUpdate`).
-- Opcional: permitir también a usuarios con permiso tipo `projects.engagementFile.manage` (criterio de producto).
+- **Solo quien escribió ese comentario:** se valida `comment.author_user_id === req.user.id`. Cualquier otro usuario recibe 403 (`comments.forbiddenUpdate`).
 
 ### Validaciones
 
@@ -210,8 +264,47 @@ Ejemplo de body:
 | errorCode | Causa |
 |-----------|--------|
 | `comments.notFound` | Comentario inexistente o borrado |
-| `comments.forbiddenUpdate` | No es el autor y no tiene permiso de gestión |
+| `comments.parentNotFound` | Al crear respuesta: el comentario padre no existe o no pertenece al mismo ítem |
+| `comments.forbiddenUpdate` | Solo quien escribió ese comentario puede editarlo |
 | `comments.projectMismatch` | El comentario no pertenece al proyecto indicado |
+
+---
+
+## Cómo se elimina un comentario
+
+**POST /api/v1/comments/delete**
+
+Solo el usuario que **escribió ese comentario** puede eliminarlo. Borrado lógico (soft delete).
+
+**Restricción:** no se puede eliminar un comentario que tenga **respuestas** (hijos). Primero hay que eliminar las respuestas; si no, el backend devuelve 400 `comments.hasReplies`.
+
+### Request
+
+```json
+{
+  "data": {
+    "id": 123,
+    "auditProjectId": 5
+  }
+}
+```
+
+| Campo | Tipo | Obligatorio | Descripción |
+|-------|------|-------------|-------------|
+| id | int | Sí | ID del comentario. |
+| auditProjectId | int | Sí | Proyecto (para validar que el comentario pertenece al proyecto). |
+
+### Response (200)
+
+Sin cuerpo de datos; el comentario queda con `deleted_at` y deja de aparecer en listados (paranoid).
+
+### Errores
+
+| errorCode | Causa |
+|-----------|--------|
+| `comments.notFound` | Comentario inexistente o borrado |
+| `comments.forbiddenDelete` | Solo quien escribió ese comentario puede eliminarlo |
+| `comments.hasReplies` | El comentario tiene respuestas; hay que eliminarlas antes |
 
 ---
 

@@ -32,9 +32,9 @@ import { ACTIVITY_ACTIONS, ACTIVITY_ENTITIES } from './record-activity.js';
  *   activity.permanentFile.item.created    → itemCode, sectionName?, projectName
  *   activity.permanentFile.item.updated    → itemCode, projectName, status?
  *   activity.permanentFile.item.deleted    → itemCode, projectName
- *   activity.comment.created               → itemCode?, projectName, commentId?
- *   activity.comment.updated               → itemCode?, projectName, commentId?
- *   activity.comment.deleted               → itemCode?, projectName, commentId?
+ *   activity.comment.created               → itemCode?, projectName?, commentId?, checklistItemId?
+ *   activity.comment.updated               → itemCode?, projectName?, commentId?, checklistItemId?
+ *   activity.comment.deleted               → itemCode?, projectName?, commentId?, checklistItemId?
  */
 const DESCRIPTION_KEYS = {
   PROJECT_CREATED: 'activity.project.created',
@@ -334,30 +334,45 @@ const MAP = {
     action: ACTIVITY_ACTIONS.COMMENT_CREATED,
     entity: ACTIVITY_ENTITIES.COMMENT,
     build: (ctx) => ({
-      entityId: ctx.commentId,
-      auditProjectId: ctx.auditProjectId,
+      entityId: ctx.commentId ?? null,
+      auditProjectId: ctx.auditProjectId ?? null,
       description: DESCRIPTION_KEYS.COMMENT_CREATED,
-      metadata: { projectName: ctx.projectName, itemCode: ctx.itemCode }
+      metadata: {
+        projectName: ctx.projectName ?? null,
+        itemCode: ctx.itemCode ?? null,
+        commentId: ctx.commentId ?? null,
+        checklistItemId: ctx.checklistItemId ?? null
+      }
     })
   },
   'comments.update': {
     action: ACTIVITY_ACTIONS.COMMENT_UPDATED,
     entity: ACTIVITY_ENTITIES.COMMENT,
     build: (ctx) => ({
-      entityId: ctx.commentId,
-      auditProjectId: ctx.auditProjectId,
+      entityId: ctx.commentId ?? null,
+      auditProjectId: ctx.auditProjectId ?? null,
       description: DESCRIPTION_KEYS.COMMENT_UPDATED,
-      metadata: { projectName: ctx.projectName, itemCode: ctx.itemCode }
+      metadata: {
+        projectName: ctx.projectName ?? null,
+        itemCode: ctx.itemCode ?? null,
+        commentId: ctx.commentId ?? null,
+        checklistItemId: ctx.checklistItemId ?? null
+      }
     })
   },
   'comments.delete': {
     action: ACTIVITY_ACTIONS.COMMENT_DELETED,
     entity: ACTIVITY_ENTITIES.COMMENT,
     build: (ctx) => ({
-      entityId: ctx.commentId,
-      auditProjectId: ctx.auditProjectId,
+      entityId: ctx.commentId ?? null,
+      auditProjectId: ctx.auditProjectId ?? null,
       description: DESCRIPTION_KEYS.COMMENT_DELETED,
-      metadata: { projectName: ctx.projectName, itemCode: ctx.itemCode }
+      metadata: {
+        projectName: ctx.projectName ?? null,
+        itemCode: ctx.itemCode ?? null,
+        commentId: ctx.commentId ?? null,
+        checklistItemId: ctx.checklistItemId ?? null
+      }
     })
   }
 };

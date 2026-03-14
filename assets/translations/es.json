@@ -72,6 +72,23 @@
     "entity": {
       "invalid": "La entidad debe ser una cadena de texto válida"
     },
+    "body": {
+      "required": "El texto del comentario es requerido",
+      "invalid": "El texto del comentario no es válido o excede la longitud permitida"
+    },
+    "parentId": {
+      "invalid": "El ID del comentario padre debe ser un entero válido"
+    },
+    "mentionUserIds": {
+      "invalid": "Los IDs de usuarios mencionados deben ser un array de enteros válidos"
+    },
+    "mentionsUser": {
+      "invalid": "Los mencionados deben ser un array de objetos con id, fullName y email"
+    },
+    "checklistItemId": {
+      "required": "El ítem del checklist es requerido",
+      "invalid": "El ID del ítem debe ser un entero válido"
+    },
     "date": {
       "invalid": "La fecha debe estar en formato ISO8601 válido"
     },
@@ -380,6 +397,14 @@
     "targetNotFound": "Establecimiento destino no encontrado",
     "update": "No tienes permiso para actualizar establecimientos.",
     "create": "No tienes permiso para crear establecimientos."
+  },
+  "comments": {
+    "notFound": "Comentario no encontrado",
+    "parentNotFound": "El comentario al que se responde no existe o no pertenece al mismo ítem",
+    "forbiddenUpdate": "Solo quien escribió este comentario puede editarlo",
+    "forbiddenDelete": "Solo quien escribió este comentario puede eliminarlo",
+    "hasReplies": "No se puede eliminar un comentario que tiene respuestas; elimine primero las respuestas",
+    "maxDepthReached": "Solo se permiten 2 niveles de respuestas; no puede responder a una respuesta que ya es respuesta"
   },
   "organizations": {
     "notFound": "Organización no encontrada",

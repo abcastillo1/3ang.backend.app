@@ -63,59 +63,32 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'permanentFile.itemNotFound');
   }
 
-  const page = parseInt(data.page, 10) || 1;
-  const limit = parseInt(data.limit, 10) || 20;
-  const offset = (page - 1) * limit;
+  const ORDER = [['createdAt', 'ASC'], ['id', 'ASC']];
+  const whereBase = { auditProjectId: project.id, checklistItemId: item.id };
 
-  const where = {
-    auditProjectId: project.id,
-    checklistItemId: item.id
-  };
+  const hasParentFilter = Object.prototype.hasOwnProperty.call(data, 'parentId');
+  const parentIdFilter = hasParentFilter ? (data.parentId === null || data.parentId === undefined ? null : data.parentId) : null;
 
-  if (Object.prototype.hasOwnProperty.call(data, 'parentId')) {
-    where.parentId = data.parentId === null ? null : data.parentId;
-  }
+  const where = { ...whereBase, parentId: parentIdFilter };
 
   const total = await ChecklistItemComment.count({ where });
 
+  const page = parseInt(data.page, 10) || 1;
+  const limit = Math.min(parseInt(data.limit, 10) || 10, 100);
+  const offset = (page - 1) * limit;
+
   const comments = await ChecklistItemComment.findAll({
     where,
-    limit,
-    offset,
-    order: [['createdAt', 'ASC'], ['id', 'ASC']],
-    include: [
-      { model: User, as: 'author', attributes: ['id', 'fullName', 'email'] }
-    ]
+    limit: hasParentFilter ? undefined : limit,
+    offset: hasParentFilter ? 0 : offset,
+    order: ORDER,
+    include: [{ model: User, as: 'author', attributes: ['id', 'fullName', 'email'] }]
   });
 
-  const authorIds = Array.from(
-    new Set(
-      comments
-        .map(c => c.mentionUserIds || [])
-        .flat()
-    )
-  );
-
-  let mentionUsersMap = new Map();
-
-  if (authorIds.length > 0) {
-    const mentionUsers = await User.findAll({
-      where: {
-        id: authorIds,
-        organizationId: user.organizationId
-      },
-      attributes: ['id', 'fullName', 'email']
-    });
-
-    mentionUsersMap = new Map(mentionUsers.map(u => [u.id, u]));
-  }
-
-  const payload = comments.map(comment => {
-    const json = comment.toJSON();
-    const mentionsUser = (json.mentionUserIds || [])
-      .map(id => mentionUsersMap.get(id))
-      .filter(Boolean);
-
+  function toPayload(c) {
+    const json = c.toJSON ? c.toJSON() : c;
+    const raw = json.mentionUserIds || [];
+    const mentionsUser = Array.isArray(raw) && raw[0] && typeof raw[0] === 'object' ? raw : [];
     return {
       id: json.id,
       checklistItemId: json.checklistItemId,
@@ -124,24 +97,75 @@ async function handler(req, res, next) {
       body: json.body,
       attachmentCount: json.attachmentCount,
       createdAt: json.createdAt,
-      author: json.author
-        ? {
-            id: json.author.id,
-            fullName: json.author.fullName,
-            email: json.author.email
-          }
-        : null,
-      mentionsUser
+      author: json.author ? { id: json.author.id, fullName: json.author.fullName, email: json.author.email } : null,
+      mentionsUser,
+      replies: []
     };
-  });
+  }
 
+  let payload;
+
+  if (!hasParentFilter || where.parentId === null) {
+    // Lista de raíces (paginada): cada raíz incluye TODAS sus respuestas anidadas para no cortar hilos
+    const rootIds = comments.map(c => c.id);
+    if (rootIds.length === 0) {
+      payload = [];
+    } else {
+      const directReplies = await ChecklistItemComment.findAll({
+        where: { ...whereBase, parentId: rootIds },
+        order: ORDER,
+        include: [{ model: User, as: 'author', attributes: ['id', 'fullName', 'email'] }]
+      });
+      const level1Ids = directReplies.map(c => c.id);
+      const level2Replies = level1Ids.length > 0
+        ? await ChecklistItemComment.findAll({
+            where: { ...whereBase, parentId: level1Ids },
+            order: ORDER,
+            include: [{ model: User, as: 'author', attributes: ['id', 'fullName', 'email'] }]
+          })
+        : [];
+
+      const repliesByParent = new Map();
+      level2Replies.forEach(c => {
+        const pid = c.parentId;
+        if (!repliesByParent.has(pid)) repliesByParent.set(pid, []);
+        repliesByParent.get(pid).push(toPayload(c));
+      });
+      const byParent = new Map();
+      directReplies.forEach(c => {
+        const pid = c.parentId;
+        if (!byParent.has(pid)) byParent.set(pid, []);
+        const payload1 = toPayload(c);
+        payload1.replies = repliesByParent.get(c.id) || [];
+        byParent.get(pid).push(payload1);
+      });
+
+      payload = comments.map(root => {
+        const p = toPayload(root);
+        p.replies = (byParent.get(root.id) || []).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt) || a.id - b.id);
+        return p;
+      });
+    }
+    return apiResponse(res, req, next)({
+      comments: payload,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+  }
+
+  // Lista de respuestas de un padre concreto (parentId enviado): se devuelven TODAS, sin paginar, para no cortar el hilo
+  payload = comments.map(toPayload);
   return apiResponse(res, req, next)({
     comments: payload,
     pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit)
+      page: 1,
+      limit: payload.length,
+      total: payload.length,
+      totalPages: 1
     }
   });
 }

@@ -72,6 +72,23 @@
     "entity": {
       "invalid": "Entity must be a valid string"
     },
+    "body": {
+      "required": "Comment text is required",
+      "invalid": "Comment text is invalid or exceeds maximum length"
+    },
+    "parentId": {
+      "invalid": "Parent comment ID must be a valid integer"
+    },
+    "mentionUserIds": {
+      "invalid": "Mention user IDs must be an array of valid integers"
+    },
+    "mentionsUser": {
+      "invalid": "Mentions must be an array of objects with id, fullName and email"
+    },
+    "checklistItemId": {
+      "required": "Checklist item is required",
+      "invalid": "Checklist item ID must be a valid integer"
+    },
     "date": {
       "invalid": "Date must be in valid ISO8601 format"
     },
@@ -268,6 +285,14 @@
     "url": {
       "generationFailed": "Error generating file URL"
     }
+  },
+  "comments": {
+    "notFound": "Comment not found",
+    "parentNotFound": "The comment you are replying to does not exist or does not belong to the same item",
+    "forbiddenUpdate": "Only the user who wrote this comment can edit it",
+    "forbiddenDelete": "Only the user who wrote this comment can delete it",
+    "hasReplies": "Cannot delete a comment that has replies; delete the replies first",
+    "maxDepthReached": "Only 2 levels of replies are allowed; you cannot reply to a comment that is already a reply to a reply"
   },
   "activity": {
     "project": {
