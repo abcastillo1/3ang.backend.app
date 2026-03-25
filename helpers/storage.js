@@ -1,4 +1,5 @@
 import { logger } from './logger.js';
+import { RequestChecksumCalculation } from '@aws-sdk/middleware-flexible-checksums';
 import {
   STORAGE_PROVIDER,
   STORAGE_BUCKET_PRIVATE,
@@ -48,7 +49,9 @@ class StorageService {
           accessKeyId: B2_APPLICATION_KEY_ID,
           secretAccessKey: B2_APPLICATION_KEY
         },
-        forcePathStyle: true
+        forcePathStyle: true,
+        // Evita que el presigner añada CRC32 a la URL; los PUT desde el navegador no envían ese header y fallan la firma / la petición.
+        requestChecksumCalculation: RequestChecksumCalculation.WHEN_REQUIRED
       });
       this.s3Initialized = true;
       return this.s3Client;
@@ -60,7 +63,8 @@ class StorageService {
         credentials: {
           accessKeyId: AWS_ACCESS_KEY_ID,
           secretAccessKey: AWS_SECRET_ACCESS_KEY
-        }
+        },
+        requestChecksumCalculation: RequestChecksumCalculation.WHEN_REQUIRED
       });
       this.s3Initialized = true;
       return this.s3Client;
@@ -71,7 +75,7 @@ class StorageService {
   /**
    * Generate a presigned PUT URL for direct client upload.
    * @param {string} key - Storage key (path) e.g. orgId/category/caseId/filename
-   * @param {string} contentType - MIME type (enforced in signed URL)
+   * @param {string} contentType - MIME type; entra en la firma (X-Amz-SignedHeaders incluye content-type)
    * @returns {{ uploadUrl: string, key: string, expiresIn: number }}
    */
   async generateUploadUrl(key, contentType) {
@@ -81,13 +85,15 @@ class StorageService {
       throw new Error('S3 client or bucket not configured for presigned uploads. Set B2_S3_ENDPOINT (and B2 credentials) or AWS S3 credentials.');
     }
     const { PutObjectCommand } = await import('@aws-sdk/client-s3');
-    const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+    const { getPutObjectSignedUrlSigningContentType } = await import('./s3-put-presigned-url.js');
     const command = new PutObjectCommand({
       Bucket: bucket,
       Key: key,
       ContentType: contentType
     });
-    const uploadUrl = await getSignedUrl(client, command, { expiresIn: PRESIGNED_UPLOAD_EXPIRY });
+    const uploadUrl = await getPutObjectSignedUrlSigningContentType(client, command, {
+      expiresIn: PRESIGNED_UPLOAD_EXPIRY
+    });
     return { uploadUrl, key, expiresIn: PRESIGNED_UPLOAD_EXPIRY };
   }
 

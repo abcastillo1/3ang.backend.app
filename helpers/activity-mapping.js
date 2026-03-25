@@ -14,9 +14,9 @@ import { ACTIVITY_ACTIONS, ACTIVITY_ENTITIES } from './record-activity.js';
  *   activity.tree.node.moved       → nodeName, projectName, newParentId?
  *   activity.tree.node.reordered   → projectName, parentId?
  *   activity.tree.node.deleted     → nodeName, projectName, deletedCount?
- *   activity.document.uploaded     → originalName, projectName?, nodeId?
- *   activity.document.linked       → count, projectName, nodeId?
- *   activity.document.deleted      → originalName
+ *   activity.document.uploaded     → documentId, originalName, projectName?, nodeId?
+ *   activity.document.linked       → documentIds, documentId (mismo id si uno solo; null si varios), count, projectName, nodeId?
+ *   activity.document.deleted      → documentId, originalName
  *   activity.client.created        → clientName
  *   activity.client.updated        → clientName
  *   activity.client.deleted        → clientName
@@ -166,17 +166,31 @@ const MAP = {
       entityId: ctx.documentId,
       auditProjectId: ctx.auditProjectId ?? undefined,
       description: DESCRIPTION_KEYS.DOCUMENT_UPLOADED,
-      metadata: { originalName: ctx.originalName, projectName: ctx.projectName, nodeId: ctx.nodeId }
+      metadata: {
+        documentId: ctx.documentId,
+        originalName: ctx.originalName,
+        projectName: ctx.projectName,
+        nodeId: ctx.nodeId
+      }
     })
   },
   'files.link': {
     action: ACTIVITY_ACTIONS.DOCUMENT_LINKED,
     entity: ACTIVITY_ENTITIES.DOCUMENT,
-    build: (ctx) => ({
-      auditProjectId: ctx.auditProjectId,
-      description: DESCRIPTION_KEYS.DOCUMENT_LINKED,
-      metadata: { projectName: ctx.projectName, documentIds: ctx.documentIds, count: ctx.count, nodeId: ctx.nodeId }
-    })
+    build: (ctx) => {
+      const ids = ctx.documentIds ?? [];
+      return {
+        auditProjectId: ctx.auditProjectId,
+        description: DESCRIPTION_KEYS.DOCUMENT_LINKED,
+        metadata: {
+          documentIds: ids,
+          documentId: ids.length === 1 ? ids[0] : null,
+          projectName: ctx.projectName,
+          count: ctx.count,
+          nodeId: ctx.nodeId
+        }
+      };
+    }
   },
   'files.delete': {
     action: ACTIVITY_ACTIONS.DOCUMENT_DELETED,
@@ -185,7 +199,7 @@ const MAP = {
       entityId: ctx.documentId,
       auditProjectId: ctx.auditProjectId ?? undefined,
       description: DESCRIPTION_KEYS.DOCUMENT_DELETED,
-      metadata: { originalName: ctx.originalName }
+      metadata: { documentId: ctx.documentId, originalName: ctx.originalName }
     })
   },
   'clients.create': {
