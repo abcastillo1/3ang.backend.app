@@ -8,6 +8,7 @@ import { HTTP_STATUS } from '../../../../config/constants.js';
 import modelsInstance from '../../../../models/index.js';
 import { TYPE_SECTION_NODE, TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/engagement-file-tree-sync.js';
 import { loadAssigneesForItems, loadAssigneesForItem } from '../../../../helpers/checklist-item-assignees.js';
+import { fetchCrossReferencesFromNode } from '../../../../helpers/cross-reference.js';
 
 const validators = [
   validateField('data.auditProjectId')
@@ -20,6 +21,10 @@ const validators = [
     .withMessage('validators.nodeId.required')
     .isInt({ min: 1 })
     .withMessage('validators.nodeId.invalid'),
+  validateField('data.includeCrossReferences')
+    .optional()
+    .isBoolean()
+    .withMessage('references.includeCrossReferences.invalid'),
   validateRequest,
   authenticate,
   requirePermission('projects.view')
@@ -45,6 +50,7 @@ function serializeDocument(d) {
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
+  const includeCrossReferences = data.includeCrossReferences === true;
   const {
     AuditProject,
     AuditTreeNode,
@@ -172,6 +178,14 @@ async function handler(req, res, next) {
         section: { id: item.section.id, code: item.section.code, name: item.section.name }
       };
     }
+  }
+
+  if (includeCrossReferences) {
+    payload.crossReferences = await fetchCrossReferencesFromNode(modelsInstance.models, {
+      organizationId: user.organizationId,
+      auditProjectId: project.id,
+      nodeId: node.id
+    });
   }
 
   return apiResponse(res, req, next)(payload);

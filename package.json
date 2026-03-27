@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch index.js",
+    "b2:cors": "node scripts/apply-b2-cors.mjs"
   },
   "keywords": [],
   "author": "",

@@ -31,7 +31,10 @@ export const ACTIVITY_ACTIONS = {
   PERMANENT_FILE_ITEM_DELETED: 'permanent_file.item.deleted',
   COMMENT_CREATED: 'comment.created',
   COMMENT_UPDATED: 'comment.updated',
-  COMMENT_DELETED: 'comment.deleted'
+  COMMENT_DELETED: 'comment.deleted',
+  REFERENCE_CREATED: 'reference.created',
+  REFERENCE_UPDATED: 'reference.updated',
+  REFERENCE_DELETED: 'reference.deleted'
 };
 
 export const ACTIVITY_ENTITIES = {
@@ -45,7 +48,8 @@ export const ACTIVITY_ENTITIES = {
   ROLE: 'role',
   PERMANENT_FILE_SECTION: 'permanent_file_section',
   PERMANENT_FILE_ITEM: 'permanent_file_item',
-  COMMENT: 'checklist_item_comment'
+  COMMENT: 'checklist_item_comment',
+  CROSS_REFERENCE: 'cross_reference'
 };
 
 function normalizePayload(payload) {

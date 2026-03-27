@@ -163,16 +163,25 @@ Requiere permiso: files.upload
     "category": "audit_evidences",
     "nodeId": 12,
     "page": 1,
-    "limit": 20
+    "limit": 20,
+    "search": "balance",
+    "excludeDocumentId": 3,
+    "includeDownloadUrl": false
   }
 }
 ```
 
 | Campo | Tipo | Obligatorio | Descripción |
 |-------|------|-------------|-------------|
-| `auditProjectId` | int | No | Filtrar por proyecto |
+| `auditProjectId` | int | No | Filtrar por proyecto (**usalo para listar todo el proyecto** sin `nodeId`, ej. selector de referencia doc→doc) |
 | `category` | string | No | Filtrar por categoría |
 | `nodeId` | int | No | Filtrar por nodo del árbol |
+| `search` | string | No | Subcadena en `originalName` (1–200 caracteres tras trim; se ignoran `%` y `_` como comodines) |
+| `excludeDocumentId` | int | No | Excluir un id de los resultados (ej. documento actual en un modal) |
+| `excludeDocumentIds` | int[] | No | Igual, hasta 50 ids |
+| `includeDownloadUrl` | bool | No | Default `true`. En `false` no se firma descarga por fila (`downloadUrl` = `null`; útil en buscadores) |
+| `includeCrossReferences` | bool | No | Si `true`, cada documento incluye `crossReferences` (ver `cross-references.md`) |
+| `includeCommentAttachments` | bool | No | Con `nodeId`, si incluir adjuntos de comentarios |
 | `page` | int | No | Página (default 1) |
 | `limit` | int | No | Registros por página (default 20, max 100) |
 

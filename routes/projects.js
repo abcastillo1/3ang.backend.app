@@ -27,6 +27,10 @@ import pfItemsUpdateRoute from '../app/projects/permanent-file/items/update/rout
 import pfItemsDeleteRoute from '../app/projects/permanent-file/items/delete/route.js';
 import pfItemsDocumentsListRoute from '../app/projects/permanent-file/items/documents-list/route.js';
 import pfApplyTemplateRoute from '../app/projects/permanent-file/apply-template/route.js';
+import referencesCreateRoute from '../app/projects/references/create/route.js';
+import referencesListRoute from '../app/projects/references/list/route.js';
+import referencesUpdateRoute from '../app/projects/references/update/route.js';
+import referencesDeleteRoute from '../app/projects/references/delete/route.js';
 
 const router = Router();
 
@@ -57,6 +61,10 @@ registerRoute(router, '/permanent-file/items/update', pfItemsUpdateRoute, 'post'
 registerRoute(router, '/permanent-file/items/delete', pfItemsDeleteRoute, 'post');
 registerRoute(router, '/permanent-file/items/documents/list', pfItemsDocumentsListRoute, 'post');
 registerRoute(router, '/permanent-file/apply-template', pfApplyTemplateRoute, 'post');
+registerRoute(router, '/references/create', referencesCreateRoute, 'post');
+registerRoute(router, '/references/list', referencesListRoute, 'post');
+registerRoute(router, '/references/update', referencesUpdateRoute, 'post');
+registerRoute(router, '/references/delete', referencesDeleteRoute, 'post');
 // Alias centralizado (mismos handlers; deprecar /permanent-file cuando el frontend migre)
 registerRoute(router, '/engagement-file/sections/create', pfSectionsCreateRoute, 'post');
 registerRoute(router, '/engagement-file/sections/list', pfSectionsListRoute, 'post');
@@ -69,5 +77,9 @@ registerRoute(router, '/engagement-file/items/update', pfItemsUpdateRoute, 'post
 registerRoute(router, '/engagement-file/items/delete', pfItemsDeleteRoute, 'post');
 registerRoute(router, '/engagement-file/items/documents/list', pfItemsDocumentsListRoute, 'post');
 registerRoute(router, '/engagement-file/apply-template', pfApplyTemplateRoute, 'post');
+registerRoute(router, '/engagement-file/references/create', referencesCreateRoute, 'post');
+registerRoute(router, '/engagement-file/references/list', referencesListRoute, 'post');
+registerRoute(router, '/engagement-file/references/update', referencesUpdateRoute, 'post');
+registerRoute(router, '/engagement-file/references/delete', referencesDeleteRoute, 'post');
 
 export default router;

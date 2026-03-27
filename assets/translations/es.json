@@ -374,6 +374,20 @@
     },
     "url": {
       "generationFailed": "Error al generar la URL del archivo"
+    },
+    "list": {
+      "search": {
+        "invalid": "El texto de búsqueda debe tener entre 1 y 200 caracteres"
+      },
+      "excludeDocumentId": {
+        "invalid": "El id de documento a excluir no es válido"
+      },
+      "excludeDocumentIds": {
+        "invalid": "La lista de ids a excluir no es válida (máximo 50)"
+      },
+      "includeDownloadUrl": {
+        "invalid": "includeDownloadUrl debe ser booleano"
+      }
     }
   },
   "permanentFile": {
@@ -405,6 +419,54 @@
     "forbiddenDelete": "Solo quien escribió este comentario puede eliminarlo",
     "hasReplies": "No se puede eliminar un comentario que tiene respuestas; elimine primero las respuestas",
     "maxDepthReached": "Solo se permiten 2 niveles de respuestas; no puede responder a una respuesta que ya es respuesta"
+  },
+  "references": {
+    "sourceKind": {
+      "required": "El tipo del origen (sourceKind) es requerido",
+      "invalid": "sourceKind debe ser document o tree_node"
+    },
+    "sourceId": {
+      "required": "El id de origen es requerido",
+      "invalid": "El id de origen no es válido"
+    },
+    "targetKind": {
+      "required": "El tipo del destino (targetKind) es requerido",
+      "invalid": "targetKind debe ser document o tree_node"
+    },
+    "targetId": {
+      "required": "El id de destino es requerido",
+      "invalid": "El id de destino no es válido"
+    },
+    "relationType": {
+      "invalid": "relationType no está permitido"
+    },
+    "note": {
+      "invalid": "La nota es demasiado larga"
+    },
+    "scopeKind": {
+      "required": "El tipo de entidad (kind) es requerido para listar",
+      "invalid": "kind debe ser document o tree_node"
+    },
+    "scopeId": {
+      "required": "El id de entidad es requerido para listar",
+      "invalid": "El id no es válido"
+    },
+    "direction": {
+      "invalid": "direction debe ser outgoing, incoming o both"
+    },
+    "includeDetails": {
+      "invalid": "includeDetails debe ser booleano"
+    },
+    "includeCrossReferences": {
+      "invalid": "includeCrossReferences debe ser booleano"
+    },
+    "selfReference": "No se puede referenciar un elemento consigo mismo",
+    "duplicate": "Ya existe una referencia idéntica entre estos extremos",
+    "notFound": "Referencia no encontrada",
+    "invalidKind": "Tipo de extremo no válido",
+    "documentNotInProject": "El documento no existe o no pertenece a este proyecto",
+    "nodeNotInProject": "El nodo no existe o no pertenece a este proyecto",
+    "nothingToUpdate": "Debe enviar relationType o note para actualizar"
   },
   "organizations": {
     "notFound": "Organización no encontrada",
@@ -473,6 +535,11 @@
       "created": "Añadió un comentario en el ítem \"{{itemCode}}\"",
       "updated": "Editó un comentario en el ítem \"{{itemCode}}\"",
       "deleted": "Eliminó un comentario en el ítem \"{{itemCode}}\""
+    },
+    "reference": {
+      "created": "Creó referencia cruzada en \"{{projectName}}\": {{sourceLabel}} → {{targetLabel}}",
+      "updated": "Actualizó la referencia #{{referenceId}} en \"{{projectName}}\"",
+      "deleted": "Eliminó la referencia #{{referenceId}} en \"{{projectName}}\""
     }
   }
 }

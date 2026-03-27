@@ -284,6 +284,20 @@
     },
     "url": {
       "generationFailed": "Error generating file URL"
+    },
+    "list": {
+      "search": {
+        "invalid": "Search text must be between 1 and 200 characters"
+      },
+      "excludeDocumentId": {
+        "invalid": "Invalid exclude document id"
+      },
+      "excludeDocumentIds": {
+        "invalid": "Invalid exclude id list (max 50)"
+      },
+      "includeDownloadUrl": {
+        "invalid": "includeDownloadUrl must be boolean"
+      }
     }
   },
   "comments": {
@@ -293,6 +307,54 @@
     "forbiddenDelete": "Only the user who wrote this comment can delete it",
     "hasReplies": "Cannot delete a comment that has replies; delete the replies first",
     "maxDepthReached": "Only 2 levels of replies are allowed; you cannot reply to a comment that is already a reply to a reply"
+  },
+  "references": {
+    "sourceKind": {
+      "required": "Source kind (sourceKind) is required",
+      "invalid": "sourceKind must be document or tree_node"
+    },
+    "sourceId": {
+      "required": "Source id is required",
+      "invalid": "Source id is invalid"
+    },
+    "targetKind": {
+      "required": "Target kind (targetKind) is required",
+      "invalid": "targetKind must be document or tree_node"
+    },
+    "targetId": {
+      "required": "Target id is required",
+      "invalid": "Target id is invalid"
+    },
+    "relationType": {
+      "invalid": "relationType is not allowed"
+    },
+    "note": {
+      "invalid": "Note is too long"
+    },
+    "scopeKind": {
+      "required": "Entity kind is required for listing",
+      "invalid": "kind must be document or tree_node"
+    },
+    "scopeId": {
+      "required": "Entity id is required for listing",
+      "invalid": "Entity id is invalid"
+    },
+    "direction": {
+      "invalid": "direction must be outgoing, incoming, or both"
+    },
+    "includeDetails": {
+      "invalid": "includeDetails must be a boolean"
+    },
+    "includeCrossReferences": {
+      "invalid": "includeCrossReferences must be a boolean"
+    },
+    "selfReference": "Cannot reference an entity to itself",
+    "duplicate": "An identical reference between these endpoints already exists",
+    "notFound": "Reference not found",
+    "invalidKind": "Invalid endpoint kind",
+    "documentNotInProject": "Document does not exist or does not belong to this project",
+    "nodeNotInProject": "Tree node does not exist or does not belong to this project",
+    "nothingToUpdate": "Send relationType and/or note to update"
   },
   "activity": {
     "project": {
@@ -351,6 +413,11 @@
       "created": "Added a comment on item \"{{itemCode}}\"",
       "updated": "Edited a comment on item \"{{itemCode}}\"",
       "deleted": "Deleted a comment on item \"{{itemCode}}\""
+    },
+    "reference": {
+      "created": "Created cross-reference in \"{{projectName}}\": {{sourceLabel}} → {{targetLabel}}",
+      "updated": "Updated reference #{{referenceId}} in \"{{projectName}}\"",
+      "deleted": "Deleted reference #{{referenceId}} in \"{{projectName}}\""
     }
   }
 }

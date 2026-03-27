@@ -94,6 +94,10 @@ class Models {
     const AuditTreeNodeFactory = auditTreeNodeModule.default;
     this.models.AuditTreeNode = AuditTreeNodeFactory(this.sequelize, Sequelize.DataTypes);
 
+    const auditCrossReferenceModule = await import('./audit/auditCrossReference.js');
+    const AuditCrossReferenceFactory = auditCrossReferenceModule.default;
+    this.models.AuditCrossReference = AuditCrossReferenceFactory(this.sequelize, Sequelize.DataTypes);
+
     const activityLogModule = await import('./audit/activityLog.js');
     const ActivityLogFactory = activityLogModule.default;
     this.models.ActivityLog = ActivityLogFactory(this.sequelize, Sequelize.DataTypes);

@@ -5,6 +5,7 @@ import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
 import { storageService } from '../../../helpers/storage.js';
 import { Op } from 'sequelize';
+import { fetchCrossReferencesByDocumentIds } from '../../../helpers/cross-reference.js';
 
 // Por defecto, listado por nodeId excluye adjuntos de comentarios (evidencia solamente)
 import modelsInstance from '../../../models/index.js';
@@ -34,10 +35,50 @@ export const validators = [
     .optional()
     .isBoolean()
     .withMessage('validators.includeCommentAttachments.invalid'),
+  validateField('data.includeCrossReferences')
+    .optional()
+    .isBoolean()
+    .withMessage('references.includeCrossReferences.invalid'),
+  validateField('data.search')
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ min: 1, max: 200 })
+    .withMessage('files.list.search.invalid'),
+  validateField('data.excludeDocumentId')
+    .optional({ values: 'null' })
+    .isInt({ min: 1 })
+    .withMessage('files.list.excludeDocumentId.invalid'),
+  validateField('data.excludeDocumentIds')
+    .optional()
+    .isArray({ max: 50 })
+    .withMessage('files.list.excludeDocumentIds.invalid'),
+  validateField('data.excludeDocumentIds.*')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('files.list.excludeDocumentIds.invalid'),
+  validateField('data.includeDownloadUrl')
+    .optional()
+    .isBoolean()
+    .withMessage('files.list.includeDownloadUrl.invalid'),
   validateRequest,
   authenticate,
   requirePermission('files.upload')
 ];
+
+function collectExcludeDocumentIds(data) {
+  const ids = new Set();
+  if (data.excludeDocumentId != null && data.excludeDocumentId !== '') {
+    ids.add(parseInt(data.excludeDocumentId, 10));
+  }
+  if (Array.isArray(data.excludeDocumentIds)) {
+    for (const x of data.excludeDocumentIds) {
+      const n = parseInt(x, 10);
+      if (n > 0) ids.add(n);
+    }
+  }
+  return [...ids].filter((n) => !Number.isNaN(n));
+}
 
 async function handler(req, res, next) {
   const { data } = req.body;
@@ -47,17 +88,35 @@ async function handler(req, res, next) {
   const page = parseInt(data.page) || 1;
   const limit = parseInt(data.limit) || 20;
   const offset = (page - 1) * limit;
+  const includeDownloadUrl = data.includeDownloadUrl !== false;
 
-  const where = { organizationId: user.organizationId };
+  const andConditions = [{ organizationId: user.organizationId }];
 
-  if (data.auditProjectId) where.auditProjectId = data.auditProjectId;
+  if (data.auditProjectId) {
+    andConditions.push({ auditProjectId: data.auditProjectId });
+  }
   if (data.nodeId) {
-    where.nodeId = data.nodeId;
+    andConditions.push({ nodeId: data.nodeId });
     if (!data.includeCommentAttachments) {
-      where.commentId = { [Op.is]: null };
+      andConditions.push({ commentId: { [Op.is]: null } });
     }
   }
-  if (data.category) where.category = data.category;
+  if (data.category) {
+    andConditions.push({ category: data.category });
+  }
+  const searchTerm = typeof data.search === 'string' ? data.search.trim() : '';
+  if (searchTerm.length > 0) {
+    const safe = searchTerm.replace(/[%_]/g, '');
+    if (safe.length > 0) {
+      andConditions.push({ originalName: { [Op.like]: `%${safe}%` } });
+    }
+  }
+  const excludeIds = collectExcludeDocumentIds(data);
+  if (excludeIds.length > 0) {
+    andConditions.push({ id: { [Op.notIn]: excludeIds } });
+  }
+
+  const where = { [Op.and]: andConditions };
 
   const total = await AuditDocument.count({ where });
 
@@ -71,9 +130,11 @@ async function handler(req, res, next) {
     ]
   });
 
-  const documentsWithUrls = await Promise.all(
+  let documentsWithUrls = await Promise.all(
     documents.map(async (doc) => {
-      const downloadUrl = await storageService.generateDownloadUrl(doc.storageKey);
+      const downloadUrl = includeDownloadUrl
+        ? await storageService.generateDownloadUrl(doc.storageKey)
+        : null;
       return {
         id: doc.id,
         key: doc.storageKey,
@@ -92,10 +153,40 @@ async function handler(req, res, next) {
     })
   );
 
-  return apiResponse(res, req, next)({
+  const payload = {
     documents: documentsWithUrls,
     pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
-  });
+  };
+
+  if (data.includeCrossReferences === true) {
+    const models = modelsInstance.models;
+    const byProject = new Map();
+    for (const doc of documents) {
+      if (!doc.auditProjectId) continue;
+      if (!byProject.has(doc.auditProjectId)) {
+        byProject.set(doc.auditProjectId, []);
+      }
+      byProject.get(doc.auditProjectId).push(doc.id);
+    }
+    const refMap = new Map();
+    for (const [auditProjectId, docIds] of byProject) {
+      const m = await fetchCrossReferencesByDocumentIds(models, {
+        organizationId: user.organizationId,
+        auditProjectId,
+        documentIds: docIds
+      });
+      for (const [docId, refs] of m) {
+        refMap.set(docId, refs);
+      }
+    }
+    documentsWithUrls = documentsWithUrls.map((d) => ({
+      ...d,
+      crossReferences: refMap.get(d.id) ?? []
+    }));
+    payload.documents = documentsWithUrls;
+  }
+
+  return apiResponse(res, req, next)(payload);
 }
 
 const listRoute = {

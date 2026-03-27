@@ -121,7 +121,7 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | **Files** | `/files/upload-url` | Obtener URL firmada para subir archivo | Sí | `files.upload` |
 | | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
-| | `/files/list` | Listar documentos | Sí | `files.upload` |
+| | `/files/list` | Listar documentos (+ opc. `includeCrossReferences` por documento) | Sí | `files.upload` |
 | | `/files/delete` | Eliminar documento | Sí | `files.upload` |
 | | `/files/download-url` | Obtener URL firmada de descarga para un archivo existente | Sí | — |
 | **Clients** | `/clients/create` | Crear cliente (auditado) | Sí | `clients.create` |
@@ -144,6 +144,7 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/projects/tree/reorder` | Reordenar nodos dentro del mismo padre | Sí | `projects.tree.manage` |
 | | `/projects/tree/delete` | Eliminar nodo y subárbol | Sí | `projects.tree.manage` |
 | | `/projects/tree/full` | Obtener árbol completo del proyecto (1 query) | Sí | `projects.view` |
+| | `/projects/tree/node-detail` | Detalle de nodo (+ opc. `includeCrossReferences`: cruces salientes del nodo) | Sí | `projects.view` |
 | | `/projects/permanent-file/sections/create` | Crear sección del archivo permanente | Sí | `projects.permanentFile.manage` |
 | | `/projects/permanent-file/sections/list` | Listar secciones (por proyecto y opcionalmente padre) | Sí | `projects.view` |
 | | `/projects/permanent-file/sections/view` | Ver sección con ítems | Sí | `projects.view` |
@@ -154,6 +155,10 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/projects/permanent-file/items/update` | Actualizar ítem (estado, documento, etc.) | Sí | `projects.permanentFile.manage` |
 | | `/projects/permanent-file/items/delete` | Eliminar ítem | Sí | `projects.permanentFile.manage` |
 | | `/projects/permanent-file/apply-template` | Aplicar plantilla de la organización al proyecto | Sí | `projects.permanentFile.manage` |
+| | `/projects/references/create` | Crear referencia cruzada doc/nodo | Sí | `projects.references.manage` |
+| | `/projects/references/list` | Listar referencias por documento o nodo | Sí | `projects.references.manage` |
+| | `/projects/references/update` | Actualizar tipo/nota de una referencia | Sí | `projects.references.manage` |
+| | `/projects/references/delete` | Eliminar referencia | Sí | `projects.references.manage` |
 | **Comments** | `/comments/list` | Listar comentarios del ítem (paginado) | Sí | `projects.view` |
 | | `/comments/create` | Crear comentario en un ítem | Sí | `projects.view` |
 | | `/comments/update` | Actualizar comentario (autor o manage) | Sí | — |

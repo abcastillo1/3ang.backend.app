@@ -35,6 +35,9 @@ import { ACTIVITY_ACTIONS, ACTIVITY_ENTITIES } from './record-activity.js';
  *   activity.comment.created               → itemCode?, projectName?, commentId?, checklistItemId?
  *   activity.comment.updated               → itemCode?, projectName?, commentId?, checklistItemId?
  *   activity.comment.deleted               → itemCode?, projectName?, commentId?, checklistItemId?
+ *   activity.reference.created             → projectName, referenceId, sourceLabel, targetLabel
+ *   activity.reference.updated           → projectName, referenceId
+ *   activity.reference.deleted           → projectName, referenceId
  */
 const DESCRIPTION_KEYS = {
   PROJECT_CREATED: 'activity.project.created',
@@ -66,7 +69,10 @@ const DESCRIPTION_KEYS = {
   PERMANENT_FILE_ITEM_DELETED: 'activity.permanentFile.item.deleted',
   COMMENT_CREATED: 'activity.comment.created',
   COMMENT_UPDATED: 'activity.comment.updated',
-  COMMENT_DELETED: 'activity.comment.deleted'
+  COMMENT_DELETED: 'activity.comment.deleted',
+  REFERENCE_CREATED: 'activity.reference.created',
+  REFERENCE_UPDATED: 'activity.reference.updated',
+  REFERENCE_DELETED: 'activity.reference.deleted'
 };
 
 const MAP = {
@@ -387,6 +393,41 @@ const MAP = {
         commentId: ctx.commentId ?? null,
         checklistItemId: ctx.checklistItemId ?? null
       }
+    })
+  },
+  'projects.references.create': {
+    action: ACTIVITY_ACTIONS.REFERENCE_CREATED,
+    entity: ACTIVITY_ENTITIES.CROSS_REFERENCE,
+    build: (ctx) => ({
+      entityId: ctx.referenceId,
+      auditProjectId: ctx.auditProjectId,
+      description: DESCRIPTION_KEYS.REFERENCE_CREATED,
+      metadata: {
+        projectName: ctx.projectName,
+        referenceId: ctx.referenceId,
+        sourceLabel: ctx.sourceLabel,
+        targetLabel: ctx.targetLabel
+      }
+    })
+  },
+  'projects.references.update': {
+    action: ACTIVITY_ACTIONS.REFERENCE_UPDATED,
+    entity: ACTIVITY_ENTITIES.CROSS_REFERENCE,
+    build: (ctx) => ({
+      entityId: ctx.referenceId,
+      auditProjectId: ctx.auditProjectId,
+      description: DESCRIPTION_KEYS.REFERENCE_UPDATED,
+      metadata: { projectName: ctx.projectName, referenceId: ctx.referenceId }
+    })
+  },
+  'projects.references.delete': {
+    action: ACTIVITY_ACTIONS.REFERENCE_DELETED,
+    entity: ACTIVITY_ENTITIES.CROSS_REFERENCE,
+    build: (ctx) => ({
+      entityId: ctx.referenceId,
+      auditProjectId: ctx.auditProjectId,
+      description: DESCRIPTION_KEYS.REFERENCE_DELETED,
+      metadata: { projectName: ctx.projectName, referenceId: ctx.referenceId }
     })
   }
 };
