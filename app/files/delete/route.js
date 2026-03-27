@@ -22,7 +22,7 @@ async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
   const { AuditDocument } = modelsInstance.models;
-
+  console.log('data', data.id, user.organizationId);
   const document = await AuditDocument.findOne({
     where: { id: data.id, organizationId: user.organizationId }
   });
