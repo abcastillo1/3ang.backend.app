@@ -6,6 +6,7 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { sanitizeRichTextHtml, hasMeaningfulRichTextContent } from '../../../../../helpers/html-sanitize.js';
 import {
   createTreeChild,
   itemDisplayName,
@@ -36,6 +37,12 @@ const validators = [
     .optional()
     .isLength({ max: 500 })
     .withMessage('validators.description.invalid'),
+  validateField('data.evidenceText')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('validators.evidenceText.invalid')
+    .isLength({ max: 65535 })
+    .withMessage('validators.evidenceText.invalid'),
   validateField('data.isRequired')
     .optional()
     .isBoolean()
@@ -72,7 +79,12 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, EngagementFileSection, ChecklistItem: ChecklistItemModel, User } = modelsInstance.models;
+  const {
+    AuditProject,
+    EngagementFileSection,
+    ChecklistItem: ChecklistItemModel,
+    User
+  } = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
 
   const project = await AuditProject.findOne({
@@ -108,11 +120,16 @@ async function handler(req, res, next) {
 
   const transaction = await sequelize.transaction();
   try {
+    const sanitizedEvidenceText = hasMeaningfulRichTextContent(data.evidenceText)
+      ? sanitizeRichTextHtml(data.evidenceText)
+      : null;
+
     const item = await ChecklistItemModel.create({
       sectionId: section.id,
       createdByUserId: user.id,
       code: data.code,
       description: data.description || null,
+      evidenceText: sanitizedEvidenceText,
       isRequired: Boolean(data.isRequired),
       ref: data.ref || null,
       status: data.status || 'pending',

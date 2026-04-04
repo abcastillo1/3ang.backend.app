@@ -43,6 +43,9 @@
     "description": {
       "invalid": "Description must be a valid string"
     },
+    "evidenceText": {
+      "invalid": "Textual evidence is invalid or exceeds the allowed length"
+    },
     "permissionIds": {
       "required": "Permission IDs are required",
       "invalid": "Permission IDs must be an array"

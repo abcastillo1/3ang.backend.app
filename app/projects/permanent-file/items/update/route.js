@@ -6,6 +6,7 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { sanitizeRichTextHtml, hasMeaningfulRichTextContent } from '../../../../../helpers/html-sanitize.js';
 import { updateTreeNodeName, itemDisplayName } from '../../../../../helpers/permanent-file-tree-sync.js';
 import {
   syncItemAssignees,
@@ -34,6 +35,12 @@ const validators = [
     .optional()
     .isLength({ max: 500 })
     .withMessage('validators.description.invalid'),
+  validateField('data.evidenceText')
+    .optional({ nullable: true })
+    .isString()
+    .withMessage('validators.evidenceText.invalid')
+    .isLength({ max: 65535 })
+    .withMessage('validators.evidenceText.invalid'),
   validateField('data.isRequired')
     .optional()
     .isBoolean()
@@ -98,9 +105,15 @@ async function handler(req, res, next) {
   }
 
   const updateFields = {};
-  const allowed = ['code', 'description', 'isRequired', 'ref', 'status', 'sortOrder'];
+  const allowed = ['code', 'description', 'evidenceText', 'isRequired', 'ref', 'status', 'sortOrder'];
   for (const field of allowed) {
     if (data[field] !== undefined) updateFields[field] = data[field];
+  }
+  if (data.evidenceText !== undefined) {
+    const sanitizedEvidenceText = hasMeaningfulRichTextContent(data.evidenceText)
+      ? sanitizeRichTextHtml(data.evidenceText)
+      : null;
+    updateFields.evidenceText = sanitizedEvidenceText;
   }
   if (data.status) {
     updateFields.lastReviewedAt = new Date();
@@ -117,6 +130,9 @@ async function handler(req, res, next) {
 
   const transaction = await sequelize.transaction();
   try {
+    const changedFields = [];
+    const trackedFields = ['code', 'description', 'evidenceText', 'isRequired', 'ref', 'status', 'sortOrder', 'assignedUserId'];
+
     if (assigneeIds !== null) {
       await syncItemAssignees(item, assigneeIds, user.id, transaction);
     } else if (data.assignedUserId !== undefined) {
@@ -124,8 +140,14 @@ async function handler(req, res, next) {
     }
 
     if (Object.keys(updateFields).length) {
+      for (const field of trackedFields) {
+        if (Object.prototype.hasOwnProperty.call(updateFields, field) && item[field] !== updateFields[field]) {
+          changedFields.push(field);
+        }
+      }
       await item.update(updateFields, { transaction });
     }
+
     await item.reload({ transaction });
 
     if (item.treeNodeId && (data.code !== undefined || data.description !== undefined)) {
@@ -133,18 +155,18 @@ async function handler(req, res, next) {
     }
 
     await transaction.commit();
+    req.activityContext = {
+      itemId: item.id,
+      auditProjectId: project.id,
+      itemCode: item.code,
+      projectName: project.name,
+      status: data.status,
+      changedFields
+    };
   } catch (e) {
     await transaction.rollback();
     throw e;
   }
-
-  req.activityContext = {
-    itemId: item.id,
-    auditProjectId: project.id,
-    itemCode: item.code,
-    projectName: project.name,
-    status: data.status
-  };
   await item.reload({ include: [{ model: User, as: 'createdBy', attributes: ['id', 'fullName', 'email'] }] });
   const assignees = await loadAssigneesForItem(item.id, null);
   return apiResponse(res, req, next)({ item, assignees });

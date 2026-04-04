@@ -26,6 +26,12 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(500),
         allowNull: true
       },
+      evidenceText: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+        field: 'evidence_text',
+        comment: 'Rich text evidence content (HTML) for the checklist item'
+      },
       isRequired: {
         type: DataTypes.BOOLEAN,
         allowNull: false,

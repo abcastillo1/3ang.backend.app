@@ -43,6 +43,9 @@
     "description": {
       "invalid": "La descripción debe ser una cadena de texto válida"
     },
+    "evidenceText": {
+      "invalid": "La evidencia textual no es válida o excede la longitud permitida"
+    },
     "permissionIds": {
       "required": "Los IDs de permisos son requeridos",
       "invalid": "Los IDs de permisos deben ser un array"

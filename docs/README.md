@@ -72,6 +72,7 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 | Documento | Contenido |
 |-----------|-----------|
 | [`frontend/ACTIVITY-ITEM-SCREEN.md`](frontend/ACTIVITY-ITEM-SCREEN.md) | **Guía dedicada:** qué es cada pestaña (Evidencias, Comentarios, Notas, Campos/montarios), cómo funciona la evidencia (`node_id` + `comment_id` null), permisos, orden de implementación y referencias. |
+| [`frontend/api/checklist-item-evidence-text.md`](frontend/api/checklist-item-evidence-text.md) | Evidencia **textual** (HTML): campo `evidenceText`, endpoints create/update del ítem, lectura en `node-detail`, permisos, sanitización y diferencia con comentarios. |
 
 ### `frontend/flows/` — Flujos y comportamientos
 

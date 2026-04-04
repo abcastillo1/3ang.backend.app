@@ -88,8 +88,9 @@ Documento **único** que describe qué es cada parte de la pantalla de trabajo p
 ### 5.3 Notas / Working paper
 
 - **Qué es:** texto libre (o markdown) asociado al ítem: conclusión, procedimiento realizado, referencia NIA, etc.
-- **Backend:** cuando exista — columna `notes` o `metadata` en ítem, o tabla de notas; un PATCH o endpoint dedicado.
-- **UI:** textarea o editor simple + Guardar / autosave.
+- **Evidencia textual enriquecida (HTML):** el backend expone **`evidenceText`** en el ítem (`checklist_items.evidence_text`), guardado vía `permanent-file/items/create` y `.../update`. Ver contrato completo en **`api/checklist-item-evidence-text.md`**.
+- **Otras notas** (markdown plano, metadata estructurada): si aún no existen — columna `notes` o `metadata` en ítem, o tabla aparte.
+- **UI:** editor rich text para `evidenceText` + Guardar / autosave.
 
 ### 5.4 Campos (montos, fechas, “lo monetario”, etc.)
 
@@ -139,6 +140,7 @@ Documento **único** que describe qué es cada parte de la pantalla de trabajo p
 | Tema | Documento |
 |------|-----------|
 | Árbol, node-detail, permisos | `ENGAGEMENT-FILE-FRONTEND-GUIDE.md` |
+| Evidencia textual (HTML), `evidenceText` | `api/checklist-item-evidence-text.md` |
 | Comentarios, menciones, adjuntos | `api/checklist-item-comments.md` |
 | Árbol API | `api/tree.md` |
 | Borrado lógico documentos/nodos | `technical/soft-delete.md` |

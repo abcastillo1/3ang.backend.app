@@ -337,7 +337,12 @@ const MAP = {
       entityId: ctx.itemId,
       auditProjectId: ctx.auditProjectId,
       description: DESCRIPTION_KEYS.PERMANENT_FILE_ITEM_UPDATED,
-      metadata: { itemCode: ctx.itemCode, projectName: ctx.projectName, status: ctx.status }
+      metadata: {
+        itemCode: ctx.itemCode,
+        projectName: ctx.projectName,
+        status: ctx.status,
+        changedFields: Array.isArray(ctx.changedFields) ? ctx.changedFields : []
+      }
     })
   },
   'projects.permanentFile.item.delete': {
