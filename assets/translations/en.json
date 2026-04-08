@@ -46,6 +46,9 @@
     "evidenceText": {
       "invalid": "Textual evidence is invalid or exceeds the allowed length"
     },
+    "retentionScope": {
+      "invalid": "Retention scope must be structural (multi-year base) or per_period (per audit period)"
+    },
     "permissionIds": {
       "required": "Permission IDs are required",
       "invalid": "Permission IDs must be an array"
@@ -56,6 +59,9 @@
     "id": {
       "required": "ID is required",
       "invalid": "ID must be a valid integer"
+    },
+    "engagementFileTemplateId": {
+      "invalid": "Must be a positive integer or the string \"system\""
     },
     "module": {
       "invalid": "Module must be a valid string"
@@ -244,7 +250,18 @@
     "internalError": "Internal server error"
   },
   "permanentFile": {
-    "templateEmpty": "Permanent file template is empty. Configure sections and items in Settings.",
+    "systemEngagementTemplateLabel": "System default (KN01–KN10)",
+    "templateUpdateNothingToChange": "Send data.name and/or data.setAsDefault to update the template.",
+    "engagementTemplateNotFound": "Engagement file template not found.",
+    "noDefaultEngagementTemplate": "No default engagement template for the organization. Create one with templates/create, mark one as default, or call apply with engagementFileTemplateId \"system\".",
+    "sectionCodeRequiredForSystemTemplateItems": "For the system template, send data.sectionCode (e.g. KN01), not sectionId.",
+    "templateItemsSectionIdRequired": "data.sectionId is required for organization templates.",
+    "cannotMutateSystemEngagementTemplate": "The system engagement template is read-only. Create a firm template or use load-defaults to copy the standard structure.",
+    "orgEngagementTemplateNoSections": "This engagement template has no sections yet. Add sections in Settings, run load-defaults on an empty template, or apply with engagementFileTemplateId \"system\".",
+    "specifyEngagementTemplateForDefaults": "Specify data.engagementFileTemplateId when the organization has more than one template or already has sections.",
+    "invalidEngagementTemplateSelection": "applyEngagementFileTemplate must be \"system\" or a positive template id.",
+    "engagementFileTemplateApplyForbidden": "You do not have permission to apply an engagement template to the project.",
+    "templateEmpty": "Permanent file template is empty. Configure sections and items in Settings, or use engagementFileTemplateId \"system\".",
     "templateAlreadyHasSections": "Template already has sections. Load defaults is only allowed when the template is empty.",
     "templateApplied": "Template applied to project.",
     "defaultsLoaded": "Default template loaded.",

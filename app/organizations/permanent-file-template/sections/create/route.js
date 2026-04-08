@@ -6,8 +6,11 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { resolveOrgTemplateId, isSystemEngagementTemplateRef } from '../../../../../helpers/engagement-file-template-org.js';
+import { validateOptionalEngagementFileTemplateId } from '../../../../../helpers/engagement-file-template-request.js';
 
 const validators = [
+  validateOptionalEngagementFileTemplateId(),
   validateField('data.code')
     .notEmpty()
     .withMessage('validators.code.required')
@@ -26,6 +29,10 @@ const validators = [
     .optional()
     .isLength({ max: 10 })
     .withMessage('validators.priority.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -40,9 +47,20 @@ async function handler(req, res, next) {
   const { user } = req;
   const { EngagementFileTemplateSection } = modelsInstance.models;
 
+  if (isSystemEngagementTemplateRef(data?.engagementFileTemplateId)) {
+    throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.cannotMutateSystemEngagementTemplate');
+  }
+
   const orgId = user.organizationId;
+  const templateId = await resolveOrgTemplateId(
+    modelsInstance.models,
+    orgId,
+    data?.engagementFileTemplateId,
+    null
+  );
+
   const existing = await EngagementFileTemplateSection.findOne({
-    where: { organizationId: orgId, code: data.code }
+    where: { templateId, code: data.code }
   });
   if (existing) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.sectionCodeExists');
@@ -51,7 +69,7 @@ async function handler(req, res, next) {
   let parentSectionId = data.parentSectionId || null;
   if (parentSectionId) {
     const parent = await EngagementFileTemplateSection.findOne({
-      where: { id: parentSectionId, organizationId: orgId }
+      where: { id: parentSectionId, organizationId: orgId, templateId }
     });
     if (!parent) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.parentSectionNotFound');
@@ -59,15 +77,17 @@ async function handler(req, res, next) {
   }
 
   const maxOrder = await EngagementFileTemplateSection.max('sortOrder', {
-    where: { organizationId: orgId, parentSectionId }
+    where: { templateId, parentSectionId }
   });
 
   const section = await EngagementFileTemplateSection.create({
     organizationId: orgId,
+    templateId,
     parentSectionId,
     code: data.code,
     name: data.name,
     priority: data.priority || null,
+    retentionScope: data.retentionScope || 'structural',
     sortOrder: data.sortOrder !== undefined ? data.sortOrder : (maxOrder ?? 0) + 1
   });
 

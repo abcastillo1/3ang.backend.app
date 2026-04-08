@@ -46,6 +46,9 @@
     "evidenceText": {
       "invalid": "La evidencia textual no es válida o excede la longitud permitida"
     },
+    "retentionScope": {
+      "invalid": "El ámbito de retención debe ser structural (P / base multi-año) o per_period (C / por período auditado)"
+    },
     "permissionIds": {
       "required": "Los IDs de permisos son requeridos",
       "invalid": "Los IDs de permisos deben ser un array"
@@ -56,6 +59,9 @@
     "id": {
       "required": "El ID es requerido",
       "invalid": "El ID debe ser un entero válido"
+    },
+    "engagementFileTemplateId": {
+      "invalid": "Debe ser un entero positivo o la cadena \"system\""
     },
     "module": {
       "invalid": "El módulo debe ser una cadena de texto válida"
@@ -394,7 +400,18 @@
     }
   },
   "permanentFile": {
-    "templateEmpty": "La plantilla de archivo permanente está vacía. Configure secciones e ítems en Configuración.",
+    "systemEngagementTemplateLabel": "Plantilla estándar del sistema (KN01–KN10)",
+    "templateUpdateNothingToChange": "Envíe data.name y/o data.setAsDefault para actualizar la plantilla.",
+    "engagementTemplateNotFound": "Plantilla de expediente no encontrada.",
+    "noDefaultEngagementTemplate": "No hay plantilla de expediente marcada por defecto en la firma. Cree una con templates/create, marque una como predeterminada, o aplique con engagementFileTemplateId \"system\".",
+    "sectionCodeRequiredForSystemTemplateItems": "Para la plantilla del sistema envíe data.sectionCode (ej. KN01), no sectionId.",
+    "templateItemsSectionIdRequired": "data.sectionId es obligatorio para plantillas de la firma.",
+    "cannotMutateSystemEngagementTemplate": "La plantilla de expediente del sistema es solo lectura. Cree una plantilla en la firma o use load-defaults para copiar la estructura estándar.",
+    "orgEngagementTemplateNoSections": "Esta plantilla de expediente aún no tiene secciones. Añádalas en Configuración, ejecute load-defaults sobre una plantilla vacía, o aplique con engagementFileTemplateId \"system\".",
+    "specifyEngagementTemplateForDefaults": "Indique data.engagementFileTemplateId si la firma tiene más de una plantilla o ya tiene secciones.",
+    "invalidEngagementTemplateSelection": "applyEngagementFileTemplate debe ser \"system\" o un id de plantilla válido.",
+    "engagementFileTemplateApplyForbidden": "No tiene permiso para aplicar una plantilla de expediente al proyecto.",
+    "templateEmpty": "La plantilla de expediente está vacía. Configure secciones en Configuración o use engagementFileTemplateId \"system\".",
     "templateAlreadyHasSections": "La plantilla ya tiene secciones. Cargar valores por defecto solo está permitido cuando la plantilla está vacía.",
     "templateApplied": "Plantilla aplicada al proyecto.",
     "defaultsLoaded": "Plantilla por defecto cargada.",

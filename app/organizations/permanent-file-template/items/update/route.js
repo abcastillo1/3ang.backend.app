@@ -6,6 +6,7 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { Op } from 'sequelize';
 
 const validators = [
   validateField('data.itemId')
@@ -29,6 +30,10 @@ const validators = [
     .optional()
     .isLength({ max: 100 })
     .withMessage('validators.ref.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -53,7 +58,11 @@ async function handler(req, res, next) {
 
   if (data.code !== undefined && data.code !== item.code) {
     const existing = await EngagementFileTemplateItem.findOne({
-      where: { templateSectionId: item.templateSectionId, code: data.code }
+      where: {
+        templateSectionId: item.templateSectionId,
+        code: data.code,
+        id: { [Op.ne]: item.id }
+      }
     });
     if (existing) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.itemCodeExists');
@@ -64,6 +73,9 @@ async function handler(req, res, next) {
   ['code', 'description', 'isRequired', 'ref', 'sortOrder'].forEach(field => {
     if (data[field] !== undefined) updateFields[field] = data[field];
   });
+  if (data.retentionScope !== undefined) {
+    updateFields.retentionScope = data.retentionScope === 'per_period' ? 'per_period' : 'structural';
+  }
   await item.update(updateFields);
 
   return apiResponse(res, req, next)({ item });

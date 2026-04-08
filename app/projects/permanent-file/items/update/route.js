@@ -49,6 +49,10 @@ const validators = [
     .optional()
     .isLength({ max: 100 })
     .withMessage('validators.ref.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.status')
     .optional()
     .isIn(STATUSES)
@@ -109,6 +113,9 @@ async function handler(req, res, next) {
   for (const field of allowed) {
     if (data[field] !== undefined) updateFields[field] = data[field];
   }
+  if (data.retentionScope !== undefined) {
+    updateFields.retentionScope = data.retentionScope === 'per_period' ? 'per_period' : 'structural';
+  }
   if (data.evidenceText !== undefined) {
     const sanitizedEvidenceText = hasMeaningfulRichTextContent(data.evidenceText)
       ? sanitizeRichTextHtml(data.evidenceText)
@@ -131,7 +138,7 @@ async function handler(req, res, next) {
   const transaction = await sequelize.transaction();
   try {
     const changedFields = [];
-    const trackedFields = ['code', 'description', 'evidenceText', 'isRequired', 'ref', 'status', 'sortOrder', 'assignedUserId'];
+    const trackedFields = ['code', 'description', 'evidenceText', 'isRequired', 'ref', 'retentionScope', 'status', 'sortOrder', 'assignedUserId'];
 
     if (assigneeIds !== null) {
       await syncItemAssignees(item, assigneeIds, user.id, transaction);

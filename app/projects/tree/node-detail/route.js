@@ -128,6 +128,7 @@ async function handler(req, res, next) {
         name: section.name,
         description: section.description,
         priority: section.priority,
+         retentionScope: section.retentionScope,
         sortOrder: section.sortOrder,
         treeNodeId: section.treeNodeId,
         items: (section.items || []).map(it => ({
@@ -138,6 +139,7 @@ async function handler(req, res, next) {
           status: it.status,
           isRequired: it.isRequired,
           ref: it.ref,
+          retentionScope: it.retentionScope,
           treeNodeId: it.treeNodeId,
           sortOrder: it.sortOrder,
           lastReviewedAt: it.lastReviewedAt,
@@ -172,6 +174,7 @@ async function handler(req, res, next) {
         status: item.status,
         isRequired: item.isRequired,
         ref: item.ref,
+        retentionScope: item.retentionScope,
         treeNodeId: item.treeNodeId,
         sortOrder: item.sortOrder,
         lastReviewedAt: item.lastReviewedAt,

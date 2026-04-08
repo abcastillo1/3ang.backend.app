@@ -12,6 +12,11 @@ export default function (sequelize, DataTypes) {
         allowNull: false,
         field: 'organization_id'
       },
+      templateId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: 'template_id'
+      },
       parentSectionId: {
         type: DataTypes.INTEGER,
         allowNull: true,
@@ -28,6 +33,13 @@ export default function (sequelize, DataTypes) {
       priority: {
         type: DataTypes.STRING(10),
         allowNull: true
+      },
+      retentionScope: {
+        type: DataTypes.STRING(30),
+        allowNull: false,
+        defaultValue: 'structural',
+        field: 'retention_scope',
+        comment: 'structural=P multi-year base; per_period=C per audit period'
       },
       sortOrder: {
         type: DataTypes.INTEGER,
@@ -55,14 +67,16 @@ export default function (sequelize, DataTypes) {
       underscored: true,
       indexes: [
         { fields: ['organization_id'] },
+        { fields: ['template_id'] },
         { fields: ['parent_section_id'] },
-        { unique: true, fields: ['organization_id', 'code'] }
+        { unique: true, fields: ['template_id', 'code'] }
       ]
     }
   );
 
   EngagementFileTemplateSection.associate = function (models) {
     EngagementFileTemplateSection.belongsTo(models.Organization, { foreignKey: 'organizationId', as: 'organization' });
+    EngagementFileTemplateSection.belongsTo(models.EngagementFileTemplate, { foreignKey: 'templateId', as: 'template' });
     EngagementFileTemplateSection.belongsTo(models.EngagementFileTemplateSection, { foreignKey: 'parentSectionId', as: 'parentSection' });
     EngagementFileTemplateSection.hasMany(models.EngagementFileTemplateSection, { foreignKey: 'parentSectionId', as: 'children' });
     EngagementFileTemplateSection.hasMany(models.EngagementFileTemplateItem, { foreignKey: 'templateSectionId', as: 'items' });

@@ -40,6 +40,10 @@ const validators = [
     .optional()
     .isLength({ max: 10 })
     .withMessage('validators.priority.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -98,7 +102,7 @@ async function handler(req, res, next) {
   }
 
   const updateFields = {};
-  const allowed = ['code', 'name', 'description', 'parentSectionId', 'priority', 'sortOrder'];
+  const allowed = ['code', 'name', 'description', 'parentSectionId', 'priority', 'retentionScope', 'sortOrder'];
   for (const field of allowed) {
     if (data[field] !== undefined) updateFields[field] = data[field];
   }

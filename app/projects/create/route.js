@@ -7,6 +7,8 @@ import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import modelsInstance from '../../../models/index.js';
 import { createDefaultTreeStructure } from '../../../helpers/tree-seed.js';
+import { applyTemplateToProject } from '../../../helpers/permanent-file-template.js';
+import { isSystemEngagementTemplateRef } from '../../../helpers/engagement-file-template-org.js';
 
 const validators = [
   validateField('data.name')
@@ -106,6 +108,27 @@ async function handler(req, res, next) {
   }
 
   await createDefaultTreeStructure(project.id, user.organizationId);
+
+  const applyTpl = data.applyEngagementFileTemplate;
+  if (applyTpl !== undefined && applyTpl !== null) {
+    let templateSource;
+    if (isSystemEngagementTemplateRef(applyTpl)) {
+      templateSource = applyTpl;
+    } else {
+      const n = parseInt(applyTpl, 10);
+      if (Number.isNaN(n) || n < 1) {
+        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.invalidEngagementTemplateSelection');
+      }
+      templateSource = n;
+    }
+    const canApply = await req.userModel.hasPermission('projects.engagementFile.manage');
+    if (!canApply) {
+      throw throwError(HTTP_STATUS.FORBIDDEN, 'permanentFile.engagementFileTemplateApplyForbidden');
+    }
+    await applyTemplateToProject(project.id, user.organizationId, {
+      engagementFileTemplateId: templateSource
+    });
+  }
 
   const result = await AuditProject.findByPk(project.id, {
     include: [{ model: modelsInstance.models.Client, as: 'client', attributes: ['id', 'name', 'ruc'] }]

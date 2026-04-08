@@ -2,6 +2,7 @@ import modelsInstance from '../models/index.js';
 
 export const SETTING_KEY = 'project_tree_template';
 
+/** Top-level areas for every project (created on project create). See docs/technical/engagement-templates.md */
 export const DEFAULT_TREE_TEMPLATE = [
   { type: 'engagement_file', name: 'Archivo Permanente' },
   { type: 'planning', name: 'Planificación' },
@@ -25,6 +26,11 @@ async function getTemplate(organizationId) {
   } catch { /* ignore parse errors */ }
 
   return DEFAULT_TREE_TEMPLATE;
+}
+
+/** Raíces del árbol de proyecto (mismo criterio que al crear proyecto). Para previews de plantilla / UI. */
+export async function getProjectTreeRootDefinition(organizationId) {
+  return getTemplate(organizationId);
 }
 
 export async function createDefaultTreeStructure(auditProjectId, organizationId, options = {}) {

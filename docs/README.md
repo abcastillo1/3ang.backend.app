@@ -46,6 +46,7 @@ Documentos sobre **cómo** está construido el backend: patrones, convenciones, 
 | [`technical/roadmap-centralizar-expediente.md`](technical/roadmap-centralizar-expediente.md) | Hoja de ruta para renombrar/centralizar `permanent_file_*` en un núcleo neutro (plantilla + secciones + ítems + árbol + docs), sin duplicar esquemas por fase. |
 | [`technical/mapa-arbol-expediente-centralizado.md`](technical/mapa-arbol-expediente-centralizado.md) | Mapa del esquema objetivo: capas, árbol, tablas `engagement_file_*`, rutas y permisos (estado final). |
 | [`technical/api-reference.md`](technical/api-reference.md) | Referencia de APIs existentes: Auth (login, refresh, logout), Users (list, create, update, profile), Roles (CRUD, assign-permissions), Permissions (list), Organizations. Incluye ejemplos de request/response y errores. |
+| [`technical/engagement-templates.md`](technical/engagement-templates.md) | **Plantillas:** un solo diagrama (ASCII + Mermaid) con org → proyecto, árbol, tablas y orden de operaciones. |
 
 **Cuándo leer:** Al implementar endpoints, revisar convenciones o configurar el entorno.
 
@@ -66,6 +67,7 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 | [`frontend/api/projects.md`](frontend/api/projects.md) | Proyectos de auditoría: CRUD, transición de estados, asignaciones de equipo. |
 | [`frontend/api/files.md`](frontend/api/files.md) | Endpoints de archivos: listar, eliminar, vincular, descargar. |
 | [`frontend/api/tree.md`](frontend/api/tree.md) | Árbol del proyecto: crear, listar, breadcrumb, mover, reordenar, eliminar nodos. |
+| [`frontend/api/engagement-template-retention-scope.md`](frontend/api/engagement-template-retention-scope.md) | Plantilla y secciones del expediente: **P/C** como `retentionScope` (`structural` / `per_period`), create/update plantilla y proyecto, apply-template. |
 
 ### Pantalla de actividad (ítem)
 
@@ -79,6 +81,7 @@ Contratos de API y flujos de integración para el frontend. Organizado en subcar
 | Documento | Contenido |
 |-----------|-----------|
 | [`frontend/flows/file-upload.md`](frontend/flows/file-upload.md) | Subida de archivos con presigned URLs: flujo de 3 pasos, categorías, MIME types, vinculación con entidades. |
+| [`frontend/flows/engagement-templates-module.md`](frontend/flows/engagement-templates-module.md) | **Plantillas de expediente:** flujo firma nueva (solo sistema → crear/copiar → editar), cards, endpoints y UX sugerida. |
 
 ### Referencia general
 

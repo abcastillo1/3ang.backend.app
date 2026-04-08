@@ -42,6 +42,13 @@ export default function (sequelize, DataTypes) {
         type: DataTypes.STRING(100),
         allowNull: true
       },
+      retentionScope: {
+        type: DataTypes.STRING(30),
+        allowNull: false,
+        defaultValue: 'structural',
+        field: 'retention_scope',
+        comment: 'structural=P multi-year; per_period=C per audit period'
+      },
       status: {
         type: DataTypes.STRING(30),
         allowNull: false,

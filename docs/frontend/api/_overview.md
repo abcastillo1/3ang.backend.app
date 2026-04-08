@@ -117,7 +117,10 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/organizations/permanent-file-template/items/create` | Crear ítem en la plantilla | Sí | `organizations.permanentFileTemplate.manage` |
 | | `/organizations/permanent-file-template/items/update` | Actualizar ítem de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
 | | `/organizations/permanent-file-template/items/delete` | Eliminar ítem de plantilla | Sí | `organizations.permanentFileTemplate.manage` |
-| | `/organizations/permanent-file-template/load-defaults` | Cargar plantilla por defecto (solo si está vacía) | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/load-defaults` | Cargar semilla del sistema en una plantilla vacía; opc. `data.engagementFileTemplateId` | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/templates/list` | Listar plantilla sistema (`id: "system"`) + plantillas de la org | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/templates/create` | Crear plantilla vacía (`data.name`, opc. `data.setAsDefault`) | Sí | `organizations.permanentFileTemplate.manage` |
+| | `/organizations/permanent-file-template/templates/update` | Actualizar plantilla de la firma (`data.templateId`, opc. `data.name`, `data.setAsDefault`) | Sí | `organizations.permanentFileTemplate.manage` |
 | **Files** | `/files/upload-url` | Obtener URL firmada para subir archivo | Sí | `files.upload` |
 | | `/files/confirm` | Confirmar subida y registrar documento (solo categorías de auditoría) | Sí | `files.upload` |
 | | `/files/link` | Vincular documentos a un proyecto existente | Sí | `files.upload` |
@@ -129,7 +132,7 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/clients/view` | Ver detalle de un cliente (con proyectos) | Sí | `clients.view` |
 | | `/clients/update` | Actualizar cliente | Sí | `clients.update` |
 | | `/clients/delete` | Eliminar cliente (soft delete) | Sí | `clients.delete` |
-| **Projects** | `/projects/create` | Crear proyecto de auditoría | Sí | `projects.create` |
+| **Projects** | `/projects/create` | Crear proyecto de auditoría; opc. `data.applyEngagementFileTemplate`: `"system"` o id de plantilla (también `projects.engagementFile.manage`) | Sí | `projects.create` |
 | | `/projects/list` | Listar proyectos (filtros: cliente, estado, búsqueda) | Sí | `projects.view` |
 | | `/projects/view` | Ver detalle del proyecto (equipo, cliente, docs) | Sí | `projects.view` |
 | | `/projects/update` | Actualizar proyecto (transición de estados) | Sí | `projects.update` |
@@ -154,7 +157,7 @@ Los keys de `errors` usan el formato `data.campo`, correspondiente al path dentr
 | | `/projects/permanent-file/items/list` | Listar ítems de una sección | Sí | `projects.view` |
 | | `/projects/permanent-file/items/update` | Actualizar ítem (estado, documento, etc.) | Sí | `projects.permanentFile.manage` |
 | | `/projects/permanent-file/items/delete` | Eliminar ítem | Sí | `projects.permanentFile.manage` |
-| | `/projects/permanent-file/apply-template` | Aplicar plantilla de la organización al proyecto | Sí | `projects.permanentFile.manage` |
+| | `/projects/permanent-file/apply-template` | Aplicar plantilla al proyecto; opc. `data.engagementFileTemplateId`: omitir (defecto org), `"system"` o id | Sí | `projects.engagementFile.manage` |
 | | `/projects/references/create` | Crear referencia cruzada doc/nodo | Sí | `projects.references.manage` |
 | | `/projects/references/list` | Listar referencias por documento o nodo | Sí | `projects.references.manage` |
 | | `/projects/references/update` | Actualizar tipo/nota de una referencia | Sí | `projects.references.manage` |

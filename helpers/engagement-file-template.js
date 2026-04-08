@@ -1,33 +1,3 @@
-/**
- * Plantilla por defecto del expediente estructurado (secciones e ítems estándar NIA).
- * Usado por load-defaults para insertar en la organización y por seed en migración.
- */
-export const DEFAULT_ENGAGEMENT_FILE_TEMPLATE = {
-  sections: [
-    { code: 'A', name: 'Historia del negocio y estructura', priority: 'P1', sortOrder: 0, items: [
-      { code: 'A.1', description: 'Estatutos o contrato de compañía vigentes', isRequired: true, ref: 'NIA 315', sortOrder: 0 },
-      { code: 'A.2', description: 'Historia y evolución del negocio', isRequired: false, ref: null, sortOrder: 1 },
-      { code: 'A.3', description: 'Organigrama actual', isRequired: false, ref: null, sortOrder: 2 }
-    ]},
-    { code: 'B', name: 'Organización societaria y gobierno', priority: 'P1', sortOrder: 1, items: [
-      { code: 'B.1', description: 'Acta de constitución y reformas', isRequired: true, ref: null, sortOrder: 0 },
-      { code: 'B.2', description: 'Registro de socios o accionistas', isRequired: true, ref: null, sortOrder: 1 },
-      { code: 'B.3', description: 'Poderes y representación legal', isRequired: true, ref: null, sortOrder: 2 }
-    ]},
-    { code: 'C', name: 'Controles internos y procesos', priority: 'P1', sortOrder: 2, items: [
-      { code: 'C.1', description: 'Manual de políticas y procedimientos', isRequired: false, ref: null, sortOrder: 0 },
-      { code: 'C.2', description: 'Evaluación de control interno (documentación)', isRequired: false, ref: 'NIA 315', sortOrder: 1 }
-    ]},
-    { code: 'D', name: 'Información financiera y normativa', priority: 'P2', sortOrder: 3, items: [
-      { code: 'D.1', description: 'EEFF anteriores y dictámenes', isRequired: true, ref: null, sortOrder: 0 },
-      { code: 'D.2', description: 'Normativa contable aplicable (NIIF/NIF)', isRequired: false, ref: null, sortOrder: 1 }
-    ]}
-  ]
-};
-
-/** @deprecated use DEFAULT_ENGAGEMENT_FILE_TEMPLATE */
-export const DEFAULT_PERMANENT_FILE_TEMPLATE = DEFAULT_ENGAGEMENT_FILE_TEMPLATE;
-
 import {
   findEngagementFileRoot,
   createTreeChild,
@@ -36,116 +6,218 @@ import {
   TYPE_SECTION_NODE,
   TYPE_CHECKLIST_ITEM_NODE
 } from './engagement-file-tree-sync.js';
+import { DEFAULT_ENGAGEMENT_FILE_TEMPLATE_SECTIONS } from './default-engagement-file-template-sections.js';
+import { isSystemEngagementTemplateRef, SYSTEM_ENGAGEMENT_FILE_TEMPLATE_KEY } from './engagement-file-template-org.js';
+import { throwError } from './errors.js';
+import { HTTP_STATUS } from '../config/constants.js';
+
+export { SYSTEM_ENGAGEMENT_FILE_TEMPLATE_KEY };
 
 /**
- * Copia la plantilla de la organización al proyecto.
- * Crea engagement_file_sections y checklist_items y nodos en audit_tree_nodes bajo
- * el nodo raíz engagement_file para que tree/full sea la única jerarquía en UI.
+ * Default engagement file template (sections + checklist items).
+ * Used by load-defaults and seeds. Item retentionScope: structural = P, per_period = C.
+ */
+export const DEFAULT_ENGAGEMENT_FILE_TEMPLATE = {
+  sections: DEFAULT_ENGAGEMENT_FILE_TEMPLATE_SECTIONS
+};
+
+/** @deprecated use DEFAULT_ENGAGEMENT_FILE_TEMPLATE */
+export const DEFAULT_PERMANENT_FILE_TEMPLATE = DEFAULT_ENGAGEMENT_FILE_TEMPLATE;
+
+/** Orden jerárquico (padre → hijos) para secciones de plantilla en BD. */
+export function sortDbTemplateSectionsFlat(templateSections) {
+  const byParent = new Map();
+  for (const s of templateSections) {
+    const pid = s.parentSectionId ?? 0;
+    if (!byParent.has(pid)) byParent.set(pid, []);
+    byParent.get(pid).push(s);
+  }
+  for (const arr of byParent.values()) arr.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  const sorted = [];
+  function addLevel(parentId) {
+    const children = byParent.get(parentId) || [];
+    for (const s of children) {
+      sorted.push(s);
+      addLevel(s.id);
+    }
+  }
+  addLevel(0);
+  return sorted;
+}
+
+function plainSeedSectionsToNormalizedRows(plainSections) {
+  return plainSections.map(sec => ({
+    templateKey: sec.code,
+    parentKey: null,
+    code: sec.code,
+    name: sec.name,
+    priority: sec.priority ?? null,
+    retentionScope: sec.retentionScope === 'per_period' ? 'per_period' : 'structural',
+    sortOrder: sec.sortOrder ?? 0,
+    items: (sec.items || []).map(it => ({
+      code: it.code,
+      description: it.description ?? null,
+      isRequired: !!it.isRequired,
+      ref: it.ref ?? null,
+      retentionScope: it.retentionScope === 'per_period' ? 'per_period' : 'structural',
+      sortOrder: it.sortOrder ?? 0
+    }))
+  }));
+}
+
+function dbTemplateSectionsToNormalizedRows(sortedDbSections) {
+  return sortedDbSections.map(tsec => ({
+    templateKey: tsec.id,
+    parentKey: tsec.parentSectionId ?? null,
+    code: tsec.code,
+    name: tsec.name,
+    priority: tsec.priority ?? null,
+    retentionScope: tsec.retentionScope === 'per_period' ? 'per_period' : 'structural',
+    sortOrder: tsec.sortOrder ?? 0,
+    items: [...(tsec.items || [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+  }));
+}
+
+/**
+ * @param {Array<{ templateKey: string|number, parentKey: string|number|null, code, name, priority, retentionScope, sortOrder, items }>} rows
+ */
+async function applyNormalizedTemplateRows(auditProjectId, rows, transaction) {
+  const modelsInstance = (await import('../models/index.js')).default;
+  const models = modelsInstance.models;
+  const { EngagementFileSection, ChecklistItem } = models;
+
+  const mapKeyToSectionId = {};
+  const engagementFileRoot = await findEngagementFileRoot(auditProjectId, transaction);
+
+  for (const tsec of rows) {
+    const parentSectionId = tsec.parentKey != null ? mapKeyToSectionId[tsec.parentKey] ?? null : null;
+    const section = await EngagementFileSection.create({
+      auditProjectId,
+      parentSectionId,
+      code: tsec.code,
+      name: tsec.name,
+      priority: tsec.priority,
+      retentionScope: tsec.retentionScope || 'structural',
+      sortOrder: tsec.sortOrder
+    }, { transaction });
+    mapKeyToSectionId[tsec.templateKey] = section.id;
+
+    let parentTreeNode = engagementFileRoot;
+    if (parentSectionId) {
+      const parentSection = await EngagementFileSection.findByPk(parentSectionId, { transaction });
+      if (parentSection && parentSection.treeNodeId) {
+        parentTreeNode = await models.AuditTreeNode.findByPk(parentSection.treeNodeId, { transaction });
+      }
+    }
+
+    if (parentTreeNode) {
+      const sectionNode = await createTreeChild(
+        auditProjectId,
+        parentTreeNode,
+        TYPE_SECTION_NODE,
+        sectionDisplayName(section),
+        section.id,
+        section.sortOrder,
+        transaction
+      );
+      await section.update({ treeNodeId: sectionNode.id }, { transaction });
+    }
+
+    const sectionTreeNode = section.treeNodeId
+      ? await models.AuditTreeNode.findByPk(section.treeNodeId, { transaction })
+      : null;
+
+    for (const titem of tsec.items || []) {
+      const itemScope = titem.retentionScope === 'per_period' ? 'per_period' : 'structural';
+      const item = await ChecklistItem.create({
+        sectionId: section.id,
+        code: titem.code,
+        description: titem.description,
+        isRequired: !!titem.isRequired,
+        ref: titem.ref,
+        retentionScope: itemScope,
+        status: 'pending',
+        sortOrder: titem.sortOrder
+      }, { transaction });
+
+      if (sectionTreeNode) {
+        const itemNode = await createTreeChild(
+          auditProjectId,
+          sectionTreeNode,
+          TYPE_CHECKLIST_ITEM_NODE,
+          itemDisplayName(item),
+          item.id,
+          item.sortOrder,
+          transaction
+        );
+        await item.update({ treeNodeId: itemNode.id }, { transaction });
+      }
+    }
+  }
+
+  return { sectionsCreated: rows.length };
+}
+
+/**
+ * Copia una plantilla al proyecto (secciones, ítems y nodos bajo la raíz engagement_file).
+ *
+ * @param {number} auditProjectId
+ * @param {number} organizationId
+ * @param {object} [options]
+ * @param {import('sequelize').Transaction} [options.transaction]
+ * @param {string|number|undefined} [options.engagementFileTemplateId] — `'system'` = plantilla del producto (JS); número = id en `engagement_file_templates`; omitido = plantilla por defecto de la firma.
  */
 export async function applyTemplateToProject(auditProjectId, organizationId, options = {}) {
   const modelsInstance = (await import('../models/index.js')).default;
   const models = modelsInstance.models;
   const sequelize = modelsInstance.sequelize;
-  const { EngagementFileTemplateSection, EngagementFileTemplateItem, EngagementFileSection, ChecklistItem } = models;
+  const { EngagementFileTemplate, EngagementFileTemplateSection, EngagementFileTemplateItem } = models;
 
   const ownTransaction = !options.transaction;
   const transaction = options.transaction || await sequelize.transaction();
+  const source = options.engagementFileTemplateId;
 
   try {
-    const templateSections = await EngagementFileTemplateSection.findAll({
-      where: { organizationId },
-      include: [{ model: EngagementFileTemplateItem, as: 'items', required: false }],
-      transaction
-    });
-
-    const roots = templateSections.filter(s => !s.parentSectionId).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const byParent = new Map();
-    for (const s of templateSections) {
-      const pid = s.parentSectionId ?? 0;
-      if (!byParent.has(pid)) byParent.set(pid, []);
-      byParent.get(pid).push(s);
-    }
-    for (const arr of byParent.values()) arr.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const sorted = [];
-    function addLevel(parentId) {
-      const children = byParent.get(parentId) || [];
-      for (const s of children) {
-        sorted.push(s);
-        addLevel(s.id);
-      }
-    }
-    addLevel(0);
-
-    const mapTemplateIdToSectionId = {};
-    const engagementFileRoot = await findEngagementFileRoot(auditProjectId, transaction);
-
-    for (const tsec of sorted) {
-      const parentSectionId = tsec.parentSectionId ? mapTemplateIdToSectionId[tsec.parentSectionId] ?? null : null;
-      const section = await EngagementFileSection.create({
-        auditProjectId,
-        parentSectionId,
-        code: tsec.code,
-        name: tsec.name,
-        priority: tsec.priority,
-        sortOrder: tsec.sortOrder
-      }, { transaction });
-      mapTemplateIdToSectionId[tsec.id] = section.id;
-
-      let parentTreeNode = engagementFileRoot;
-      if (parentSectionId) {
-        const parentSection = await EngagementFileSection.findByPk(parentSectionId, { transaction });
-        if (parentSection && parentSection.treeNodeId) {
-          parentTreeNode = await models.AuditTreeNode.findByPk(parentSection.treeNodeId, { transaction });
-        }
-      }
-
-      if (parentTreeNode) {
-        const sectionNode = await createTreeChild(
-          auditProjectId,
-          parentTreeNode,
-          TYPE_SECTION_NODE,
-          sectionDisplayName(section),
-          section.id,
-          section.sortOrder,
+    let rows;
+    if (isSystemEngagementTemplateRef(source)) {
+      const plain = plainSeedSectionsToNormalizedRows(DEFAULT_ENGAGEMENT_FILE_TEMPLATE.sections);
+      rows = plain;
+    } else {
+      let templateId = source;
+      if (templateId == null || templateId === '') {
+        const def = await EngagementFileTemplate.findOne({
+          where: { organizationId, isDefault: true },
           transaction
-        );
-        await section.update({ treeNodeId: sectionNode.id }, { transaction });
-      }
-
-      const items = tsec.items || [];
-      items.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-      const sectionTreeNode = section.treeNodeId
-        ? await models.AuditTreeNode.findByPk(section.treeNodeId, { transaction })
-        : null;
-
-      for (const titem of items) {
-        const item = await ChecklistItem.create({
-          sectionId: section.id,
-          code: titem.code,
-          description: titem.description,
-          isRequired: !!titem.isRequired,
-          ref: titem.ref,
-          status: 'pending',
-          sortOrder: titem.sortOrder
-        }, { transaction });
-
-        if (sectionTreeNode) {
-          const itemNode = await createTreeChild(
-            auditProjectId,
-            sectionTreeNode,
-            TYPE_CHECKLIST_ITEM_NODE,
-            itemDisplayName(item),
-            item.id,
-            item.sortOrder,
-            transaction
-          );
-          await item.update({ treeNodeId: itemNode.id }, { transaction });
+        });
+        if (!def) {
+          throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.noDefaultEngagementTemplate');
+        }
+        templateId = def.id;
+      } else {
+        const tpl = await EngagementFileTemplate.findOne({
+          where: { id: templateId, organizationId },
+          transaction
+        });
+        if (!tpl) {
+          throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.engagementTemplateNotFound');
         }
       }
+
+      const templateSections = await EngagementFileTemplateSection.findAll({
+        where: { organizationId, templateId },
+        include: [{ model: EngagementFileTemplateItem, as: 'items', required: false }],
+        transaction
+      });
+      if (templateSections.length === 0) {
+        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.orgEngagementTemplateNoSections');
+      }
+      const sorted = sortDbTemplateSectionsFlat(templateSections);
+      rows = dbTemplateSectionsToNormalizedRows(sorted);
     }
 
+    const result = await applyNormalizedTemplateRows(auditProjectId, rows, transaction);
     if (ownTransaction) await transaction.commit();
-    return { sectionsCreated: sorted.length };
+    return result;
   } catch (e) {
     if (ownTransaction) await transaction.rollback();
     throw e;

@@ -6,6 +6,7 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { Op } from 'sequelize';
 
 const validators = [
   validateField('data.sectionId')
@@ -29,6 +30,10 @@ const validators = [
     .optional()
     .isLength({ max: 10 })
     .withMessage('validators.priority.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -52,7 +57,11 @@ async function handler(req, res, next) {
 
   if (data.code !== undefined && data.code !== section.code) {
     const existing = await EngagementFileTemplateSection.findOne({
-      where: { organizationId: user.organizationId, code: data.code }
+      where: {
+        templateId: section.templateId,
+        code: data.code,
+        id: { [Op.ne]: section.id }
+      }
     });
     if (existing) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.sectionCodeExists');
@@ -66,7 +75,11 @@ async function handler(req, res, next) {
     }
     if (newParentId) {
       const parent = await EngagementFileTemplateSection.findOne({
-        where: { id: newParentId, organizationId: user.organizationId }
+        where: {
+          id: newParentId,
+          organizationId: user.organizationId,
+          templateId: section.templateId
+        }
       });
       if (!parent) {
         throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.parentSectionNotFound');
@@ -75,7 +88,7 @@ async function handler(req, res, next) {
   }
 
   const updateFields = {};
-  ['code', 'name', 'parentSectionId', 'priority', 'sortOrder'].forEach(field => {
+  ['code', 'name', 'parentSectionId', 'priority', 'retentionScope', 'sortOrder'].forEach(field => {
     if (data[field] !== undefined) updateFields[field] = data[field];
   });
   await section.update(updateFields);

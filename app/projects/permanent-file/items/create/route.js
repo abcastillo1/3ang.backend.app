@@ -51,6 +51,10 @@ const validators = [
     .optional()
     .isLength({ max: 100 })
     .withMessage('validators.ref.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.status')
     .optional()
     .isIn(['pending', 'in_review', 'compliant', 'not_applicable'])
@@ -132,6 +136,7 @@ async function handler(req, res, next) {
       evidenceText: sanitizedEvidenceText,
       isRequired: Boolean(data.isRequired),
       ref: data.ref || null,
+      retentionScope: data.retentionScope === 'per_period' ? 'per_period' : 'structural',
       status: data.status || 'pending',
       assignedUserId: assigneeIds.length ? assigneeIds[0] : null,
       sortOrder: data.sortOrder !== undefined ? data.sortOrder : (maxOrder ?? 0) + 1

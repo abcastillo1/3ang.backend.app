@@ -1,3 +1,4 @@
+import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
@@ -8,49 +9,103 @@ import modelsInstance from '../../../../models/index.js';
 import { DEFAULT_PERMANENT_FILE_TEMPLATE } from '../../../../helpers/permanent-file-template.js';
 
 const validators = [
+  validateField('data.engagementFileTemplateId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.id.invalid'),
   validateRequest,
   authenticate,
   requirePermission('organizations.permanentFileTemplate.manage')
 ];
 
 async function handler(req, res, next) {
+  const { data } = req.body;
   const { user } = req;
-  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplate, EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
+  const organizationId = user.organizationId;
 
-  const existing = await EngagementFileTemplateSection.count({
-    where: { organizationId: user.organizationId }
-  });
-  if (existing > 0) {
-    throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.templateAlreadyHasSections');
-  }
+  const sequelize = modelsInstance.sequelize;
+  const transaction = await sequelize.transaction();
 
-  for (const sec of DEFAULT_PERMANENT_FILE_TEMPLATE.sections) {
-    const section = await EngagementFileTemplateSection.create({
-      organizationId: user.organizationId,
-      parentSectionId: null,
-      code: sec.code,
-      name: sec.name,
-      priority: sec.priority || null,
-      sortOrder: sec.sortOrder ?? 0
+  try {
+    const totalSections = await EngagementFileTemplateSection.count({
+      where: { organizationId },
+      transaction
     });
-    for (const it of sec.items || []) {
-      await EngagementFileTemplateItem.create({
-        templateSectionId: section.id,
-        code: it.code,
-        description: it.description || null,
-        isRequired: !!it.isRequired,
-        ref: it.ref || null,
-        sortOrder: it.sortOrder ?? 0
+    const templates = await EngagementFileTemplate.findAll({
+      where: { organizationId },
+      transaction
+    });
+
+    let template;
+    if (data?.engagementFileTemplateId != null) {
+      template = await EngagementFileTemplate.findOne({
+        where: { id: data.engagementFileTemplateId, organizationId },
+        transaction
       });
+      if (!template) {
+        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.engagementTemplateNotFound');
+      }
+      const secCount = await EngagementFileTemplateSection.count({
+        where: { templateId: template.id },
+        transaction
+      });
+      if (secCount > 0) {
+        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.templateAlreadyHasSections');
+      }
+    } else {
+      if (totalSections > 0) {
+        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.specifyEngagementTemplateForDefaults');
+      }
+      if (templates.length === 0) {
+        template = await EngagementFileTemplate.create({
+          organizationId,
+          name: 'Plantilla principal',
+          isDefault: true
+        }, { transaction });
+      } else if (templates.length === 1) {
+        template = templates[0];
+      } else {
+        throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.specifyEngagementTemplateForDefaults');
+      }
     }
+
+    for (const sec of DEFAULT_PERMANENT_FILE_TEMPLATE.sections) {
+      const section = await EngagementFileTemplateSection.create({
+        organizationId,
+        templateId: template.id,
+        parentSectionId: null,
+        code: sec.code,
+        name: sec.name,
+        priority: sec.priority || null,
+        retentionScope: sec.retentionScope === 'per_period' ? 'per_period' : 'structural',
+        sortOrder: sec.sortOrder ?? 0
+      }, { transaction });
+      for (const it of sec.items || []) {
+        await EngagementFileTemplateItem.create({
+          templateSectionId: section.id,
+          code: it.code,
+          description: it.description || null,
+          isRequired: !!it.isRequired,
+          ref: it.ref || null,
+          retentionScope: it.retentionScope === 'per_period' ? 'per_period' : 'structural',
+          sortOrder: it.sortOrder ?? 0
+        }, { transaction });
+      }
+    }
+
+    const sections = await EngagementFileTemplateSection.findAll({
+      where: { organizationId, templateId: template.id },
+      order: [['sortOrder', 'ASC'], ['id', 'ASC']],
+      transaction
+    });
+
+    await transaction.commit();
+    return apiResponse(res, req, next)({ template, sections, message: 'permanentFile.defaultsLoaded' });
+  } catch (e) {
+    await transaction.rollback();
+    throw e;
   }
-
-  const sections = await EngagementFileTemplateSection.findAll({
-    where: { organizationId: user.organizationId },
-    order: [['sortOrder', 'ASC'], ['id', 'ASC']]
-  });
-
-  return apiResponse(res, req, next)({ sections, message: 'permanentFile.defaultsLoaded' });
 }
 
 const loadDefaultsRoute = {

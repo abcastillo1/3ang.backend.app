@@ -37,6 +37,10 @@ const validators = [
     .optional()
     .isLength({ max: 10 })
     .withMessage('validators.priority.invalid'),
+  validateField('data.retentionScope')
+    .optional()
+    .isIn(['structural', 'per_period'])
+    .withMessage('validators.retentionScope.invalid'),
   validateField('data.sortOrder')
     .optional()
     .isInt({ min: 0 })
@@ -94,6 +98,7 @@ async function handler(req, res, next) {
       name: data.name,
       description: data.description || null,
       priority: data.priority || null,
+      retentionScope: data.retentionScope || 'structural',
       sortOrder: data.sortOrder !== undefined ? data.sortOrder : (maxOrder ?? 0) + 1
     }, { transaction });
 

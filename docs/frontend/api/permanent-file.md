@@ -346,16 +346,19 @@ Requiere permiso: projects.permanentFile.manage
 ```json
 {
   "data": {
-    "auditProjectId": 5
+    "auditProjectId": 5,
+    "engagementFileTemplateId": "system"
   }
 }
 ```
 
-Copia todas las secciones e ítems de la plantilla de la organización al proyecto (nuevas secciones e ítems con estado `pending`). No elimina ni reemplaza secciones/ítems existentes.
+Opcional: `engagementFileTemplateId` — omitir → plantilla **por defecto** de la firma (tabla `engagement_file_templates`); `"system"` → plantilla embebida del producto (KN01–KN10, sin fila en BD); número → id de plantilla de la org.
+
+Copia secciones e ítems al proyecto (estado `pending`). No elimina contenido previo del expediente.
 
 **Response (200):** `data: { sectionsCreated: N, message: "permanentFile.templateApplied" }`
 
-**Errores:** 404 `projects.notFound`, 400 `permanentFile.templateEmpty` (la organización no tiene secciones en la plantilla).
+**Errores:** 404 `projects.notFound`; 400 `permanentFile.noDefaultEngagementTemplate` (ninguna plantilla marcada por defecto); `permanentFile.orgEngagementTemplateNoSections` (la plantilla elegida no tiene secciones); `permanentFile.engagementTemplateNotFound`; `permanentFile.invalidEngagementTemplateSelection`.
 
 ---
 
@@ -370,7 +373,9 @@ Todas las acciones que crean, actualizan o eliminan secciones e ítems **de proy
 | errorCode | Descripción |
 |-----------|-------------|
 | `projects.notFound` | Proyecto no encontrado o no pertenece a la organización |
-| `permanentFile.templateEmpty` | La plantilla de la organización está vacía |
+| `permanentFile.templateEmpty` | (Legacy) Mensaje genérico; apply-template usa códigos más específicos abajo |
+| `permanentFile.noDefaultEngagementTemplate` | No hay plantilla por defecto en la firma |
+| `permanentFile.orgEngagementTemplateNoSections` | La plantilla existe pero no tiene secciones |
 | `permanentFile.templateAlreadyHasSections` | La plantilla ya tiene secciones (load-defaults no permitido) |
 | `permanentFile.sectionNotFound` | Sección no encontrada |
 | `permanentFile.sectionCodeExists` | Ya existe una sección con ese código en el proyecto/plantilla |

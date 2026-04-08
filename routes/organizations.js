@@ -18,6 +18,9 @@ import pfTemplateItemsCreateRoute from '../app/organizations/permanent-file-temp
 import pfTemplateItemsUpdateRoute from '../app/organizations/permanent-file-template/items/update/route.js';
 import pfTemplateItemsDeleteRoute from '../app/organizations/permanent-file-template/items/delete/route.js';
 import pfTemplateLoadDefaultsRoute from '../app/organizations/permanent-file-template/load-defaults/route.js';
+import engagementFileTemplatesListRoute from '../app/organizations/permanent-file-template/templates/list/route.js';
+import engagementFileTemplatesCreateRoute from '../app/organizations/permanent-file-template/templates/create/route.js';
+import engagementFileTemplatesUpdateRoute from '../app/organizations/permanent-file-template/templates/update/route.js';
 
 const router = Router();
 
@@ -38,6 +41,9 @@ registerRoute(router, '/permanent-file-template/items/create', pfTemplateItemsCr
 registerRoute(router, '/permanent-file-template/items/update', pfTemplateItemsUpdateRoute, 'post');
 registerRoute(router, '/permanent-file-template/items/delete', pfTemplateItemsDeleteRoute, 'post');
 registerRoute(router, '/permanent-file-template/load-defaults', pfTemplateLoadDefaultsRoute, 'post');
+registerRoute(router, '/permanent-file-template/templates/list', engagementFileTemplatesListRoute, 'post');
+registerRoute(router, '/permanent-file-template/templates/create', engagementFileTemplatesCreateRoute, 'post');
+registerRoute(router, '/permanent-file-template/templates/update', engagementFileTemplatesUpdateRoute, 'post');
 registerRoute(router, '/engagement-file-template/sections/list', pfTemplateSectionsListRoute, 'post');
 registerRoute(router, '/engagement-file-template/sections/create', pfTemplateSectionsCreateRoute, 'post');
 registerRoute(router, '/engagement-file-template/sections/view', pfTemplateSectionsViewRoute, 'post');
@@ -48,5 +54,8 @@ registerRoute(router, '/engagement-file-template/items/create', pfTemplateItemsC
 registerRoute(router, '/engagement-file-template/items/update', pfTemplateItemsUpdateRoute, 'post');
 registerRoute(router, '/engagement-file-template/items/delete', pfTemplateItemsDeleteRoute, 'post');
 registerRoute(router, '/engagement-file-template/load-defaults', pfTemplateLoadDefaultsRoute, 'post');
+registerRoute(router, '/engagement-file-template/templates/list', engagementFileTemplatesListRoute, 'post');
+registerRoute(router, '/engagement-file-template/templates/create', engagementFileTemplatesCreateRoute, 'post');
+registerRoute(router, '/engagement-file-template/templates/update', engagementFileTemplatesUpdateRoute, 'post');
 
 export default router;
