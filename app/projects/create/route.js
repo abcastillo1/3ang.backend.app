@@ -41,6 +41,10 @@ const validators = [
     .optional()
     .isInt({ min: 1 })
     .withMessage('validators.documentIds.invalid'),
+  validateField('data.projectTreeFromEngagementTemplateId')
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage('validators.id.invalid'),
   validateRequest,
   authenticate,
   requirePermission('projects.create')
@@ -57,7 +61,8 @@ const VALID_TRANSITIONS = {
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, Client, AuditDocument, OrganizationSetting } = modelsInstance.models;
+  const { AuditProject, Client, AuditDocument, OrganizationSetting, EngagementFileTemplate } =
+    modelsInstance.models;
 
   const client = await Client.findOne({
     where: { id: data.clientId, organizationId: user.organizationId }
@@ -74,6 +79,16 @@ async function handler(req, res, next) {
     const currentCount = await AuditProject.count({ where: { organizationId: user.organizationId } });
     if (currentCount >= max) {
       throw throwError(HTTP_STATUS.BAD_REQUEST, 'projects.maxReached');
+    }
+  }
+
+  if (data.projectTreeFromEngagementTemplateId != null) {
+    const treeTid = parseInt(data.projectTreeFromEngagementTemplateId, 10);
+    const treeTpl = await EngagementFileTemplate.findOne({
+      where: { id: treeTid, organizationId: user.organizationId }
+    });
+    if (!treeTpl) {
+      throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.engagementTemplateNotFound');
     }
   }
 
@@ -107,7 +122,22 @@ async function handler(req, res, next) {
     );
   }
 
-  await createDefaultTreeStructure(project.id, user.organizationId);
+  function resolveTreeEngagementTemplateId() {
+    if (data.projectTreeFromEngagementTemplateId != null) {
+      const t = parseInt(data.projectTreeFromEngagementTemplateId, 10);
+      if (!Number.isNaN(t) && t >= 1) return t;
+    }
+    const applyTpl = data.applyEngagementFileTemplate;
+    if (applyTpl !== undefined && applyTpl !== null && !isSystemEngagementTemplateRef(applyTpl)) {
+      const n = parseInt(applyTpl, 10);
+      if (!Number.isNaN(n) && n >= 1) return n;
+    }
+    return null;
+  }
+
+  await createDefaultTreeStructure(project.id, user.organizationId, {
+    engagementFileTemplateId: resolveTreeEngagementTemplateId()
+  });
 
   const applyTpl = data.applyEngagementFileTemplate;
   if (applyTpl !== undefined && applyTpl !== null) {

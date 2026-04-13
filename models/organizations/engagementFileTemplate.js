@@ -22,6 +22,11 @@ export default function (sequelize, DataTypes) {
         defaultValue: false,
         field: 'is_default'
       },
+      projectTreeSnapshot: {
+        type: DataTypes.JSON,
+        allowNull: true,
+        field: 'project_tree_snapshot'
+      },
       createdAt: {
         type: DataTypes.DATE,
         field: 'created_at'

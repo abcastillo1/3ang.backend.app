@@ -6,6 +6,7 @@ import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
 import modelsInstance from '../../../../../models/index.js';
+import { validateProjectTreeSnapshotInput } from '../../../../../helpers/project-tree-snapshot.js';
 
 const validators = [
   validateField('data.templateId')
@@ -21,6 +22,10 @@ const validators = [
     .optional()
     .isBoolean()
     .withMessage('validators.isActive.invalid'),
+  validateField('data.projectTreeSnapshot')
+    .optional({ values: 'null' })
+    .custom(v => v === null || Array.isArray(v))
+    .withMessage('permanentFile.projectTreeSnapshotInvalid'),
   validateRequest,
   authenticate,
   requirePermission('organizations.permanentFileTemplate.manage')
@@ -39,7 +44,11 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'permanentFile.engagementTemplateNotFound');
   }
 
-  if (data.name === undefined && data.setAsDefault === undefined) {
+  if (
+    data.name === undefined
+    && data.setAsDefault === undefined
+    && data.projectTreeSnapshot === undefined
+  ) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.templateUpdateNothingToChange');
   }
 
@@ -57,6 +66,9 @@ async function handler(req, res, next) {
     const updates = {};
     if (data.name !== undefined) updates.name = data.name;
     if (data.setAsDefault === true) updates.isDefault = true;
+    if (data.projectTreeSnapshot !== undefined) {
+      updates.projectTreeSnapshot = validateProjectTreeSnapshotInput(data.projectTreeSnapshot);
+    }
 
     await template.update(updates, { transaction });
     await transaction.commit();

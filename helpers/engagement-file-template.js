@@ -88,6 +88,9 @@ async function applyNormalizedTemplateRows(auditProjectId, rows, transaction) {
 
   const mapKeyToSectionId = {};
   const engagementFileRoot = await findEngagementFileRoot(auditProjectId, transaction);
+  if (!engagementFileRoot) {
+    throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.noEngagementFileRootInProjectTree');
+  }
 
   for (const tsec of rows) {
     const parentSectionId = tsec.parentKey != null ? mapKeyToSectionId[tsec.parentKey] ?? null : null;

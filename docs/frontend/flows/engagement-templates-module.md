@@ -24,13 +24,13 @@ Documento único para implementar **UX + API** con mentalidad de usuario que **r
    - `isSystem: true`
    - `nameKey: "permanentFile.systemEngagementTemplateLabel"` → el front traduce con i18n (no hay `name` en string fijo).
    - `sectionCount`, `itemCount`
-3. Después, **cero o más** plantillas de la firma (`isSystem: false`, `id` numérico, `name`, `isDefault`).
+3. Después, **cero o más** plantillas de la firma (`isSystem: false`, `id` numérico, `name`, `isDefault`, `hasCustomProjectTree`: si la plantilla guarda **raíces propias** del árbol del proyecto vía `projectTreeSnapshot`).
 
 **UX sugerido**
 
 - **Cards** en grid: una card “**Plantilla estándar del sistema**” (badge “Solo lectura” / “Referencia”) y una card por plantilla de la firma (badge “Por defecto” si `isDefault`).
 - Estado vacío copado: solo la card del sistema + CTA claro: **“Crear mi primera plantilla”**.
-- No mezclar con **árbol del proyecto** (`tree-template`): es otro ajuste (5 raíces del encargo). Texto de ayuda corto: *“Esto define las carpetas del Archivo permanente al aplicar plantilla a un proyecto.”*
+- **Árbol del encargo** (`tree-template` en ajustes de firma): define las raíces por defecto de **todos** los proyectos nuevos. Opcionalmente, **cada plantilla de expediente** puede tener `projectTreeSnapshot` (mismo formato que `tree-template`): al crear un proyecto con esa plantilla (ver §5), esas raíces sustituyen al ajuste global para ese proyecto.
 
 ### 2.2 Entrar a la plantilla del sistema (detalle / solo lectura)
 
@@ -75,8 +75,8 @@ Luego redirigir al **editor** de esa plantilla (mismas pantallas que abajo, con 
 | Acción | Endpoint | Body mínimo |
 |--------|----------|-------------|
 | Listar | `templates/list` | `{}` |
-| Crear vacía | `templates/create` | `data.name`, opc. `data.setAsDefault` |
-| Renombrar / marcar defecto | `templates/update` | `data.templateId`, y `data.name` y/o `data.setAsDefault: true` |
+| Crear vacía | `templates/create` | `data.name`, opc. `data.setAsDefault`, opc. `data.projectTreeSnapshot` (array `{ type, name }`; debe incluir al menos una raíz `engagement_file` o `permanent_file`) |
+| Renombrar / marcar defecto / árbol por plantilla | `templates/update` | `data.templateId`, y `data.name`, `data.setAsDefault: true` y/o `data.projectTreeSnapshot` (o `null` para volver al árbol global de la firma) |
 
 **UX:** menú “⋯” en card: Renombrar, Establecer como predeterminada (confirmación si ya hay otra).
 
@@ -103,7 +103,8 @@ CRUD: `sections/create|update|delete`, `items/create|update|delete` (misma plant
 
 - Opcional: **`data.applyEngagementFileTemplate`**: `"system"` **o** id numérico de plantilla de la firma.
 - Requiere además permiso **`projects.engagementFile.manage`**; si no, no ofrecer el control o mostrar mensaje de permiso.
-- Si no envían el campo: el proyecto nace solo con las **5 raíces** del árbol; el usuario puede aplicar plantilla después con **`projects/.../engagement-file/apply-template`**.
+- **Raíces del árbol al crear:** por defecto se usan el ajuste global `tree-template` de la firma (o el default del producto). Si **`applyEngagementFileTemplate`** es un **id numérico** y esa plantilla tiene `projectTreeSnapshot`, el árbol del proyecto nuevo usa **esas** raíces. Para forzar el árbol de una plantilla **sin** aplicar su expediente (p. ej. `applyEngagementFileTemplate: "system"`), enviar **`data.projectTreeFromEngagementTemplateId`** = id de plantilla con snapshot (debe existir en la firma).
+- Si no envían `applyEngagementFileTemplate`: el proyecto nace con las raíces globales (o las de `projectTreeFromEngagementTemplateId` si se envía); el usuario puede aplicar expediente después con **`projects/.../engagement-file/apply-template`**.
 
 ---
 

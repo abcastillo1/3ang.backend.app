@@ -140,7 +140,9 @@ async function handler(req, res, next) {
     };
   });
 
-  const rootDefs = await getProjectTreeRootDefinition(organizationId);
+  const rootDefs = await getProjectTreeRootDefinition(organizationId, {
+    engagementFileTemplateId: templateId
+  });
   const hierarchy = mapProjectRootsWithEngagementBranch(rootDefs, () => ({
     children: engagementSections
   }));

@@ -96,7 +96,9 @@ async function handler(req, res, next) {
     nodeKind: 'template_section'
   }));
 
-  const rootDefs = await getProjectTreeRootDefinition(organizationId);
+  const rootDefs = await getProjectTreeRootDefinition(organizationId, {
+    engagementFileTemplateId: templateId
+  });
   const hierarchy = mapProjectRootsWithEngagementBranch(rootDefs, () => ({
     children: engagementSections
   }));

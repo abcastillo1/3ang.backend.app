@@ -11,7 +11,7 @@ Este archivo es **el único mapa** de cómo encajan árbol, plantilla de firma y
 │                                                                             │
 │   Plantilla maestra del “Archivo permanente” (molde por firma, varias):     │
 │                                                                             │
-│   engagement_file_templates             cabecera (nombre, is_default)       │
+│   engagement_file_templates   cabecera (nombre, is_default, project_tree_snapshot opcional) │
 │            │                                                                │
 │            ├── engagement_file_template_sections   carpetas (ej. KN01…)   │
 │            │        └── engagement_file_template_items   tareas             │
@@ -54,7 +54,7 @@ Este archivo es **el único mapa** de cómo encajan árbol, plantilla de firma y
 **Orden de operaciones en la vida real**
 
 1. Listar opciones: `POST …/organizations/engagement-file-template/templates/list` → incluye `{ id: "system", isSystem: true }` y las de la firma.
-2. `POST /projects/create` con `data.applyEngagementFileTemplate` opcional: `"system"` o id numérico de `engagement_file_templates` (requiere además permiso `projects.engagementFile.manage`). Sin el campo: solo las **5 raíces** en `audit_tree_nodes`.
+2. `POST /projects/create`: las raíces en `audit_tree_nodes` salen del **ajuste global** `project_tree_template` salvo que la plantilla usada tenga `project_tree_snapshot` (JSON, mismo formato que el ajuste global) y se elija al crear: id numérico en `applyEngagementFileTemplate` o explícito en `projectTreeFromEngagementTemplateId`. `applyEngagementFileTemplate` opcional: `"system"` o id (requiere permiso `projects.engagementFile.manage` al aplicar).
 3. O bien después: `POST /projects/.../engagement-file/apply-template` con `data.engagementFileTemplateId` omitido (plantilla **por defecto** de la firma), `"system"`, o id de plantilla.
 
 ---
@@ -91,7 +91,7 @@ Las raíces R2–R5 existen al crear el proyecto; **no** tienen plantilla en BD 
 
 | Dónde | Tabla(s) | Cuándo se usa |
 |-------|-----------|----------------|
-| Firma | `engagement_file_templates` | Varias plantillas por org; una puede ser `is_default` |
+| Firma | `engagement_file_templates` | Varias plantillas por org; una puede ser `is_default`; `project_tree_snapshot` opcional sustituye raíces del árbol al crear proyecto con esa plantilla |
 | Firma | `engagement_file_template_sections`, `engagement_file_template_items` | Molde por plantilla; `apply-template` lee la elegida (o la por defecto) |
 | Producto | (ninguna tabla) | Plantilla sistema: mismo contenido que la semilla JS; id API `"system"` |
 | Proyecto | `audit_tree_nodes` | Árbol UI; raíces al crear proyecto; resto al aplicar plantilla |
@@ -103,7 +103,7 @@ Las raíces R2–R5 existen al crear el proyecto; **no** tienen plantilla en BD 
 
 | Archivo | Rol |
 |---------|-----|
-| `helpers/tree-seed.js` | Las **5 raíces** al crear proyecto |
+| `helpers/tree-seed.js` | Raíces al crear proyecto: global org o, si aplica, `project_tree_snapshot` de la plantilla de expediente |
 | `helpers/default-engagement-file-template-sections.js` | Semilla **solo** para `load-defaults` → tablas plantilla |
 | `helpers/engagement-file-template.js` | Función `applyTemplateToProject` |
 

@@ -6,6 +6,7 @@ import modelsInstance from '../../../../../models/index.js';
 import { SYSTEM_ENGAGEMENT_FILE_TEMPLATE_KEY } from '../../../../../helpers/engagement-file-template-org.js';
 import { DEFAULT_ENGAGEMENT_FILE_TEMPLATE } from '../../../../../helpers/permanent-file-template.js';
 import { QueryTypes } from 'sequelize';
+import { rootsFromStoredSnapshot } from '../../../../../helpers/project-tree-snapshot.js';
 
 const validators = [
   validateRequest,
@@ -68,7 +69,8 @@ async function handler(req, res, next) {
       createdAt: t.createdAt,
       updatedAt: t.updatedAt,
       sectionCount: sectionCountByTemplateId[t.id] ?? 0,
-      itemCount: itemCountByTemplateId[t.id] ?? 0
+      itemCount: itemCountByTemplateId[t.id] ?? 0,
+      hasCustomProjectTree: rootsFromStoredSnapshot(t.projectTreeSnapshot) != null
     }))
   ];
 

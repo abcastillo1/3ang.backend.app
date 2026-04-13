@@ -401,7 +401,7 @@
   },
   "permanentFile": {
     "systemEngagementTemplateLabel": "Plantilla estándar del sistema (KN01–KN10)",
-    "templateUpdateNothingToChange": "Envíe data.name y/o data.setAsDefault para actualizar la plantilla.",
+    "templateUpdateNothingToChange": "Envíe data.name, data.setAsDefault y/o data.projectTreeSnapshot para actualizar la plantilla.",
     "engagementTemplateNotFound": "Plantilla de expediente no encontrada.",
     "noDefaultEngagementTemplate": "No hay plantilla de expediente marcada por defecto en la firma. Cree una con templates/create, marque una como predeterminada, o aplique con engagementFileTemplateId \"system\".",
     "sectionCodeRequiredForSystemTemplateItems": "Para la plantilla del sistema envíe data.sectionCode (ej. KN01), no sectionId.",
@@ -422,7 +422,10 @@
     "itemNotFound": "Ítem del checklist no encontrado",
     "itemCodeExists": "Ya existe un ítem con ese código en la sección",
     "documentNotFound": "El documento no existe o no pertenece al proyecto",
-    "assigneeNotFound": "El usuario asignado no existe o no pertenece a la organización"
+    "assigneeNotFound": "El usuario asignado no existe o no pertenece a la organización",
+    "projectTreeSnapshotInvalid": "projectTreeSnapshot debe ser un array no vacío de { type, name } (mismo formato que la plantilla de árbol de la firma).",
+    "projectTreeSnapshotMissingEngagementRoot": "El árbol debe incluir al menos una raíz con type \"engagement_file\" o \"permanent_file\" para poder aplicar el expediente.",
+    "noEngagementFileRootInProjectTree": "Este proyecto no tiene raíz de expediente en el árbol. Cree el proyecto de nuevo con un árbol válido o añada una raíz engagement_file."
   },
   "establishments": {
     "notFound": "Establecimiento no encontrado",

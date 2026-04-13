@@ -4,6 +4,7 @@ import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import modelsInstance from '../../../../../models/index.js';
+import { validateProjectTreeSnapshotInput } from '../../../../../helpers/project-tree-snapshot.js';
 
 const validators = [
   validateField('data.name')
@@ -15,6 +16,10 @@ const validators = [
     .optional()
     .isBoolean()
     .withMessage('validators.isActive.invalid'),
+  validateField('data.projectTreeSnapshot')
+    .optional()
+    .isArray()
+    .withMessage('permanentFile.projectTreeSnapshotInvalid'),
   validateRequest,
   authenticate,
   requirePermission('organizations.permanentFileTemplate.manage')
@@ -29,6 +34,11 @@ async function handler(req, res, next) {
   const count = await EngagementFileTemplate.count({ where: { organizationId } });
   const makeDefault = data.setAsDefault === true || count === 0;
 
+  let projectTreeSnapshot = null;
+  if (data.projectTreeSnapshot !== undefined) {
+    projectTreeSnapshot = validateProjectTreeSnapshotInput(data.projectTreeSnapshot);
+  }
+
   const sequelize = modelsInstance.sequelize;
   const transaction = await sequelize.transaction();
   try {
@@ -42,7 +52,8 @@ async function handler(req, res, next) {
     const template = await EngagementFileTemplate.create({
       organizationId,
       name: data.name,
-      isDefault: makeDefault
+      isDefault: makeDefault,
+      projectTreeSnapshot
     }, { transaction });
 
     await transaction.commit();
