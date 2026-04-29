@@ -7,7 +7,9 @@ const requiredVars = [
   'DATABASE_NAME',
   'DATABASE_USER',
   'JWT_SECRET',
-  'PORT'
+  'PORT',
+  'ADMIN_API_URL',
+  'ADMIN_SERVICE_TOKEN',
 ];
 
 const missingVars = requiredVars.filter(varName => !process.env[varName]);
@@ -47,3 +49,6 @@ export const AWS_S3_REGION = process.env.AWS_S3_REGION;
 export const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
 export const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 export const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+
+export const ADMIN_API_URL = process.env.ADMIN_API_URL;
+export const ADMIN_SERVICE_TOKEN = process.env.ADMIN_SERVICE_TOKEN;

@@ -1,11 +1,10 @@
-import { validateField } from '../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
-import modelsInstance from '../../../../models/index.js';
 import { TYPE_SECTION_NODE, TYPE_CHECKLIST_ITEM_NODE } from '../../../../helpers/engagement-file-tree-sync.js';
 import { loadAssigneesForItems, loadAssigneesForItem } from '../../../../helpers/checklist-item-assignees.js';
 import { fetchCrossReferencesFromNode } from '../../../../helpers/cross-reference.js';
@@ -58,7 +57,7 @@ async function handler(req, res, next) {
     ChecklistItem,
     AuditDocument,
     User
-  } = modelsInstance.models;
+  } = req.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -186,7 +185,7 @@ async function handler(req, res, next) {
   }
 
   if (includeCrossReferences) {
-    payload.crossReferences = await fetchCrossReferencesFromNode(modelsInstance.models, {
+    payload.crossReferences = await fetchCrossReferencesFromNode(req.models, {
       organizationId: user.organizationId,
       auditProjectId: project.id,
       nodeId: node.id

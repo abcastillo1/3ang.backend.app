@@ -1,11 +1,10 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
-import modelsInstance from '../../../models/index.js';
 import { assertCommentAttachable } from '../../../helpers/comment-document.js';
 
 export const validators = [
@@ -43,7 +42,7 @@ async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
 
-  const { AuditDocument, AuditProject } = modelsInstance.models;
+  const { AuditDocument, AuditProject } = req.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -69,7 +68,7 @@ async function handler(req, res, next) {
       commentId: data.commentId,
       nodeId: data.nodeId ?? null,
       auditProjectId: data.auditProjectId,
-      models: modelsInstance.models
+      models: req.models
     });
   }
 
@@ -88,7 +87,7 @@ async function handler(req, res, next) {
   });
 
   if (data.commentId) {
-    await modelsInstance.models.ChecklistItemComment.increment('attachment_count', {
+    await req.models.ChecklistItemComment.increment('attachment_count', {
       by: linkedIds.length,
       where: { id: data.commentId }
     });

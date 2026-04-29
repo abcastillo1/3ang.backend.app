@@ -1,4 +1,4 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
@@ -8,7 +8,6 @@ import { Op } from 'sequelize';
 import { fetchCrossReferencesByDocumentIds } from '../../../helpers/cross-reference.js';
 
 // Por defecto, listado por nodeId excluye adjuntos de comentarios (evidencia solamente)
-import modelsInstance from '../../../models/index.js';
 
 export const validators = [
   validateField('data.auditProjectId')
@@ -83,7 +82,7 @@ function collectExcludeDocumentIds(data) {
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditDocument, User } = modelsInstance.models;
+  const { AuditDocument, User } = req.models;
 
   const page = parseInt(data.page) || 1;
   const limit = parseInt(data.limit) || 20;
@@ -159,7 +158,7 @@ async function handler(req, res, next) {
   };
 
   if (data.includeCrossReferences === true) {
-    const models = modelsInstance.models;
+    const models = req.models;
     const byProject = new Map();
     for (const doc of documents) {
       if (!doc.auditProjectId) continue;

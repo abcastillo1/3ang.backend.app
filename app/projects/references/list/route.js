@@ -1,11 +1,10 @@
-import { validateField } from '../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
-import modelsInstance from '../../../../models/index.js';
 import { Op } from 'sequelize';
 import { CROSS_REF_KINDS } from '../../../../helpers/cross-reference.js';
 
@@ -52,7 +51,7 @@ async function enrichRows(rows, includeDetails, auditProjectId) {
     if (r.targetKind === 'document') docIds.add(r.targetId);
     else nodeIds.add(r.targetId);
   }
-  const { AuditDocument, AuditTreeNode } = modelsInstance.models;
+  const { AuditDocument, AuditTreeNode } = req.models;
   const docs = docIds.size
     ? await AuditDocument.findAll({
         where: { id: [...docIds], auditProjectId },
@@ -85,7 +84,7 @@ async function enrichRows(rows, includeDetails, auditProjectId) {
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, AuditCrossReference } = modelsInstance.models;
+  const { AuditProject, AuditCrossReference } = req.models;
   const direction = data.direction || 'both';
   const scopeKind = data.kind;
   const scopeId = parseInt(data.id, 10);

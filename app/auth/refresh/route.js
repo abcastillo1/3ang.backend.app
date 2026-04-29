@@ -1,17 +1,16 @@
-import apiResponse from '../../../helpers/response.js';
+﻿import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET, JWT_EXPIRES_IN } from '../../../config/environment.js';
 import { HTTP_STATUS, ERROR_CODES } from '../../../config/constants.js';
 import { throwError } from '../../../helpers/errors.js';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
   authenticate
 ];
 
 async function handler(req, res, next) {
-  const { UserSession } = modelsInstance.models;
+  const { UserSession } = req.models;
   const currentToken = req.headers.authorization?.substring(7);
   
   let session = req.session;
@@ -20,7 +19,7 @@ async function handler(req, res, next) {
     session = await UserSession.findOne({
       where: { token: currentToken },
       include: [{
-        model: modelsInstance.models.User,
+        model: req.models.User,
         as: 'user',
         where: { isActive: true },
         required: true

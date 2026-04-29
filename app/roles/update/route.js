@@ -1,10 +1,9 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import apiResponse from '../../../helpers/response.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import { throwError } from '../../../helpers/errors.js';
-import modelsInstance from '../../../models/index.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 
 const validators = [
@@ -28,7 +27,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const { data } = req.body;
-  const { Role } = modelsInstance.models;
+  const { Role } = req.models;
 
   const role = await Role.findOne({
     where: {
@@ -67,7 +66,7 @@ async function handler(req, res, next) {
   req.activityContext = { roleId: role.id, roleName: role.name };
   const roleWithPermissions = await Role.findByPk(role.id, {
     include: [{
-      model: modelsInstance.models.Permission,
+      model: req.models.Permission,
       as: 'permissions',
       attributes: ['id', 'code', 'description', 'module'],
       through: { attributes: [] }

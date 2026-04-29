@@ -1,11 +1,10 @@
-import { validateField } from '../../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../../helpers/validator.js';
 import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
-import modelsInstance from '../../../../../models/index.js';
 import { resolveOrgTemplateId, isSystemEngagementTemplateRef } from '../../../../../helpers/engagement-file-template-org.js';
 import { validateOptionalEngagementFileTemplateId } from '../../../../../helpers/engagement-file-template-request.js';
 
@@ -45,7 +44,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { EngagementFileTemplateSection } = modelsInstance.models;
+  const { EngagementFileTemplateSection } = req.models;
 
   if (isSystemEngagementTemplateRef(data?.engagementFileTemplateId)) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.cannotMutateSystemEngagementTemplate');
@@ -53,7 +52,7 @@ async function handler(req, res, next) {
 
   const orgId = user.organizationId;
   const templateId = await resolveOrgTemplateId(
-    modelsInstance.models,
+    req.models,
     orgId,
     data?.engagementFileTemplateId,
     null

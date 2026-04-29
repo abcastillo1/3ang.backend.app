@@ -1,10 +1,9 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import apiResponse from '../../../helpers/response.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import { throwError } from '../../../helpers/errors.js';
-import modelsInstance from '../../../models/index.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 
 const validators = [
@@ -20,7 +19,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const { data } = req.body;
-  const { Role, User } = modelsInstance.models;
+  const { Role, User } = req.models;
 
   const role = await Role.findOne({
     where: {

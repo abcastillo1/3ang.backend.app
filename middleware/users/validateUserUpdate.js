@@ -1,11 +1,10 @@
-import { HTTP_STATUS } from '../../config/constants.js';
+﻿import { HTTP_STATUS } from '../../config/constants.js';
 import { throwError } from '../../helpers/errors.js';
-import modelsInstance from '../../models/index.js';
 import { Op } from 'sequelize';
 
 export default async function validateUserUpdate(req, res, next) {
   const { data } = req.body;
-  const { User, Role } = modelsInstance.models;
+  const { User, Role } = req.models;
   const authenticatedUser = req.userModel;
   
   Object.keys(data).forEach(key => {

@@ -1,10 +1,9 @@
-import { HTTP_STATUS } from '../../config/constants.js';
+﻿import { HTTP_STATUS } from '../../config/constants.js';
 import { throwError } from '../../helpers/errors.js';
-import modelsInstance from '../../models/index.js';
 
 export default async function validateUserUpdatePermissions(req, res, next) {
   const { data } = req.body;
-  const { User } = modelsInstance.models;
+  const { User } = req.models;
   
   const userToUpdate = req.userToUpdate;
   
@@ -17,10 +16,10 @@ export default async function validateUserUpdatePermissions(req, res, next) {
   if (!authenticatedUser || !authenticatedUser.role || !authenticatedUser.role.permissions) {
     authenticatedUser = await User.findByPk(req.user.id, {
       include: [{
-        model: modelsInstance.models.Role,
+        model: req.models.Role,
         as: 'role',
         include: [{
-          model: modelsInstance.models.Permission,
+          model: req.models.Permission,
           as: 'permissions'
         }]
       }]

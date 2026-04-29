@@ -1,6 +1,5 @@
-import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
+﻿import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
 import { throwError } from '../helpers/errors.js';
-import modelsInstance from '../models/index.js';
 
 export function requirePermission(permissionCode) {
   return async function (req, res, next) {
@@ -8,13 +7,13 @@ export function requirePermission(permissionCode) {
       throwError(HTTP_STATUS.UNAUTHORIZED, 'permissions.userNotAuthenticated');
     }
 
-    const { User } = modelsInstance.models;
+    const { User } = req.models;
     const user = await User.findByPk(req.user.id, {
       include: [{
-        model: modelsInstance.models.Role,
+        model: req.models.Role,
         as: 'role',
         include: [{
-          model: modelsInstance.models.Permission,
+          model: req.models.Permission,
           as: 'permissions'
         }]
       }]

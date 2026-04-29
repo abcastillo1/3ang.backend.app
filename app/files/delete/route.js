@@ -1,11 +1,10 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
-import modelsInstance from '../../../models/index.js';
 
 export const validators = [
   validateField('data.id')
@@ -21,7 +20,7 @@ export const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditDocument } = modelsInstance.models;
+  const { AuditDocument } = req.models;
   console.log('data', data.id, user.organizationId);
   const document = await AuditDocument.findOne({
     where: { id: data.id, organizationId: user.organizationId }
@@ -37,7 +36,7 @@ async function handler(req, res, next) {
     originalName: document.originalName
   };
   if (document.commentId) {
-    const { ChecklistItemComment } = modelsInstance.models;
+    const { ChecklistItemComment } = req.models;
     const c = await ChecklistItemComment.findByPk(document.commentId, {
       attributes: ['id', 'attachmentCount']
     });

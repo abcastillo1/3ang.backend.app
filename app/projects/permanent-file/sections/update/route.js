@@ -1,11 +1,10 @@
-import { validateField } from '../../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../../helpers/validator.js';
 import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
-import modelsInstance from '../../../../../models/index.js';
 import {
   findEngagementFileRoot,
   updateTreeNodeName,
@@ -60,8 +59,8 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, EngagementFileSection } = modelsInstance.models;
-  const sequelize = modelsInstance.sequelize;
+  const { AuditProject, EngagementFileSection } = req.models;
+  const sequelize = req.db;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }

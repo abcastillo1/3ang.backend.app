@@ -1,10 +1,9 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
 import { Op } from 'sequelize';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
   validateField('data.page')
@@ -35,7 +34,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, Client } = modelsInstance.models;
+  const { AuditProject, Client } = req.models;
 
   const page = parseInt(data.page) || 1;
   const limit = parseInt(data.limit) || 20;

@@ -1,11 +1,10 @@
-import { validateField } from '../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
-import modelsInstance from '../../../../models/index.js';
 import { CROSS_REF_RELATION_TYPES } from '../../../../helpers/cross-reference.js';
 
 const validators = [
@@ -42,7 +41,7 @@ function requireAtLeastOneField(data) {
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, AuditCrossReference } = modelsInstance.models;
+  const { AuditProject, AuditCrossReference } = req.models;
 
   requireAtLeastOneField(data);
 

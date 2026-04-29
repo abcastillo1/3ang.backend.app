@@ -1,9 +1,8 @@
-import validateRequest from '../../../../middleware/validation.js';
+﻿import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
-import modelsInstance from '../../../../models/index.js';
 import { SETTING_KEY, DEFAULT_TREE_TEMPLATE } from '../../../../helpers/tree-seed.js';
 
 const validators = [
@@ -13,7 +12,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const { user } = req;
-  const { OrganizationSetting, Organization } = modelsInstance.models;
+  const { OrganizationSetting, Organization } = req.models;
 
   const org = await Organization.findByPk(user.organizationId);
   if (!org || org.ownerUserId !== user.id) {

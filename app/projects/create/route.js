@@ -1,11 +1,10 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import apiResponse from '../../../helpers/response.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
-import modelsInstance from '../../../models/index.js';
 import { createDefaultTreeStructure } from '../../../helpers/tree-seed.js';
 import { applyTemplateToProject } from '../../../helpers/permanent-file-template.js';
 import { isSystemEngagementTemplateRef } from '../../../helpers/engagement-file-template-org.js';
@@ -62,7 +61,7 @@ async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
   const { AuditProject, Client, AuditDocument, OrganizationSetting, EngagementFileTemplate } =
-    modelsInstance.models;
+    req.models;
 
   const client = await Client.findOne({
     where: { id: data.clientId, organizationId: user.organizationId }
@@ -161,7 +160,7 @@ async function handler(req, res, next) {
   }
 
   const result = await AuditProject.findByPk(project.id, {
-    include: [{ model: modelsInstance.models.Client, as: 'client', attributes: ['id', 'name', 'ruc'] }]
+    include: [{ model: req.models.Client, as: 'client', attributes: ['id', 'name', 'ruc'] }]
   });
 
   req.activityContext = { projectId: project.id, projectName: project.name, clientId: data.clientId };

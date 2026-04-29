@@ -1,10 +1,9 @@
-import { HTTP_STATUS } from '../../config/constants.js';
+﻿import { HTTP_STATUS } from '../../config/constants.js';
 import { throwError } from '../../helpers/errors.js';
-import modelsInstance from '../../models/index.js';
 
 export default async function validateUserCreation(req, res, next) {
   const { data } = req.body;
-  const { User, Role } = modelsInstance.models;
+  const { User, Role } = req.models;
 
   const existingUser = await User.findByEmail(data.email);
   

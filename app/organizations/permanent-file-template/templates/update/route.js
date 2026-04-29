@@ -1,11 +1,10 @@
-import { validateField } from '../../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../../helpers/validator.js';
 import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
-import modelsInstance from '../../../../../models/index.js';
 import { validateProjectTreeSnapshotInput } from '../../../../../helpers/project-tree-snapshot.js';
 
 const validators = [
@@ -34,7 +33,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { EngagementFileTemplate } = modelsInstance.models;
+  const { EngagementFileTemplate } = req.models;
   const organizationId = user.organizationId;
 
   const template = await EngagementFileTemplate.findOne({
@@ -52,7 +51,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.BAD_REQUEST, 'permanentFile.templateUpdateNothingToChange');
   }
 
-  const sequelize = modelsInstance.sequelize;
+  const sequelize = req.db;
   const transaction = await sequelize.transaction();
 
   try {

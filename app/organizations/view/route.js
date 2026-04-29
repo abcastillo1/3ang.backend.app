@@ -1,9 +1,8 @@
-import apiResponse from '../../../helpers/response.js';
+﻿import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
     validateField('data.id')
@@ -17,7 +16,7 @@ const validators = [
 ];
 
 async function handler(req, res, next) {
-    const { Organization } = modelsInstance.models;
+    const { Organization } = req.models;
     const { id } = req.body.data;
 
     try {

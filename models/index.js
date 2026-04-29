@@ -15,10 +15,10 @@ class Models {
     this.models = {};
   }
 
-  async initialize() {
+  async initialize(overrides = {}) {
     const config = {
-      host: DATABASE_HOST,
-      port: DATABASE_PORT,
+      host: overrides.host || DATABASE_HOST,
+      port: overrides.port || DATABASE_PORT,
       dialect: 'mysql',
       logging: NODE_ENV === 'development' ? (msg) => logger.debug(msg) : false,
       pool: {
@@ -30,9 +30,9 @@ class Models {
     };
 
     this.sequelize = new Sequelize(
-      DATABASE_NAME,
-      DATABASE_USER,
-      DATABASE_PASSWORD,
+      overrides.database || DATABASE_NAME,
+      overrides.username || DATABASE_USER,
+      overrides.password !== undefined ? overrides.password : DATABASE_PASSWORD,
       config
     );
 

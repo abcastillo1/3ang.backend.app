@@ -1,10 +1,9 @@
-import apiResponse from '../../../helpers/response.js';
+﻿import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
 import validateRequest from '../../../middleware/validation.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
 import { throwError } from '../../../helpers/errors.js';
 import { logger } from '../../../helpers/logger.js';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
   validateRequest,
@@ -12,7 +11,7 @@ const validators = [
 ];
 
 async function handler(req, res, next) {
-  const { UserSession, AuditLog } = modelsInstance.models;
+  const { UserSession, AuditLog } = req.models;
   const token = req.headers.authorization?.substring(7);
   
   if (!token) {

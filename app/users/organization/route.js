@@ -1,13 +1,12 @@
-import apiResponse from '../../../helpers/response.js';
+﻿import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
   authenticate
 ];
 
 async function handler(req, res, next) {
-  const { OrganizationSetting } = modelsInstance.models;
+  const { OrganizationSetting } = req.models;
 
   const settings = await OrganizationSetting.findAll({
     where: { organizationId: req.organization.id }

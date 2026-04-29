@@ -1,6 +1,5 @@
-import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
+﻿import { HTTP_STATUS, ERROR_CODES } from '../config/constants.js';
 import { throwError } from '../helpers/errors.js';
-import modelsInstance from '../models/index.js';
 
 export default async function validateSession(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -10,7 +9,7 @@ export default async function validateSession(req, res, next) {
   }
   
   const token = authHeader.substring(7);
-  const { UserSession } = modelsInstance.models;
+  const { UserSession } = req.models;
   
   const session = await UserSession.findActiveByToken(token);
   

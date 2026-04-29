@@ -1,11 +1,10 @@
-import { validateField } from '../../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../../helpers/validator.js';
 import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
-import modelsInstance from '../../../../../models/index.js';
 
 const validators = [
   validateField('data.sectionId')
@@ -21,7 +20,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = req.models;
 
   const section = await EngagementFileTemplateSection.findOne({
     where: { id: data.sectionId, organizationId: user.organizationId },

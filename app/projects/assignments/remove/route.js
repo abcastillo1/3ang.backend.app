@@ -1,11 +1,10 @@
-import { validateField } from '../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
-import modelsInstance from '../../../../models/index.js';
 
 const validators = [
   validateField('data.auditProjectId')
@@ -26,7 +25,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { AuditProject, ProjectAssignment } = modelsInstance.models;
+  const { AuditProject, ProjectAssignment } = req.models;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -42,7 +41,7 @@ async function handler(req, res, next) {
     throw throwError(HTTP_STATUS.NOT_FOUND, 'projects.assignments.notFound');
   }
 
-  const { User } = modelsInstance.models;
+  const { User } = req.models;
   const removedUser = await User.findByPk(data.userId, { attributes: ['id', 'fullName', 'email'] });
   const removedName = removedUser ? (removedUser.fullName || removedUser.email) : 'Usuario';
 

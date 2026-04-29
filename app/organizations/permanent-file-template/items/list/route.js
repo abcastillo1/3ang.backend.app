@@ -1,11 +1,10 @@
-import { validateField } from '../../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../../helpers/validator.js';
 import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
-import modelsInstance from '../../../../../models/index.js';
 import { isSystemEngagementTemplateRef, resolveOrgTemplateId } from '../../../../../helpers/engagement-file-template-org.js';
 import { validateOptionalEngagementFileTemplateId } from '../../../../../helpers/engagement-file-template-request.js';
 import { DEFAULT_ENGAGEMENT_FILE_TEMPLATE } from '../../../../../helpers/permanent-file-template.js';
@@ -64,7 +63,7 @@ const validators = [
 async function handler(req, res, next) {
   const { data } = req.body;
   const { user } = req;
-  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = modelsInstance.models;
+  const { EngagementFileTemplateSection, EngagementFileTemplateItem } = req.models;
   const organizationId = user.organizationId;
 
   if (isSystemEngagementTemplateRef(data?.engagementFileTemplateId)) {
@@ -91,7 +90,7 @@ async function handler(req, res, next) {
   }
 
   const templateId = await resolveOrgTemplateId(
-    modelsInstance.models,
+    req.models,
     organizationId,
     data?.engagementFileTemplateId,
     null

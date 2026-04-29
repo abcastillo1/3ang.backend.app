@@ -1,8 +1,7 @@
-import validateRequest from '../../../../../middleware/validation.js';
+﻿import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
-import modelsInstance from '../../../../../models/index.js';
 import { SYSTEM_ENGAGEMENT_FILE_TEMPLATE_KEY } from '../../../../../helpers/engagement-file-template-org.js';
 import { DEFAULT_ENGAGEMENT_FILE_TEMPLATE } from '../../../../../helpers/permanent-file-template.js';
 import { QueryTypes } from 'sequelize';
@@ -16,8 +15,8 @@ const validators = [
 
 async function handler(req, res, next) {
   const { user } = req;
-  const { EngagementFileTemplate } = modelsInstance.models;
-  const sequelize = modelsInstance.sequelize;
+  const { EngagementFileTemplate } = req.models;
+  const sequelize = req.db;
   const organizationId = user.organizationId;
 
   const orgTemplates = await EngagementFileTemplate.findAll({

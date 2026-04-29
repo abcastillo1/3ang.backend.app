@@ -1,11 +1,10 @@
-import { validateField } from '../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../helpers/validator.js';
 import validateRequest from '../../../../middleware/validation.js';
 import authenticate from '../../../../middleware/auth.js';
 import { requirePermission } from '../../../../middleware/permissions.js';
 import apiResponse from '../../../../helpers/response.js';
 import { throwError } from '../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../config/constants.js';
-import modelsInstance from '../../../../models/index.js';
 import { getActivityDescription } from '../../../../middleware/i18n.js';
 
 const validators = [
@@ -48,7 +47,7 @@ async function handler(req, res, next) {
   const { page = 1, limit = 20, auditProjectId, userId, action, entity, locale } = data;
   const { user } = req;
   const requestLocale = locale || req.get('Accept-Language') || 'es';
-  const { ActivityLog, AuditProject, User } = modelsInstance.models;
+  const { ActivityLog, AuditProject, User } = req.models;
 
   const where = { organizationId: user.organizationId };
 

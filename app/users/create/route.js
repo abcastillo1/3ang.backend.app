@@ -1,10 +1,10 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import apiResponse from '../../../helpers/response.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
 import validateUserCreation from '../../../middleware/users/validateUserCreation.js';
-import modelsInstance from '../../../models/index.js';
+import { registerEmailRouting } from '../../../helpers/admin-api-client.js';
 
 const validators = [
   validateField('data.fullName')
@@ -53,7 +53,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const { data } = req.body;
-  const { User } = modelsInstance.models;
+  const { User } = req.models;
 
   const userData = {
     organizationId: req.user.organizationId,
@@ -69,6 +69,9 @@ async function handler(req, res, next) {
   };
 
   const newUser = await User.create(userData);
+
+  // Register email in admin control plane so tenant-lookup works for this user
+  await registerEmailRouting(data.email, req.user.organizationId);
 
   req.activityContext = { userId: newUser.id, userFullName: data.fullName, userEmail: data.email };
   const response = {

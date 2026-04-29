@@ -1,11 +1,10 @@
-import { validateField } from '../../../../../helpers/validator.js';
+﻿import { validateField } from '../../../../../helpers/validator.js';
 import validateRequest from '../../../../../middleware/validation.js';
 import authenticate from '../../../../../middleware/auth.js';
 import { requirePermission } from '../../../../../middleware/permissions.js';
 import apiResponse from '../../../../../helpers/response.js';
 import { throwError } from '../../../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../../../config/constants.js';
-import modelsInstance from '../../../../../models/index.js';
 import { sanitizeRichTextHtml, hasMeaningfulRichTextContent } from '../../../../../helpers/html-sanitize.js';
 import {
   createTreeChild,
@@ -88,8 +87,8 @@ async function handler(req, res, next) {
     EngagementFileSection,
     ChecklistItem: ChecklistItemModel,
     User
-  } = modelsInstance.models;
-  const sequelize = modelsInstance.sequelize;
+  } = req.models;
+  const sequelize = req.db;
 
   const project = await AuditProject.findOne({
     where: { id: data.auditProjectId, organizationId: user.organizationId }
@@ -147,7 +146,7 @@ async function handler(req, res, next) {
     }
 
     if (section.treeNodeId) {
-      const sectionNode = await modelsInstance.models.AuditTreeNode.findByPk(section.treeNodeId, { transaction });
+      const sectionNode = await req.models.AuditTreeNode.findByPk(section.treeNodeId, { transaction });
       if (sectionNode) {
         const itemNode = await createTreeChild(
           project.id,

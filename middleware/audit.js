@@ -1,11 +1,10 @@
-import modelsInstance from '../models/index.js';
-
+﻿
 export function auditLog(action, entity = null) {
   return async function (req, res, next) {
     const originalJson = res.json.bind(res);
     
     res.json = function (data) {
-      const { AuditLog } = modelsInstance.models;
+      const { AuditLog } = req.models;
       
       if (req.user && req.user.id && res.statusCode < 400) {
         const organizationId = req.user.organizationId || req.user.organization_id;

@@ -1,9 +1,9 @@
+﻿import { Op } from 'sequelize';
 import { validateField } from '../../../helpers/validator.js';
 import apiResponse from '../../../helpers/response.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
 
@@ -64,7 +64,7 @@ const validators = [
 
 async function handler(req, res, next) {
     const { data } = req.body;
-    const { Organization } = modelsInstance.models;
+    const { Organization } = req.models;
 
     try {
         const organization = await Organization.findByPk(data.id);
@@ -75,8 +75,7 @@ async function handler(req, res, next) {
 
         // Validación de unicidad para RUC (excluyendo el actual)
         if (data.ruc) {
-            const { Op } = modelsInstance.Sequelize;
-            const existing = await Organization.findOne({
+                        const existing = await Organization.findOne({
                 where: {
                     id: { [Op.ne]: data.id },
                     ruc: data.ruc

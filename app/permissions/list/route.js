@@ -1,9 +1,8 @@
-import apiResponse from '../../../helpers/response.js';
+﻿import apiResponse from '../../../helpers/response.js';
 import authenticate from '../../../middleware/auth.js';
 import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import { Op } from 'sequelize';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
   validateField('data.module')
@@ -16,7 +15,7 @@ const validators = [
 
 async function handler(req, res, next) {
   const { data } = req.body;
-  const { Permission } = modelsInstance.models;
+  const { Permission } = req.models;
 
   const where = {};
   

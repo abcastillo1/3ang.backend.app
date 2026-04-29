@@ -1,4 +1,4 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
@@ -6,7 +6,6 @@ import apiResponse from '../../../helpers/response.js';
 import { storageService } from '../../../helpers/storage.js';
 import { throwError } from '../../../helpers/errors.js';
 import { HTTP_STATUS } from '../../../config/constants.js';
-import modelsInstance from '../../../models/index.js';
 import { assertCommentAttachable } from '../../../helpers/comment-document.js';
 
 const ALLOWED_CATEGORIES = ['audit_evidences', 'fiscal_reports', 'company_docs'];
@@ -71,7 +70,7 @@ async function handler(req, res, next) {
   const nodeId = data.nodeId ?? null;
   const commentId = data.commentId ?? null;
 
-  const { AuditDocument, AuditProject } = modelsInstance.models;
+  const { AuditDocument, AuditProject } = req.models;
 
   if (commentId) {
     if (!auditProjectId) {
@@ -81,7 +80,7 @@ async function handler(req, res, next) {
       commentId,
       nodeId,
       auditProjectId,
-      models: modelsInstance.models
+      models: req.models
     });
   }
 
@@ -109,7 +108,7 @@ async function handler(req, res, next) {
   });
 
   if (commentId) {
-    await modelsInstance.models.ChecklistItemComment.increment('attachment_count', {
+    await req.models.ChecklistItemComment.increment('attachment_count', {
       where: { id: commentId }
     });
   }
@@ -130,7 +129,7 @@ async function handler(req, res, next) {
     analysisStatus: record.analysisStatus
   };
 
-  const project = auditProjectId ? await modelsInstance.models.AuditProject.findByPk(auditProjectId, { attributes: ['name'] }) : null;
+  const project = auditProjectId ? await req.models.AuditProject.findByPk(auditProjectId, { attributes: ['name'] }) : null;
   req.activityContext = {
     documentId: record.id,
     auditProjectId: auditProjectId || undefined,

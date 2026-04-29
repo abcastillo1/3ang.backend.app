@@ -1,9 +1,8 @@
-import { validateField } from '../../../helpers/validator.js';
+﻿import { validateField } from '../../../helpers/validator.js';
 import apiResponse from '../../../helpers/response.js';
 import validateRequest from '../../../middleware/validation.js';
 import authenticate from '../../../middleware/auth.js';
 import { requirePermission } from '../../../middleware/permissions.js';
-import modelsInstance from '../../../models/index.js';
 
 const validators = [
     validateField('data.name')
@@ -52,7 +51,7 @@ const validators = [
 
 async function handler(req, res, next) {
     const { data } = req.body;
-    const { Organization } = modelsInstance.models;
+    const { Organization } = req.models;
 
     // Validación de unicidad para RUC
     if (data.ruc) {
