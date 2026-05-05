@@ -39,7 +39,7 @@ async function handler(req, res, next) {
 
     const fileExtension = path.extname(file.originalname);
     const fileName = `${uuidv4()}${fileExtension}`;
-    const storagePath = `${user.organizationId}/${category}/${fileName}`;
+    const storagePath = `users/${user.organizationId}/${category}/${fileName}`;
 
     try {
       const rest = await storageService.uploadFile(

@@ -55,7 +55,7 @@ async function handler(req, res, next) {
   const ext = path.extname(data.name) || '';
   const uniqueName = `${uuidv4()}${ext}`;
   const caseSegment = data.auditCaseId ? String(data.auditCaseId) : 'general';
-  const key = `${user.organizationId}/${data.category}/${caseSegment}/${uniqueName}`;
+  const key = `users/${user.organizationId}/${data.category}/${caseSegment}/${uniqueName}`;
 
   const { uploadUrl, key: storageKey, expiresIn } = await storageService.generateUploadUrl(
     key,

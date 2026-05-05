@@ -22,7 +22,7 @@ async function handler(req, res, next) {
   const { user } = req;
 
   const key = data.key.trim();
-  const expectedPrefix = `${user.organizationId}/`;
+  const expectedPrefix = `users/${user.organizationId}/`;
   if (!key.startsWith(expectedPrefix)) {
     throw throwError(HTTP_STATUS.FORBIDDEN, 'files.downloadUrl.forbidden');
   }
